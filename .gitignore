@@ -1,0 +1,4 @@
+/_packer.json
+/.venv
+/out
+/packer_cache

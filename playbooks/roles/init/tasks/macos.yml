@@ -1,0 +1,48 @@
+- name: Set time zone to GMT
+  command: systemsetup -settimezone GMT
+  become: true
+
+- name: Disable hibernate
+  command: pmset hibernatemode 0
+  become: true
+
+- name: Disable sleep
+  command: systemsetup -setsleep Off
+  become: true
+
+- name: Disable computer sleep
+  command: systemsetup -setcomputersleep Off
+  become: true
+
+- name: Disable display sleep
+  command: systemsetup -setdisplaysleep Off
+  become: true
+
+- name: Disable hard disk sleep
+  command: systemsetup -setharddisksleep Off
+  become: true
+
+- name: Disable App Sleep
+  osx_defaults:
+    key: NSAppSleepDisabled
+    type: bool
+    value: true
+
+- name: Disable screensaver password
+  osx_defaults:
+    host: currentHost
+    domain: com.apple.screensaver
+    key: askForPassword
+    type: bool
+    value: false
+
+- osx_defaults:
+    domain: /Library/Preferences/com.apple.SoftwareUpdate
+    key: AutomaticCheckEnabled
+    type: int
+    value: 0
+  become: true
+
+- name: Disable Spotlight indexing
+  command: mdutil -i off /
+  become: true

@@ -1,0 +1,15 @@
+---
+- name: Base image provision
+  hosts: default
+  remote_user: admin
+  roles:
+  - role: init
+    tags: [init]
+#  - role: ssh
+#    tags: [ssh]
+#  - role: xcode
+#    tags: [xcode]
+#  - role: homebrew
+#    tags: [homebrew]
+  - role: cleanup
+    tags: [cleanup]

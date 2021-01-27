@@ -1,0 +1,30 @@
+- name: Delete hibernate sleepimage file
+  file:
+    state: absent
+    path: /var/vm/sleepimage
+  become: true
+
+- name: Delete bash history
+  file:
+    state: absent
+    path: /Users/admin/{{ item }}
+  loop:
+    - .bash_history
+    - .bash_sessions
+
+- name: Empty trash
+  file:
+    state: absent
+    path: /Users/admin/.Trash
+
+- name: Clean caches
+  shell: rm -rf /Library/Caches/* /Users/admin/Library/Caches/*
+  become: true
+
+- name: Clean tmp directory
+  shell: rm -rf /tmp/*
+  become: true
+
+- name: Fill free space with zeroes
+  shell: cat /dev/zero > wipefile; rm -f wipefile
+  become: true
