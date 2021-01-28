@@ -1,8 +1,15 @@
 # MacOSX Image builder
 
+## Requirements
+
+* Python 3
+* VMWare Fusion
+* For MacOS image:
+  * Can only be running on MacOS (license restrictions)
+
 ## How to create from scratch
 
-### 1. Create ISO
+### 1. Create ISO of MacOS installer
 
 1. Download MacOS installer from app store:
   * [Catalina 10.15](https://itunes.apple.com/us/app/macos-catalina/id1466841314?ls=1&mt=12)
@@ -43,11 +50,11 @@
 ### 3. Run packer over the created VM
 
 **WARNING:** make sure you don't have VPN enabled, otherwise it will lead to redirect your traffic through
-VPN and will never find your VM host.
+VPN and will never find your VM host. VM only have connection to host, not to the local net / internet.
 
 Now when all the required things are ready - you can run the image builder:
 ```
-$ ./build_macos.sh "${HOME}/Virtual Machines.localized/macOS_10.15_basic.vmwarevm/macOS_10.15_basic.vmx"
+$ ./build_macos.sh "${HOME}/Build/macos-vmware/Catalina.iso"
 ```
 
 This script will automatically create the useful slim base image in out directory

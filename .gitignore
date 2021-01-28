@@ -1,4 +1,4 @@
-/_packer.json
+/packer/*.json
 /.venv
 /out
 /packer_cache
