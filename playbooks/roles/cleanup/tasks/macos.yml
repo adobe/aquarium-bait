@@ -1,3 +1,4 @@
+---
 - name: Delete hibernate sleepimage file
   file:
     state: absent
@@ -7,7 +8,7 @@
 - name: Delete bash history
   file:
     state: absent
-    path: /Users/admin/{{ item }}
+    path: /Users/{{ ansible_user }}/{{ item }}
   loop:
     - .bash_history
     - .bash_sessions
@@ -15,16 +16,28 @@
 - name: Empty trash
   file:
     state: absent
-    path: /Users/admin/.Trash
+    path: /Users/{{ ansible_user }}/.Trash
 
-- name: Clean caches
-  shell: rm -rf /Library/Caches/* /Users/admin/Library/Caches/*
-  become: true
+- name: Clean caches & tmp dirs
+  block:
+    - name: Check caches & temp files
+      find:
+        file_type: any
+        paths:
+          - /Library/Caches
+          - /Users/{{ ansible_user }}/Library/Caches
+          - /tmp
+      register: caches_res
 
-- name: Clean tmp directory
-  shell: rm -rf /tmp/*
-  become: true
+    - name: Clean found items
+      when: caches_res.matched > 0
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ caches_res.files }}"
+      become: true
 
 - name: Fill free space with zeroes
   shell: cat /dev/zero > wipefile; rm -f wipefile
+  changed_when: false
   become: true

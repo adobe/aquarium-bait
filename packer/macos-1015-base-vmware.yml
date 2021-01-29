@@ -8,7 +8,7 @@ variables:
   username: packer
   password: packer
 builders:
-  - type: vmware-vmx
+  - type: vmware-vmx # vmware-iso is useless for macos installation
     vm_name: "{{ user `vm_name` }}"
     display_name: "{{ user `vm_name` }}"
     source_path: "{{ user `vmx_path` }}"
@@ -76,7 +76,7 @@ builders:
     disk_additional_size: [40960]
     disk_adapter_type: sata
     vmdk_name: MainDisk
-    disk_type_id: 0 # Check, use 5 if not
+    disk_type_id: 0
     vmx_data:
       numvcpus": "{{ user `cpu_number` }}"
       cpuid.coresPerSocket: "{{ user `cpu_number` }}"

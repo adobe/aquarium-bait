@@ -1,11 +1,20 @@
-# MacOSX Image builder
+# CI Image packer
+
+System to ensue the CI build environment will be consistent from build to build. The images can be
+used with versioning to easily reproduce the same results of the past build.
 
 ## Requirements
 
-* Python 3
-* VMWare Fusion
+* Python 3 + venv
+* [Packer v1.6.6](https://www.packer.io/downloads)
 * For MacOS image:
   * Can only be running on MacOS (license restrictions)
+  * VMWare fusion 12.1.0
+
+## Static checks
+
+Ansible is a complex system, so linting is necessary. You can run the verification by `./check.sh`
+script and it will execute docker to validate the playbooks.
 
 ## How to create from scratch
 

@@ -1,26 +1,32 @@
-- name: Set time zone to GMT
-  command: systemsetup -settimezone GMT
-  become: true
-
-- name: Disable hibernate
-  command: pmset hibernatemode 0
-  become: true
+---
+- name: Set GMT timezone
+  include_tasks: macos_systemsetup.yml
+  vars:
+    key: timezone
+    value: GMT
 
 - name: Disable sleep
-  command: systemsetup -setsleep Off
-  become: true
+  include_tasks: macos_systemsetup.yml
+  vars:
+    key: "{{ item }}"
+    value: Never
+  with_items:
+    - computersleep
+    - displaysleep
+    - harddisksleep
 
-- name: Disable computer sleep
-  command: systemsetup -setcomputersleep Off
-  become: true
+- name: Disable hibernate
+  block:
+    - name: Check hibernate status
+      shell: "pmset -g | grep 'hibernatemode'"
+      become: true
+      changed_when: false
+      register: hibernate_res
 
-- name: Disable display sleep
-  command: systemsetup -setdisplaysleep Off
-  become: true
-
-- name: Disable hard disk sleep
-  command: systemsetup -setharddisksleep Off
-  become: true
+    - name: Disable hibernate
+      when: not hibernate_res.stdout.endswith('0')
+      command: pmset hibernatemode 0
+      become: true
 
 - name: Disable App Sleep
   osx_defaults:
@@ -36,7 +42,8 @@
     type: bool
     value: false
 
-- osx_defaults:
+- name: Disable automatic update check
+  osx_defaults:
     domain: /Library/Preferences/com.apple.SoftwareUpdate
     key: AutomaticCheckEnabled
     type: int
@@ -44,5 +51,14 @@
   become: true
 
 - name: Disable Spotlight indexing
-  command: mdutil -i off /
-  become: true
+  block:
+    - name: Check indexing status
+      command: mdutil -s /
+      become: true
+      changed_when: false
+      register: indexing_res
+
+    - name: Disable Spotlight indexing
+      when: not indexing_res.stdout.endswith('Indexing disabled.')
+      command: mdutil -i off /
+      become: true
