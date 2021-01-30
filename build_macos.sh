@@ -1,6 +1,9 @@
 #!/bin/sh -e
 # Build macos vmware images (only on macos)
 
+# Disable packer auto-update calls
+export CHECKPOINT_DISABLE=1
+
 export PACKER_ISO_PATH="${1}"
 if [ -z "$PACKER_ISO_PATH" ]; then
     echo "Usage: ./build.sh <macos iso image path>"

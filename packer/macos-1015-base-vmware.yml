@@ -5,8 +5,10 @@ variables:
   output_directory: out/macos-1015-base-vmware
   iso_path: "{{ env `PACKER_ISO_PATH` }}"
   vmx_path: "{{ env `PACKER_VMX_PATH` }}"
+  cpu_number: "{{ env `PACKER_CPU_NUMBER` }}"
   username: packer
   password: packer
+
 builders:
   - type: vmware-vmx # vmware-iso is useless for macos installation
     vm_name: "{{ user `vm_name` }}"
@@ -78,13 +80,11 @@ builders:
     vmdk_name: MainDisk
     disk_type_id: 0
     vmx_data:
-      numvcpus": "{{ user `cpu_number` }}"
+      numvcpus: "{{ user `cpu_number` }}"
       cpuid.coresPerSocket: "{{ user `cpu_number` }}"
-      memsize: 4096
-      firmware: efi
-      keyboardAndMouseProfile: macProfile
       sata0:1.fileName: "{{ user `iso_path` }}"
       sata0:0.present: "TRUE" # Enable the main disk
+
 provisioners:
   - type: ansible
     command: ./run_ansible.sh
@@ -93,3 +93,7 @@ provisioners:
     extra_arguments:
       - --extra-vars
       - ansible_sudo_pass={{ user `password` }}
+
+post-processors:
+  - type: shell-local # Remove iso path
+    inline: "sed -i '/sata0:1/d' '{{ user `output_directory` }}/{{ user `vm_name` }}.vmx'"

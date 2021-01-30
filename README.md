@@ -67,3 +67,24 @@ $ ./build_macos.sh "${HOME}/Build/macos-vmware/Catalina.iso"
 ```
 
 This script will automatically create the useful slim base image in out directory
+
+## Pack the results
+
+```
+XZ_OPT="-e9 --threads=8" tar -C ./out cJf out/macos-1015-base-vmware.tar.xz macos-1015-base-vmware
+```
+
+## Upload the artifacts
+
+```
+curl --progress-bar -u "<user>:<token>" -X PUT \
+  -H "X-Checksum-Sha256: $(sha256sum ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso | cut -d' ' -f1)" \
+  -T ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso \
+  https://artifact-storage/aquarium/installer/MacOS-Catalina-10.15.7/MacOS-Catalina-10.15.7-$(date +%y%m%d.%H%M%S).iso | tee /dev/null
+```
+```
+curl --progress-bar -u "<user>:<token>" -X PUT \
+  -H "X-Checksum-Sha256: $(sha256sum out/macos-1015-base-vmware.tar.xz | cut -d' ' -f1)" \
+  -T out/macos-1015-base-vmware.tar.xz \
+  https://artifact-storage/aquarium/image/macos-1015-base-vmware/macos-1015-base-vmware-$(date +%y%m%d.%H%M%S).tar.xz | tee /dev/null
+```
