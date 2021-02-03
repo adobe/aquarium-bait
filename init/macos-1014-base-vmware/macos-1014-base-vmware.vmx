@@ -1,0 +1,84 @@
+.encoding = "UTF-8"
+config.version = "8"
+
+# Common
+displayName = "macos-1014-init-vmware"
+
+tools.syncTime = "TRUE"
+tools.upgrade.policy = "upgradeAtPowerCycle"
+
+powerType.powerOff = "soft"
+powerType.powerOn = "soft"
+powerType.reset = "soft"
+powerType.suspend = "soft"
+
+# CPU
+numvcpus = "2"
+cpuid.coresPerSocket = "2"
+
+# Mem
+memsize = "4096"
+
+# System
+virtualHW.productCompatibility = "hosted"
+virtualHW.version = "18"
+firmware = "efi"
+guestOS = "darwin18-64"
+keyboardAndMouseProfile = "macProfile"
+smbios.reflectHost = "FALSE"
+smbios.restrictSerialCharset = "TRUE"
+board-id.reflectHost = "FALSE"
+board-id = "Mac-27AD2F918AE68F61"
+hw.model.reflectHost = "FALSE"
+hw.model = "MacPro7,1"
+serialNumber.reflectHost = "FALSE"
+serialNumber = "F5KDC023N5RN"
+
+# Devices
+floppy0.present = "FALSE"
+hpet0.present = "TRUE"
+ich7m.present = "TRUE"
+smc.present = "TRUE"
+vmci0.present = "TRUE"
+
+ehci.present = "TRUE"
+ehci:0.deviceType = "video"
+ehci:0.parent = "-1"
+ehci:0.port = "0"
+ehci:0.present = "TRUE"
+
+ethernet0.addressType = "generated"
+ethernet0.connectionType = "hostonly"
+ethernet0.present = "TRUE"
+ethernet0.virtualDev = "e1000e"
+
+pciBridge0.present = "TRUE"
+pciBridge4.functions = "8"
+pciBridge4.present = "TRUE"
+pciBridge4.virtualDev = "pcieRootPort"
+pciBridge5.functions = "8"
+pciBridge5.present = "TRUE"
+pciBridge5.virtualDev = "pcieRootPort"
+pciBridge6.functions = "8"
+pciBridge6.present = "TRUE"
+pciBridge6.virtualDev = "pcieRootPort"
+pciBridge7.functions = "8"
+pciBridge7.present = "TRUE"
+pciBridge7.virtualDev = "pcieRootPort"
+
+sata0.present = "TRUE"
+sata0:0.fileName = "MainDisk-1.vmdk"
+sata0:0.present = "FALSE"
+sata0:1.deviceType = "cdrom-image"
+sata0:1.fileName = "<TO_REPLACE>"
+sata0:1.present = "TRUE"
+
+sound.autoDetect = "TRUE"
+sound.fileName = "-1"
+sound.present = "FALSE"
+sound.virtualDev = "hdaudio"
+
+usb.present = "TRUE"
+usb.vbluetooth.startConnected = "TRUE"
+usb_xhci.present = "TRUE"
+extendedConfigFile = "macos-1014-base-vmware.vmxf"

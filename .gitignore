@@ -4,3 +4,4 @@
 /packer_cache
 /init/*-vmware/*.vmsd
 /init/*-vmware/*.vmxf
+/iso

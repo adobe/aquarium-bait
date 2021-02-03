@@ -5,6 +5,7 @@ used with versioning to easily reproduce the same results of the past build.
 
 ## Requirements
 
+* Host: the installer delays are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected to power outlet)
 * Python 3 + venv
 * [Packer v1.6.6](https://www.packer.io/downloads)
 * For MacOS image:
@@ -46,15 +47,14 @@ script and it will execute docker to validate the playbooks.
    $ rm -f /tmp/macos-installer.dmg
    ```
 
-### 2. Install MacOS to VM
+### 2. Place the required iso images
 
-1. Install VMWare fusion
-2. Setup Host-VM network:
-   * Run it and go to `Preferences...` - `Network` and setup new Custom network `vmnet2`
-   * We will use it to disable the Internet access during the installation and have just Host-VM network
-3. Create VM with the iso file installation and set net adapter to the created `vmnet2` network
-4. During installation just try to setup as minimum as possible, user: `admin`, password: `admin`
-5. Right after install is completed - enable the remote access and shutdown the VM
+Packer will use iso images from iso directory. The iso should be named just like the packer yml file,
+but with the iso extension.
+
+Example:
+* Download MacOS-Catalina-10.15.7-210125.190800.iso
+* Move to iso/macos-1015-base-vmware.iso
 
 ### 3. Run packer over the created VM
 
@@ -63,28 +63,32 @@ VPN and will never find your VM host. VM only have connection to host, not to th
 
 Now when all the required things are ready - you can run the image builder:
 ```
-$ ./build_macos.sh "${HOME}/Build/macos-vmware/Catalina.iso"
+$ ./build_macos.sh
 ```
 
 This script will automatically create the useful slim base image in out directory
 
-## Pack the results
+## Pack the results to VM Image
 
-```
-XZ_OPT="-e9 --threads=8" tar -C ./out cJf out/macos-1015-base-vmware.tar.xz macos-1015-base-vmware
-```
+* VMware Fusion VMX:
+   ```
+   XZ_OPT="-e9 --threads=8" tar -C ./out -cJf out/macos-1015-base-vmware.tar.xz macos-1015-base-vmware
+   ```
 
 ## Upload the artifacts
 
-```
-curl --progress-bar -u "<user>:<token>" -X PUT \
-  -H "X-Checksum-Sha256: $(sha256sum ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso | cut -d' ' -f1)" \
-  -T ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso \
-  https://artifact-storage/aquarium/installer/MacOS-Catalina-10.15.7/MacOS-Catalina-10.15.7-$(date +%y%m%d.%H%M%S).iso | tee /dev/null
-```
-```
-curl --progress-bar -u "<user>:<token>" -X PUT \
-  -H "X-Checksum-Sha256: $(sha256sum out/macos-1015-base-vmware.tar.xz | cut -d' ' -f1)" \
-  -T out/macos-1015-base-vmware.tar.xz \
-  https://artifact-storage/aquarium/image/macos-1015-base-vmware/macos-1015-base-vmware-$(date +%y%m%d.%H%M%S).tar.xz | tee /dev/null
-```
+* ISO installer:
+   ```
+   curl --progress-bar -u "<user>:<token>" -X PUT \
+     -H "X-Checksum-Sha256: $(sha256sum ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso | cut -d' ' -f1)" \
+     -T ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso \
+     https://artifact-storage/aquarium/installer/MacOS-Catalina-10.15.7/MacOS-Catalina-10.15.7-$(date +%y%m%d.%H%M%S).iso | tee /dev/null
+   ```
+
+* VM Image:
+   ```
+   curl --progress-bar -u "<user>:<token>" -X PUT \
+     -H "X-Checksum-Sha256: $(sha256sum out/macos-1015-base-vmware.tar.xz | cut -d' ' -f1)" \
+     -T out/macos-1015-base-vmware.tar.xz \
+     https://artifact-storage/aquarium/image/macos-1015-base-vmware/macos-1015-base-vmware-$(date +%y%m%d.%H%M%S).tar.xz | tee /dev/null
+   ```
