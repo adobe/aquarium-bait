@@ -1,11 +1,10 @@
 ---
 min_packer_version: 1.6.6
 variables:
-  vm_name: macos-1014-base
-  output_directory: out/macos-1014-base-vmware
-  iso_path: "{{ env `PACKER_ISO_PATH` }}"
-  vmx_path: "{{ env `PACKER_VMX_PATH` }}"
-  cpu_number: "{{ env `PACKER_CPU_NUMBER` }}"
+  vm_name: macos-1014
+  iso_path: "{{ env `PWD` }}/iso/MacOS-Mojave-10.14.6.iso"
+  vmx_path: "{{ env `PWD` }}/init/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+  output_directory: out/{{ user `vm_name` }}
   username: packer
   password: packer
 
@@ -69,13 +68,11 @@ builders:
     ssh_wait_timeout: 2m
     tools_upload_flavor: darwin
     # Dynamically create the main disk
-    disk_additional_size: [40960]
+    disk_additional_size: [204800]
     disk_adapter_type: sata
     vmdk_name: MainDisk
     disk_type_id: 0
     vmx_data:
-      numvcpus: "{{ user `cpu_number` }}"
-      cpuid.coresPerSocket: "{{ user `cpu_number` }}"
       sata0:1.fileName: "{{ user `iso_path` }}"
       sata0:0.present: "TRUE" # Enable the main disk
 

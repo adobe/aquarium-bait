@@ -1,0 +1,33 @@
+---
+min_packer_version: 1.6.6
+variables:
+  vm_name: macos-1015-xcode
+  vmx_path: "{{ env `PWD` }}/out/macos-1015/macos-1015.vmx"
+  output_directory: out/{{ user `vm_name` }}
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `vm_name` }}"
+    display_name: "{{ user `vm_name` }}"
+    source_path: "{{ user `vmx_path` }}"
+    linked: true # Use base image to simplify the data transfer
+    output_directory: "{{ user `output_directory` }}"
+    #headless: true TODO: enable it
+    boot_wait: 10s
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+
+provisioners:
+  - type: ansible
+    command: ./run_ansible.sh
+    user: "{{ user `username` }}"
+    playbook_file: playbooks/xcode_image.yml
+    extra_arguments:
+      - --extra-vars
+      - ansible_sudo_pass={{ user `password` }}

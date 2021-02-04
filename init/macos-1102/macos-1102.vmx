@@ -2,7 +2,7 @@
 config.version = "8"
 
 # Common
-displayName = "macos-1102-init-vmware"
+displayName = "macos-1102-init"
 
 tools.syncTime = "TRUE"
 tools.upgrade.policy = "upgradeAtPowerCycle"
@@ -81,4 +81,3 @@ sound.virtualDev = "hdaudio"
 usb.present = "TRUE"
 usb.vbluetooth.startConnected = "TRUE"
 usb_xhci.present = "TRUE"
-extendedConfigFile = "macos-1102-base-vmware.vmxf"

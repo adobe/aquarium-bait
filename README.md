@@ -3,9 +3,43 @@
 System to ensue the CI build environment will be consistent from build to build. The images can be
 used with versioning to easily reproduce the same results of the past build.
 
+## Image structure
+
+The image forms a tree and basically reuses the parent disks to optimize the storage and the build
+process, so the leaves of the trees will require the parents to be in place.
+
+* **macos-1015** - the base os with low-level configs ([base_image.yml](playbooks/base_image.yml))
+   * macos-1015-**ci** - jenkins user and autorunning jnlp agent
+      * macos-1015-ci-**xcode-12.2** - the Xcode tools of a specific version
+
+## Using of the images
+
+Basic VM and VM build system right now uses 2CPU and 4GB for VM build process.
+
+During actual run on the target system you can change CPU & MEM values to the required values, but
+please leave some for the HOST system:
+
+### VMWare
+
+Change `.vmx` file:
+
+* CPU (if you have more than one CPU socket - use `CPUS_PER_SOCKET = TOTAL_CPUS / <NUM_SOCKETS>`
+  to preserve the NUMA config):
+   ```
+   # CPU
+   numvcpus = "<TOTAL_CPUS>"
+   cpuid.coresPerSocket = "<CPUS_PER_SOCKET>"
+   ```
+* RAM:
+   ```
+   # Mem
+   memsize = "<RAM_IN_MB>"
+   ```
+
 ## Requirements
 
-* Host: the installer delays are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected to power outlet)
+* Host: the installer delays are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected
+  to power outlet)
 * Python 3 + venv
 * [Packer v1.6.6](https://www.packer.io/downloads)
 * For MacOS image:
@@ -52,11 +86,10 @@ script and it will execute docker to validate the playbooks.
 Packer will use iso images from iso directory. The iso should be named just like the packer yml file,
 but with the iso extension.
 
-Example:
-* Download MacOS-Catalina-10.15.7-210125.190800.iso
-* Move to iso/macos-1015-base-vmware.iso
+* Build or Download MacOS-Catalina-10.15.7-210125.190800.iso
+* Place it as iso/MacOS-Catalina-10.15.7.iso
 
-### 3. Run packer over the created VM
+### 3. Run build
 
 **WARNING:** make sure you don't have VPN enabled, otherwise it will lead to redirect your traffic through
 VPN and will never find your VM host. VM only have connection to host, not to the local net / internet.
@@ -72,7 +105,7 @@ This script will automatically create the useful slim base image in out director
 
 * VMware Fusion VMX:
    ```
-   XZ_OPT="-e9 --threads=8" tar -C ./out -cJf out/macos-1015-base-vmware.tar.xz macos-1015-base-vmware
+   XZ_OPT="-e9 --threads=8" tar -C ./out -cJf out/macos-1015.tar.xz macos-1015
    ```
 
 ## Upload the artifacts
@@ -80,15 +113,15 @@ This script will automatically create the useful slim base image in out director
 * ISO installer:
    ```
    curl --progress-bar -u "<user>:<token>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso | cut -d' ' -f1)" \
-     -T ~/Build/macos-vmware/MacOS-Catalina-10.15.7.iso \
+     -H "X-Checksum-Sha256: $(sha256sum iso/MacOS-Catalina-10.15.7.iso | cut -d' ' -f1)" \
+     -T iso/MacOS-Catalina-10.15.7.iso \
      https://artifact-storage/aquarium/installer/MacOS-Catalina-10.15.7/MacOS-Catalina-10.15.7-$(date +%y%m%d.%H%M%S).iso | tee /dev/null
    ```
 
 * VM Image:
    ```
    curl --progress-bar -u "<user>:<token>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum out/macos-1015-base-vmware.tar.xz | cut -d' ' -f1)" \
-     -T out/macos-1015-base-vmware.tar.xz \
-     https://artifact-storage/aquarium/image/macos-1015-base-vmware/macos-1015-base-vmware-$(date +%y%m%d.%H%M%S).tar.xz | tee /dev/null
+     -H "X-Checksum-Sha256: $(sha256sum out/macos-1015.tar.xz | cut -d' ' -f1)" \
+     -T out/macos-1015.tar.xz \
+     https://artifact-storage/aquarium/image/macos-1015/macos-1015-$(date +%y%m%d.%H%M%S).tar.xz | tee /dev/null
    ```

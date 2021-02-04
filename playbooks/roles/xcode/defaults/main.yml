@@ -1,0 +1,8 @@
+---
+xcode_build: /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
+
+xcode_xip_url: https://artifact-storage/aquarium/app/mac/Xcode_12.2.xip
+xcode_xip_checksum: sha256:28d352f8c14a43d9b8a082ac6338dc173cb153f964c6e8fb6ba389e5be528bd0
+xcode_xip_local: app/mac/Xcode_12.2.xip
+
+xcode_xip_extraction_timeout: 1200 # Right now ~941sec

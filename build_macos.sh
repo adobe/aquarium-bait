@@ -1,54 +1,57 @@
 #!/bin/sh -e
 # Build macos vmware images (only on macos)
-# Usage: ./build_macos.sh [name_of_the_image_to_build]
-
-# Disable packer auto-update calls
-export CHECKPOINT_DISABLE=1
+# Usage:
+#   ./build_macos.sh [path_of_the_yaml_to_build [...]]
+#
+# Debug mode:
+#   DEBUG=true ./build_macos.sh ...
 
 root_dir=$(realpath "$(dirname "$0")")
+cd "${root_dir}"
 
-for yml in $(ls "${root_dir}/packer/"*.yml); do
+# Convert yml files to json
+for yml in $(find packer -name '*.yml'); do
     echo "Generate packer json for '${yml}'..."
     ruby -ryaml -rjson -e "puts YAML.load_file('${yml}').to_json" > "${yml}.json"
 done
 
-echo "-----------------------------------------"
-echo "First stage: Create the MacOS base images"
+# Disable packer auto-update calls
+export CHECKPOINT_DISABLE=1
+# Set root dir to use in packer configs
+export PACKER_ROOT="${root_dir}"
 
-# 2 CPU is just enough for the base image
-export PACKER_CPU_NUMBER=2
+stage=1
+while true; do
+    to_process=$(find packer -mindepth ${stage} -maxdepth ${stage} -type f -name '*.json')
+    [ "${to_process}" ] || break
 
-# TODO: build in parallel (check max cpu/max mem)
-for json in $(ls "${root_dir}/packer/"*-base-*.json); do
-    name=$(basename "${json}" | cut -d'.' -f1)
+    echo "---------------"
+    echo "Stage: ${stage}"
+    echo "---------------"
 
-    # Skip if the name not in filter
-    if [ "$1" ]; then
-       [ "${name}" = "$1" ] || continue
-    fi
+    # TODO: build stage in parallel (check max cpu/max mem)
+    for json in ${to_process}; do
+        # Skip if path not in the filter
+        if [ "$1" ]; then
+            skip_image=true
+            for filter in "$@"; do
+                [ "${json}" != "${filter}.json" ] || skip_image=""
+            done
+            [ -z "${skip_image}" ] || continue
+        fi
 
-    echo "Run packer for '${name}'..."
+        name=$(basename "${json}" | cut -d'.' -f1)
 
-    # Set iso path for packer
-    export PACKER_ISO_PATH="${root_dir}/iso/${name}.iso"
-    if [ ! -e "${PACKER_ISO_PATH}" ]; then
-        echo "  skip: unable to find iso ${PACKER_ISO_PATH}"
-        continue
-    fi
+        echo "Building image for '${name}'..."
 
-    # Use init vmx as the VM base
-    export PACKER_VMX_PATH="${root_dir}/init/${name}/${name}.vmx"
-    [ -e "${PACKER_VMX_PATH}" ] || unset PACKER_VMX_PATH
+        if [ -e "out/${name}" ]; then
+            echo "  skip: the output path '${out}/${name}' is existing"
+            continue
+        fi
 
-    # For debug:
-    #PACKER_LOG=1 packer build -on-error=ask "${json}"
-    packer build "${json}"
+        [ "${DEBUG}" = "true" ] && packer build "${json}" || PACKER_LOG=1 packer build -on-error=ask "${json}"
+    done
+    stage=$(($stage+1))
 done
 
-echo "-----------------------------------------"
-echo "Second stage: Create the MacOS tool images"
-
-# Get total vcpu available and leave 2 for the host system
-export PACKER_CPU_NUMBER=$(($(getconf _NPROCESSORS_ONLN)-2))
-
-# TODO
+echo "Build completed"
