@@ -3,6 +3,16 @@
 System to ensue the CI build environment will be consistent from build to build. The images can be
 used with versioning to easily reproduce the same results of the past build.
 
+## Requirements
+
+* Host: the installer delays are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected
+  to power outlet). Make sure you have at least 200GB of disk space to build an image.
+* Python 3 + venv
+* [Packer v1.6.6](https://www.packer.io/downloads)
+* For MacOS image:
+  * Can only be running on MacOS (license restrictions)
+  * VMWare fusion 12.1.0
+
 ## Image structure
 
 The image forms a tree and basically reuses the parent disks to optimize the storage and the build
@@ -35,16 +45,6 @@ Change `.vmx` file:
    # Mem
    memsize = "<RAM_IN_MB>"
    ```
-
-## Requirements
-
-* Host: the installer delays are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected
-  to power outlet)
-* Python 3 + venv
-* [Packer v1.6.6](https://www.packer.io/downloads)
-* For MacOS image:
-  * Can only be running on MacOS (license restrictions)
-  * VMWare fusion 12.1.0
 
 ## Static checks
 
@@ -81,13 +81,24 @@ script and it will execute docker to validate the playbooks.
    $ rm -f /tmp/macos-installer.dmg
    ```
 
-### 2. Place the required iso images
+### 2. Put the dependencies in place
+
+#### ISO images
 
 Packer will use iso images from iso directory. The iso should be named just like the packer yml file,
 but with the iso extension.
 
 * Build or Download MacOS-Catalina-10.15.7-210125.190800.iso
 * Place it as iso/MacOS-Catalina-10.15.7.iso
+
+#### Ansible files
+
+Roles can download files from artifact storage, but in case it's not an option (no direct connection
+from VM to artifact storage) - you can place the files locally.
+
+Ansible playbooks uses a number of binary packages you can find in artifact storage, check the
+[playbooks/files/mac/README.md](playbooks/files/mac/README.md) and the other dirs to get the
+clue.
 
 ### 3. Run build
 

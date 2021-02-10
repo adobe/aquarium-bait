@@ -6,10 +6,10 @@
 /packer/**/*.json
 
 /init/*/*
-!/init/**/*.vmx
+!/init/*/*.vmx
 
 /iso/*
 !/iso/*.md
 
-/playbooks/files/app/*
-!/playbooks/files/app/**.md
+/playbooks/files/mac/*
+!/playbooks/files/mac/*.md

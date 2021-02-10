@@ -1,30 +1,6 @@
 ---
-- name: Get Xcode on VM
-  block:
-    - name: Get Xcode from local files
-      copy:
-        src: "{{ xcode_xip_local }}"
-        dest: /tmp/Xcode.xpi
-      ignore_errors: true
+- name: Install command line tools first
+  import_tasks: cmd_tools.yml
 
-    - name: Download Xcode if local file is not available
-      get_url:
-        url: "{{ xcode_xip_url }}"
-        dest: /tmp/Xcode.xpi
-        mode: '0440'
-        checksum: "{{ xcode_xip_checksum }}"
-
-- name: Install Xcode from XIP file Location
-  command: xip --expand /tmp/Xcode.xpi
-  args:
-    chdir: /Applications
-  async: "{{ xcode_xip_extraction_timeout }}"  # Prevent SSH connections timing out waiting for extraction
-  poll: 5
-
-- name: Accept License Agreement
-  command: xcodebuild -license accept
-  become: true
-
-- name: Run Xcode first launch
-  command: xcodebuild -runFirstLaunch
-  become: true
+- name: Install xcode
+  import_tasks: xcode.yml

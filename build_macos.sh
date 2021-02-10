@@ -49,7 +49,7 @@ while true; do
             continue
         fi
 
-        [ "${DEBUG}" = "true" ] && packer build "${json}" || PACKER_LOG=1 packer build -on-error=ask "${json}"
+        [ -z "${DEBUG}" ] && packer build "${json}" || PACKER_LOG=1 packer build -on-error=ask "${json}"
     done
     stage=$(($stage+1))
 done

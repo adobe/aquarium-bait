@@ -2,8 +2,8 @@
 min_packer_version: 1.6.6
 variables:
   vm_name: macos-1015-xcode
-  vmx_path: "{{ env `PWD` }}/out/macos-1015/macos-1015.vmx"
-  output_directory: out/{{ user `vm_name` }}
+  out_full_path: "{{ env `PWD` }}/out"
+  vmx_full_path: "{{ user `out_full_path` }}/macos-1015/macos-1015.vmx"
   username: packer
   password: packer
 
@@ -11,11 +11,12 @@ builders:
   - type: vmware-vmx
     vm_name: "{{ user `vm_name` }}"
     display_name: "{{ user `vm_name` }}"
-    source_path: "{{ user `vmx_path` }}"
+    source_path: "{{ user `vmx_full_path` }}"
     linked: true # Use base image to simplify the data transfer
-    output_directory: "{{ user `output_directory` }}"
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     #headless: true TODO: enable it
-    boot_wait: 10s
+    boot_wait: 30s
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
@@ -31,3 +32,28 @@ provisioners:
     extra_arguments:
       - --extra-vars
       - ansible_sudo_pass={{ user `password` }}
+
+post-processors:
+  - type: shell-local # Use relative path in vmx
+    command: "empty"
+    execute_command:
+      - sed
+      - -i
+      - s|{{ user `out_full_path` }}|..|g
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+
+  - type: shell-local # Create snapshot
+    command: "empty"
+    execute_command:
+      - vmrun
+      - snapshot
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+      - original
+
+  - type: shell-local # Need to relace with the actual path on target machine
+    command: "empty"
+    execute_command:
+      - sed
+      - -i
+      - s|{{ user `out_full_path` }}|<REPLACE_PARENT_VM_FULL_PATH>|
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmsd"

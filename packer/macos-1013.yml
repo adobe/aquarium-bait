@@ -2,9 +2,9 @@
 min_packer_version: 1.6.6
 variables:
   vm_name: macos-1013
-  iso_path: "{{ env `PWD` }}/iso/MacOS-HighSierra-10.13.6.iso"
-  vmx_path: "{{ env `PWD` }}/init/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
-  output_directory: out/{{ user `vm_name` }}
+  out_full_path: "{{ env `PWD` }}/out"
+  iso_full_path: "{{ env `PWD` }}/iso/MacOS-HighSierra-10.13.6.iso"
+  vmx_full_path: "{{ env `PWD` }}/init/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
   username: packer
   password: packer
 
@@ -12,9 +12,9 @@ builders:
   - type: vmware-vmx # vmware-iso is useless for macos installation
     vm_name: "{{ user `vm_name` }}"
     display_name: "{{ user `vm_name` }}"
-    source_path: "{{ user `vmx_path` }}"
+    source_path: "{{ user `vmx_full_path` }}"
     linked: false # Create full copy to decrease the image size
-    output_directory: "{{ user `output_directory` }}"
+    output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     #headless: true TODO: enable it
     boot_wait: 80s # Till the first screen
     boot_command:
@@ -66,12 +66,12 @@ builders:
     ssh_wait_timeout: 2m
     tools_upload_flavor: darwin
     # Dynamically create the main disk
-    disk_additional_size: [204800]
+    disk_additional_size: [102400] # 100GB
     disk_adapter_type: sata
     vmdk_name: MainDisk
     disk_type_id: 0
     vmx_data:
-      sata0:1.fileName: "{{ user `iso_path` }}"
+      sata0:1.fileName: "{{ user `iso_full_path` }}"
       sata0:0.present: "TRUE" # Enable the main disk
 
 provisioners:
@@ -85,4 +85,17 @@ provisioners:
 
 post-processors:
   - type: shell-local # Remove iso path
-    inline: "sed -i '/sata0:1/d' '{{ user `output_directory` }}/{{ user `vm_name` }}.vmx'"
+    command: "empty"
+    execute_command:
+      - sed
+      - -i
+      - /sata0:1/d
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+
+  - type: shell-local # Create snapshot
+    command: "empty"
+    execute_command:
+      - vmrun
+      - snapshot
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+      - original
