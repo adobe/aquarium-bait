@@ -3,6 +3,4 @@
   hosts: default
   roles:
     - role: init
-      tags: [init]
     - role: cleanup
-      tags: [cleanup]

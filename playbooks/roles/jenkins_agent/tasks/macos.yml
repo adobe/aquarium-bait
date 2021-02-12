@@ -1,0 +1,54 @@
+---
+- name: Add jenkins group
+  become: true
+  group:
+    name: jenkins
+    gid: 5001
+
+- name: Add user jenkins with group jenkins
+  become: true
+  user:
+    name: jenkins
+    group: jenkins
+    uid: 5001
+    comment: Jenkins
+
+- name: Create extract directory
+  become: true
+  file:
+    path: /opt/srv/jenkins_agent
+    state: directory
+
+- name: Store agent node template file
+  become: true
+  copy:
+    src: agent_node.xml.tpl
+    dest: /opt/srv/jenkins_agent/agent_node.xml.tpl
+    owner: root
+    group: wheel
+    mode: "0644"
+
+- name: Store jenkins agent executable scripts
+  become: true
+  copy:
+    src: mac/{{ item }}
+    dest: /opt/srv/jenkins_agent/{{ item }}
+    owner: root
+    group: wheel
+    mode: "0755"
+  with_items:
+    - jenkins_agent.sh
+    - xml_replace.py
+
+- name: Store service plist file for agent autorun
+  become: true
+  template:
+    src: aquarium.ci.agent.plist.j2
+    dest: /Library/LaunchDaemons/aquarium.ci.agent.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  vars:
+    java_home: "{{ jenkins_agent_java_home }}"
+    config_path: "{{ jenkins_agent_config_path }}"
+    script_path: /opt/srv/jenkins_agent/jenkins_agent.sh

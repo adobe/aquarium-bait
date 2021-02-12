@@ -21,10 +21,10 @@
       shell: "pmset -g | grep 'hibernatemode'"
       become: true
       changed_when: false
-      register: hibernate_res
+      register: reg_hibernate
 
     - name: Disable hibernate
-      when: not hibernate_res.stdout.endswith('0')
+      when: not reg_hibernate.stdout.endswith('0')
       command: pmset hibernatemode 0
       become: true
 
@@ -56,9 +56,9 @@
       command: mdutil -s /
       become: true
       changed_when: false
-      register: indexing_res
+      register: reg_indexing
 
     - name: Disable Spotlight indexing
-      when: not indexing_res.stdout.endswith('Indexing disabled.')
+      when: not reg_indexing.stdout.endswith('Indexing disabled.')
       command: mdutil -i off /
       become: true

@@ -27,14 +27,14 @@
           - /Library/Caches
           - /Users/{{ ansible_user }}/Library/Caches
           - /tmp
-      register: caches_res
+      register: reg_caches
 
     - name: Clean found items
-      when: caches_res.matched > 0
+      when: reg_caches.matched > 0
       file:
         path: "{{ item.path }}"
         state: absent
-      with_items: "{{ caches_res.files }}"
+      with_items: "{{ reg_caches.files }}"
       become: true
 
 - name: Fill free space with zeroes

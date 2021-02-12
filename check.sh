@@ -15,6 +15,11 @@ for f in `git ls-files`; do
             echo "Not ends with newline: $f"
             errors=$((${errors}+1))
         fi
+        # Ansible step `register` variable starts with "reg_"
+        if [ "$(grep 'register:' "$f" | grep -v 'register: reg_')" ]; then
+            echo "Register variable not starts with 'reg_' prefix: $f"
+            errors=$((${errors}+1))
+        fi
     fi
 done
 

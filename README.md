@@ -112,12 +112,12 @@ $ ./build_macos.sh
 
 This script will automatically create the useful slim base image in out directory
 
-## Pack the results to VM Image
+### 4. Run pack of the images
 
-* VMware Fusion VMX:
-   ```
-   XZ_OPT="-e9 --threads=8" tar -C ./out -cJf out/macos-1015.tar.xz macos-1015
-   ```
+Now you can run script to pack all the generated macos images into tight tar.xz archives:
+```
+$ ./pack_macos.sh
+```
 
 ## Upload the artifacts
 

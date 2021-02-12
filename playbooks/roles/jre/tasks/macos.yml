@@ -1,0 +1,36 @@
+---
+- name: Get JDK on VM
+  block:
+    - name: Create archive directory
+      file:
+        path: "/tmp/{{ jre_archive_local | dirname }}"
+        state: directory
+
+    - name: Get JDK from local files
+      copy:
+        src: "{{ jre_archive_local }}"
+        dest: "/tmp/{{ jre_archive_local }}"
+      ignore_errors: true
+
+    - name: Download cmd tools if local file is not available
+      get_url:
+        url: "{{ jre_archive_url }}"
+        dest: "/tmp/{{ jre_archive_local }}"
+        mode: "0440"
+        checksum: "{{ jre_archive_checksum }}"
+
+- name: Create extract directory
+  become: true
+  file:
+    path: "{{ jre_extract_path }}"
+    state: directory
+
+# Uses BSD tar, GNU will require --wildcards in addition
+- name: Unpack only bin & lib from archive to directory
+  become: true
+  command: >
+    tar -C "{{ jre_extract_path }}" --strip-components=3 -xf "/tmp/{{ jre_archive_local }}"
+    "*/Contents/Home/bin" "*/Contents/Home/lib"
+  args:
+    warn: false  # Unarchive requires GNU tar that is not installed on macos by default
+  changed_when: true

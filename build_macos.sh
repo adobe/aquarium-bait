@@ -11,7 +11,7 @@ cd "${root_dir}"
 
 # Convert yml files to json
 for yml in $(find packer -name '*.yml'); do
-    echo "Generate packer json for '${yml}'..."
+    echo "INFO: Generate packer json for '${yml}'..."
     ruby -ryaml -rjson -e "puts YAML.load_file('${yml}').to_json" > "${yml}.json"
 done
 
@@ -20,14 +20,15 @@ export CHECKPOINT_DISABLE=1
 # Set root dir to use in packer configs
 export PACKER_ROOT="${root_dir}"
 
+# The process walks on the different levels of packer dir tree and process the configs
 stage=1
 while true; do
     to_process=$(find packer -mindepth ${stage} -maxdepth ${stage} -type f -name '*.json')
     [ "${to_process}" ] || break
 
-    echo "---------------"
-    echo "Stage: ${stage}"
-    echo "---------------"
+    echo "INFO: ---------------"
+    echo "INFO: Stage: ${stage}"
+    echo "INFO: ---------------"
 
     # TODO: build stage in parallel (check max cpu/max mem)
     for json in ${to_process}; do
@@ -42,16 +43,17 @@ while true; do
 
         name=$(basename "${json}" | cut -d'.' -f1)
 
-        echo "Building image for '${name}'..."
+        echo "INFO: Building image for '${name}'..."
 
         if [ -e "out/${name}" ]; then
-            echo "  skip: the output path '${out}/${name}' is existing"
+            echo "INFO:  skip: the output path '${out}/${name}' is existing"
             continue
         fi
 
-        [ -z "${DEBUG}" ] && packer build "${json}" || PACKER_LOG=1 packer build -on-error=ask "${json}"
+        [ "${DEBUG}" ] || packer build "${json}"
+        [ -z "${DEBUG}" ] || PACKER_LOG=1 packer build -on-error=ask "${json}"
     done
     stage=$(($stage+1))
 done
 
-echo "Build completed"
+echo "INFO: Build completed"

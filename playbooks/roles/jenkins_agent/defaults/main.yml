@@ -1,0 +1,6 @@
+---
+jenkins_agent_java_home: "{{ jre_extract_path }}"
+
+required_vars:
+  - jenkins_agent_java_home  # Path to the JAVA_HOME directory
+  - jenkins_agent_config_path  # Where to find configuration for agent

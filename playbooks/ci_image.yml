@@ -1,0 +1,9 @@
+---
+- name: CI image provision
+  hosts: default
+  roles:
+    - role: jre
+
+    - role: jenkins_agent
+
+    - role: cleanup

@@ -1,30 +1,36 @@
 ---
 - name: Get command line tools on VM
   block:
+    - name: Create archive directory
+      file:
+        path: /tmp/{{ xcode_cmd_archive_local | dirname }}
+        state: directory
+
     - name: Get cmd tools from local files
       copy:
-        src: "{{ xcode_cmd_dmg_local }}"
-        dest: /tmp/Command_Line_Tools_for_Xcode_12.2.dmg
+        src: "{{ xcode_cmd_archive_local }}"
+        dest: /tmp/{{ xcode_cmd_archive_local }}
       ignore_errors: true
 
     - name: Download cmd tools if local file is not available
       get_url:
-        url: "{{ xcode_cmd_dmg_url }}"
-        dest: /tmp/Command_Line_Tools_for_Xcode_12.2.dmg
+        url: "{{ xcode_cmd_archive_url }}"
+        dest: /tmp/{{ xcode_cmd_archive_local }}
         mode: "0440"
-        checksum: "{{ xcode_cmd_dmg_checksum }}"
+        checksum: "{{ xcode_cmd_archive_checksum }}"
 
 - name: Mount cmd tools DMG file
-  command: hdiutil attach /tmp/Command_Line_Tools_for_Xcode_12.2.dmg -nobrowse -mountpoint /tmp/clt_xcode
-  become: yes
+  command: hdiutil attach '/tmp/{{ xcode_cmd_archive_local }}' -nobrowse -mountpoint /tmp/clt_xcode
+  become: true
+  changed_when: true
 
 - name: Make sure the volume will be detached
   block:
     - name: Install cmd tools from mounted DMG volume
       command: installer -pkg '/tmp/clt_xcode/Command Line Tools.pkg' -target /
-      become: yes
+      become: true
       changed_when: true
   always:
     - name: Umount cmd tools DMG file
-      become: yes
+      become: true
       command: hdiutil detach /tmp/clt_xcode

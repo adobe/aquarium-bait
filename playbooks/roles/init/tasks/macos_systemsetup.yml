@@ -9,9 +9,9 @@
   command: systemsetup -get{{ key }}
   become: true
   changed_when: false
-  register: key_res
+  register: reg_key
 
 - name: Set {{ key }} to {{ value }}
   command: systemsetup -set{{ key }} {{ value }}
-  when: not key_res.stdout.endswith(value)
+  when: not reg_key.stdout.endswith(value)
   become: true
