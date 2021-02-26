@@ -1,4 +1,4 @@
-# Init role
+# Jenkins agent role
 
 This role setup jenkins user and automatic service retreiver of jnlp jenkins agent from master
 

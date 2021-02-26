@@ -1,7 +1,7 @@
-# CI Image packer
+# Aquarium Bait
 
-System to ensue the CI build environment will be consistent from build to build. The images can be
-used with versioning to easily reproduce the same results of the past build.
+Image builder system to ensue the CI build environment will be consistent from build to build. The
+images can be used with versioning to easily reproduce the same results of the past build.
 
 ## Requirements
 
