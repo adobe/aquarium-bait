@@ -34,8 +34,6 @@ provisioners:
       - ansible_sudo_pass={{ user `password` }}
       - -e
       - jre_extract_path=/opt/srv/jre8
-      - -e
-      - jenkins_agent_config_path=/Volumes/Workspace/jenkins_agent.env
 
 post-processors:
   - type: shell-local # Use relative path in vmx

@@ -1,6 +1,6 @@
 ---
 - name: Validate required variables
-  when: item not in vars or vars[item]
+  when: item not in vars or vars[item] == ""
   with_items: "{{ required_vars }}"
   fail:
     msg: Variable '{{ item }}' is not defined

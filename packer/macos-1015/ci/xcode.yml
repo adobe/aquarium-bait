@@ -1,9 +1,9 @@
 ---
 min_packer_version: 1.6.6
 variables:
-  vm_name: macos-1015-xcode
+  vm_name: macos-1015-ci-xcode
   out_full_path: "{{ env `PWD` }}/out"
-  vmx_full_path: "{{ user `out_full_path` }}/macos-1015/macos-1015.vmx"
+  vmx_full_path: "{{ user `out_full_path` }}/macos-1015-ci/macos-1015-ci.vmx"
   username: packer
   password: packer
 
@@ -15,7 +15,7 @@ builders:
     linked: true # Use base image to simplify the data transfer
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
-    #headless: true TODO: enable it
+    headless: true
     boot_wait: 30s
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"

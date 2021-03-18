@@ -15,7 +15,7 @@ builders:
     source_path: "{{ user `vmx_full_path` }}"
     linked: false # Create full copy to decrease the image size
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
-    #headless: true TODO: enable it
+    headless: true
     boot_wait: 80s # Till the first screen
     boot_command:
       - <enter><wait10> # Selecting "English" language and next
