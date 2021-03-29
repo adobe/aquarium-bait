@@ -4,6 +4,8 @@
   roles:
     - role: check_sip
 
+    - role: vmtools
+
     - role: jre
 
     - role: jenkins_agent

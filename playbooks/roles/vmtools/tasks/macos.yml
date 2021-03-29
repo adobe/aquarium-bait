@@ -1,0 +1,25 @@
+---
+- name: Get tool on VM
+  block:
+    - name: Create archive directory
+      file:
+        path: "/tmp/{{ jre_archive_local | dirname }}"
+        state: directory
+
+    - name: Get archive from local files
+      copy:
+        src: "{{ vmtools_vmware_archive_local }}"
+        dest: /tmp/{{ vmtools_vmware_archive_local }}
+      ignore_errors: true
+
+    - name: Download cmd tools if local file is not available
+      get_url:
+        url: "{{ vmtools_vmware_archive_url }}"
+        dest: /tmp/{{ vmtools_vmware_archive_local }}
+        mode: "0440"
+        checksum: "{{ vmtools_vmware_archive_checksum }}"
+
+- name: Install VMware tools from the pkg archive
+  shell: installer -pkg /tmp/{{ vmtools_vmware_archive_local }} -target /
+  become: true
+  changed_when: true

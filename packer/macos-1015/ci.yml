@@ -18,9 +18,9 @@ builders:
     headless: true
     boot_wait: 100ms # It's quite hard to catch the right timing for headless
     boot_command: # Disable System Integrity Protection to allow access to the disks
-      - <LeftSuperOn>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<leftSuperOff> # Entering recovery mode
-      - <LeftSuperOn>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<leftSuperOff>
-      - <LeftSuperOn>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<leftSuperOff>
+      - <LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff> # Entering recovery mode
+      - <LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff>
+      - <LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff>
       - <wait2m> # Wait recovery mode to boot
       - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
       - <left><left> # Focus on Utiltiess menu
@@ -42,6 +42,8 @@ provisioners:
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - vmtools_vm_type=vmware
       - -e
       - jre_extract_path=/opt/srv/jre8
 
