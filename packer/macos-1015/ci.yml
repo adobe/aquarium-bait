@@ -16,7 +16,17 @@ builders:
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
-    boot_wait: 30s
+    boot_wait: 100ms # It's quite hard to catch the right timing for headless
+    boot_command: # Disable System Integrity Protection to allow access to the disks
+      - <LeftSuperOn>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<leftSuperOff> # Entering recovery mode
+      - <LeftSuperOn>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<leftSuperOff>
+      - <LeftSuperOn>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<leftSuperOff>
+      - <wait2m> # Wait recovery mode to boot
+      - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
+      - <left><left> # Focus on Utiltiess menu
+      - <down><down><down><down><enter><wait10s> # Select and execute Terminal
+      - csrutil disable<enter><wait5s> # Disable System Integrity Protection to simplify access to disks
+      - reboot<enter> # Reboot into usual system
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"

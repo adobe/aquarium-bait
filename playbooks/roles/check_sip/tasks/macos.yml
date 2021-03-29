@@ -1,0 +1,11 @@
+---
+- name: Get System Integrity Protection status
+  command: csrutil status
+  become: true
+  changed_when: false
+  register: reg_csrstatus
+
+- name: Validate System Integrity Protection status
+  when: "not reg_csrstatus.stdout.endswith('status: disabled.')"
+  fail:
+    msg: "The System Integrity Protection is not disabled: {{ reg_csrstatus.stdout }}"

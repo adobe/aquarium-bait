@@ -2,6 +2,8 @@
 - name: CI image provision
   hosts: default
   roles:
+    - role: check_sip
+
     - role: jre
 
     - role: jenkins_agent

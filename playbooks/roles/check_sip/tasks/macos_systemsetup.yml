@@ -1,0 +1,17 @@
+---
+# Executes systemsetup on macos to change variable
+# Vars:
+# * key - name of the variable (without "--set" prefix)
+# * value - value to set
+
+
+- name: Get the current {{ key }}
+  command: systemsetup -get{{ key }}
+  become: true
+  changed_when: false
+  register: reg_key
+
+- name: Set {{ key }} to {{ value }}
+  command: systemsetup -set{{ key }} {{ value }}
+  when: not reg_key.stdout.endswith(value)
+  become: true

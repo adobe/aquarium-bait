@@ -39,3 +39,23 @@
   vars:
     java_home: "{{ jenkins_agent_java_home }}"
     script_path: /opt/srv/jenkins_agent/jenkins_agent.sh
+
+- name: Store mountall executable scripts
+  become: true
+  copy:
+    src: mac/mountall.sh
+    dest: /opt/srv/jenkins_agent/mountall.sh
+    owner: root
+    group: wheel
+    mode: "0755"
+
+- name: Store service plist file for mountall autorun
+  become: true
+  template:
+    src: aquarium.ci.mountall.plist.j2
+    dest: /Library/LaunchDaemons/aquarium.ci.mountall.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  vars:
+    script_path: /opt/srv/jenkins_agent/mountall.sh
