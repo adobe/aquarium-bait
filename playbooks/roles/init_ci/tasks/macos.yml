@@ -1,0 +1,19 @@
+---
+- name: Disable not needed services
+  command: launchctl unload -w /System/Library/{{ item }}
+  become: true
+  with_items:
+    - LaunchDaemons/com.apple.metadata.mds.plist  # Spotlight service (too much load on disk)
+    - LaunchDaemons/com.apple.netbiosd.plist  # Netbios - No need to much net fuzz
+    - LaunchDaemons/com.apple.apsd.plist  # No push notifications
+    - LaunchAgents/com.apple.imagent.plist  # Facetime - no need it
+    - LaunchAgents/com.apple.CalendarAgent.plist  # No need it anyhow
+
+- name: Disable mitigations (Spectre, Meltdown) to increase performance
+  become: true
+  sysctl:
+    name: kern.hv.vmx_mitigations
+    value: '0'
+    state: present
+    reload: false  # Not working on macos
+    sysctl_set: true  # To set the value on macos

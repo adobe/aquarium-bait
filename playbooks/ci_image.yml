@@ -4,6 +4,8 @@
   roles:
     - role: check_sip
 
+    - role: init_ci
+
     - role: vmtools
 
     - role: jre
