@@ -89,7 +89,8 @@ post-processors:
     command: "empty"
     execute_command:
       - sed
-      - -i
+      - -i'.orig'
+      - -e
       - /sata0:1/d
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
 

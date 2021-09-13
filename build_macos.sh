@@ -6,6 +6,10 @@
 # Debug mode:
 #   DEBUG=true ./build_macos.sh ...
 
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 root_dir=$(realpath "$(dirname "$0")")
 cd "${root_dir}"
 

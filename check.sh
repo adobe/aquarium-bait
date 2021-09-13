@@ -26,7 +26,7 @@ done
 echo
 echo '---------------------- YAML Lint ----------------------'
 echo
-docker run --rm -v "${root_dir}:/data" cytopia/yamllint:1.22 playbooks
+docker run --rm -v "${root_dir}:/data" cytopia/yamllint:1.22 --strict playbooks
 errors=$((${errors}+$?))
 
 echo

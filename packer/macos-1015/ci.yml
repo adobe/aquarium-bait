@@ -16,12 +16,14 @@ builders:
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
-    boot_wait: 100ms # It's quite hard to catch the right timing for headless
-    boot_command: # Disable System Integrity Protection to allow access to the disks
-      - <LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff> # Entering recovery mode
-      - <LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff>
-      - <LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff><LeftSuperOn>r<leftSuperOff>
-      - <wait2m> # Wait recovery mode to boot
+    boot_wait: 15s
+    boot_command: # Disable System Integrity Protection to allow access to the disks. It will enter BIOS mode only once
+      - <down><down><down><down><down><enter><wait5s> # Choose "Setup menu"
+      - <down><down><enter><wait5s> # boot from a file menu
+      - <down><down><down><enter><wait5s> # choose Recovery
+      - <enter><wait5s> # Recovery mode has 1 partition, thus, 1 choice.  Just hit enter
+      - <down><down><down><down><down><down><enter> # boot.efi is the 6th item
+      - <wait3m> # Wait recovery mode to boot
       - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
       - <left><left> # Focus on Utiltiess menu
       - <down><down><down><down><enter><wait10s> # Select and execute Terminal
@@ -33,6 +35,8 @@ builders:
     ssh_timeout: 10s
     ssh_read_write_timeout: 10s
     ssh_wait_timeout: 2m
+    vmx_data:
+      bios.forceSetupOnce: "TRUE"
 
 provisioners:
   - type: ansible
@@ -52,7 +56,8 @@ post-processors:
     command: "empty"
     execute_command:
       - sed
-      - -i
+      - -i'.orig'
+      - -e
       - s|{{ user `out_full_path` }}|..|g
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
 

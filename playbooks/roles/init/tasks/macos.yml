@@ -16,9 +16,9 @@
     - harddisksleep
 
 - name: Disable hibernate
-  when: not reg_hibernate.stdout.endswith('0')
   command: pmset hibernatemode 0
   become: true
+  changed_when: true
 
 - name: Disable App Sleep
   osx_defaults:
@@ -43,6 +43,6 @@
   become: true
 
 - name: Disable Spotlight indexing for root
-  when: not reg_indexing.stdout.endswith('Indexing disabled.')
   command: mdutil -i off /
   become: true
+  changed_when: true

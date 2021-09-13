@@ -38,7 +38,8 @@ post-processors:
     command: "empty"
     execute_command:
       - sed
-      - -i
+      - -i'.orig'
+      - -e
       - s|{{ user `out_full_path` }}|..|g
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
 
