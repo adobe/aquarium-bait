@@ -2,6 +2,7 @@
 - name: Disable not needed services
   command: launchctl unload -w /System/Library/{{ item }}
   become: true
+  changed_when: true
   with_items:
     - LaunchDaemons/com.apple.metadata.mds.plist  # Spotlight service (too much load on disk)
     - LaunchDaemons/com.apple.netbiosd.plist  # Netbios - No need to much net fuzz

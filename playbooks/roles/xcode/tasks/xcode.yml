@@ -6,18 +6,26 @@
         path: /tmp/{{ xcode_archive_local | dirname }}
         state: directory
 
-    - name: Get Xcode from local files
+    - name: Get Xcode from the localhost files
+      ignore_errors: true
+      register: reg_copy_local_file
       copy:
         src: "{{ xcode_archive_local }}"
         dest: /tmp/{{ xcode_archive_local }}
-      ignore_errors: true
 
     - name: Download Xcode if local file is not available
+      when: reg_copy_local_file.state != "success"
+      delegate_to: localhost
       get_url:
         url: "{{ xcode_archive_url }}"
-        dest: /tmp/{{ xcode_archive_local }}
+        dest: "{{ playbook_dir }}/files/{{ xcode_archive_local }}"
         mode: "0440"
         checksum: "{{ xcode_archive_checksum }}"
+
+    - name: Get Xcode from the localhost files
+      copy:
+        src: "{{ xcode_archive_local }}"
+        dest: /tmp/{{ xcode_archive_local }}
 
 - name: Install Xcode from XIP file Location
   command: xip --expand /tmp/{{ xcode_archive_local }}

@@ -85,25 +85,27 @@ script and it will execute docker to validate the playbooks.
 
 #### ISO images
 
-Packer will use iso images from iso directory. The iso should be named just like the packer yml file,
-but with the iso extension.
+Packer will use iso images from iso directory. The iso should be named just like the packer yml
+file, but with the iso extension.
 
 * Build or Download MacOS-Catalina-10.15.7-210125.190800.iso
 * Place it as iso/MacOS-Catalina-10.15.7.iso
 
 #### Ansible files
 
-Roles can download files from artifact storage, but in case it's not an option (no direct connection
-from VM to artifact storage) - you can place the files locally.
+Roles can download files from artifact storage, but in case it's not an option (you're remote and
+can't use VPN due to client routing restrictions) - you can place the files locally.
 
 Ansible playbooks uses a number of binary packages you can find in artifact storage, check the
-[playbooks/files/mac/README.md](playbooks/files/mac/README.md) and the other dirs to get the
-clue.
+[playbooks/files/mac/README.md](playbooks/files/mac/README.md) and the other dirs to get the clue.
 
 ### 3. Run build
 
-**WARNING:** make sure you don't have VPN enabled, otherwise it will lead to redirect your traffic through
-VPN and will never find your VM host. VM only have connection to host, not to the local net / internet.
+**WARNING:** if you're remote - make sure you don't have VPN enabled, otherwise it will lead to
+redirecting all your traffic through VPN and packer will never find your VM to execute operations.
+VM only have connection to host, not to the local net or internet. In case you want to build the
+images locally - you will need to fill the binaries directory as described in **Ansible files**
+section.
 
 Now when all the required things are ready - you can run the image builder:
 ```

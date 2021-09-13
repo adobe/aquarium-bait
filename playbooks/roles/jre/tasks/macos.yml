@@ -1,23 +1,31 @@
 ---
-- name: Get JDK on VM
+- name: Get JRE on VM
   block:
     - name: Create archive directory
       file:
-        path: "/tmp/{{ jre_archive_local | dirname }}"
+        path: /tmp/{{ jre_archive_local | dirname }}
         state: directory
 
-    - name: Get JDK from local files
+    - name: Get archive from the localhost files
+      ignore_errors: true
+      register: reg_copy_local_file
       copy:
         src: "{{ jre_archive_local }}"
-        dest: "/tmp/{{ jre_archive_local }}"
-      ignore_errors: true
+        dest: /tmp/{{ jre_archive_local }}
 
-    - name: Download cmd tools if local file is not available
+    - name: Download archive if local file is not available
+      when: reg_copy_local_file.state != "success"
+      delegate_to: localhost
       get_url:
         url: "{{ jre_archive_url }}"
-        dest: "/tmp/{{ jre_archive_local }}"
+        dest: "{{ playbook_dir }}/files/{{ jre_archive_local }}"
         mode: "0440"
         checksum: "{{ jre_archive_checksum }}"
+
+    - name: Get archive from the localhost files
+      copy:
+        src: "{{ jre_archive_local }}"
+        dest: /tmp/{{ jre_archive_local }}
 
 - name: Create extract directory
   become: true
