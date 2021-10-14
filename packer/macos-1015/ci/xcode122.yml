@@ -4,6 +4,7 @@ variables:
   vm_name: macos-1015-ci-xcode122
   out_full_path: "{{ env `PWD` }}/out"
   vmx_full_path: "{{ user `out_full_path` }}/macos-1015-ci/macos-1015-ci.vmx"
+  aquarium_bait_stage: NONE # Used to find out the disk clone index
   username: packer
   password: packer
 
@@ -34,14 +35,15 @@ provisioners:
       - ansible_sudo_pass={{ user `password` }}
 
 post-processors:
-  - type: shell-local # Use relative path in vmx
+  - type: shell-local # Use relative path in vmx and vmdk
     command: "empty"
     execute_command:
       - sed
-      - -i'.orig'
+      - -i.orig
       - -e
       - s|{{ user `out_full_path` }}|..|g
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/MainDisk-1-cl{{ user `aquarium_bait_stage` }}.vmdk"
 
   - type: shell-local # Create snapshot
     command: "empty"

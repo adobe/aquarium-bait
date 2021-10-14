@@ -15,8 +15,8 @@ builders:
     source_path: "{{ user `vmx_full_path` }}"
     linked: false # Create full copy to decrease the image size
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
-    #headless: true TODO: enable it
-    boot_wait: 80s # Till the first screen
+    headless: true
+    boot_wait: 160s # Till the first screen
     boot_command:
       - <tab><spacebar><wait5s> # Selecting "English" language and next
 
@@ -80,7 +80,7 @@ builders:
     disk_additional_size: [102400] # 100GB
     disk_adapter_type: sata
     vmdk_name: MainDisk
-    disk_type_id: 0
+    disk_type_id: 1 # Sparse disk to replace .vmdk `parentFileNameHint` absolute path in the linked clones
     vmx_data:
       sata0:1.fileName: "{{ user `iso_full_path` }}"
       sata0:0.present: "TRUE" # Enable the main disk
@@ -99,7 +99,7 @@ post-processors:
     command: "empty"
     execute_command:
       - sed
-      - -i'.orig'
+      - -i.orig
       - -e
       - /sata0:1/d
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"

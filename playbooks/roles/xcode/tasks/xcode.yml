@@ -14,7 +14,7 @@
         dest: /tmp/{{ xcode_archive_local }}
 
     - name: Download Xcode if local file is not available
-      when: reg_copy_local_file.state != "success"
+      when: reg_copy_local_file.failed
       delegate_to: localhost
       get_url:
         url: "{{ xcode_archive_url }}"
@@ -23,16 +23,18 @@
         checksum: "{{ xcode_archive_checksum }}"
 
     - name: Get Xcode from the localhost files
+      when: reg_copy_local_file.failed
       copy:
         src: "{{ xcode_archive_local }}"
         dest: /tmp/{{ xcode_archive_local }}
 
 - name: Install Xcode from XIP file Location
+  become: true
   command: xip --expand /tmp/{{ xcode_archive_local }}
   args:
     chdir: /Applications
   async: "{{ xcode_archive_extraction_timeout }}"  # Prevent SSH connections timing out waiting for extraction
-  poll: 5
+  poll: 30
   changed_when: true
 
 - name: Accept License Agreement

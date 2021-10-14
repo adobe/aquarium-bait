@@ -20,9 +20,9 @@ for image in out/macos-*; do
 
     echo "INFO: Packing image '${name}'..."
 
-    # Skip if image is already packed
-    if [ -f "${image}.tar.xz" ]; then
-        echo "INFO:   skip: image '${image}' is already packed"
+    # Skip if image is a file or already have been packed
+    if [ -f "${image}" -o -f "${image}.tar.xz" ]; then
+        echo "INFO:   skip: '${image}'"
         continue
     fi
 
@@ -36,8 +36,12 @@ for image in out/macos-*; do
     if [ -f "${vmsd_file}" ]; then
         # Save backup to restore later and replace absolute path with token to change on the target
         [ -f "${vmsd_file}.bak" ] || cp "${vmsd_file}" "${vmsd_file}.bak"
-        sed -i "s|${root_dir}/out|<REPLACE_PARENT_VM_FULL_PATH>|" "${vmsd_file}"
+        grep -F -v 'snapshot0.clone0' "${vmsd_file}.bak" | grep -F -v 'snapshot0.numClones' > "${vmsd_file}"
+        sed -i.orig -e "s|${root_dir}/out|<REPLACE_PARENT_VM_FULL_PATH>|" "${vmsd_file}"
     fi
+
+    # Cleaning the .orig files
+    rm -f "${image}"/*.orig
 
     # Pack the image hard, using half of available vcores to not overload the system
     XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/2))" tar -C out -cJf "${image}.tar.xz" "${name}"

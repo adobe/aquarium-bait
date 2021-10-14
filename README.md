@@ -125,16 +125,18 @@ $ ./pack_macos.sh
 
 * ISO installer:
    ```
+   file=iso/MacOS-Catalina-10.15.7.iso ;
+   name=$(basename "$file" | rev | cut -d. -f2-) | rev ;
    curl --progress-bar -u "<user>:<token>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum iso/MacOS-Catalina-10.15.7.iso | cut -d' ' -f1)" \
-     -T iso/MacOS-Catalina-10.15.7.iso \
-     https://artifact-storage/aquarium/installer/MacOS-Catalina-10.15.7/MacOS-Catalina-10.15.7-$(date +%y%m%d.%H%M%S).iso | tee /dev/null
+     -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)"  -T "$file" \
+     "https://artifact-storage/aquarium/installer/$name/$name-$(date -r "$file" +%y%m%d.%H%M%S).iso" | tee /dev/null
    ```
 
 * VM Image:
    ```
+   file=out/macos-1015.tar.xz ;
+   name=$(basename "$file" | cut -d. -f1) ;
    curl --progress-bar -u "<user>:<token>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum out/macos-1015.tar.xz | cut -d' ' -f1)" \
-     -T out/macos-1015.tar.xz \
-     https://artifact-storage/aquarium/image/macos-1015/macos-1015-$(date +%y%m%d.%H%M%S).tar.xz | tee /dev/null
+     -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)"  -T "$file" \
+     "https://artifact-storage/aquarium/image/$name/$name-$(date -r "$file" +%y%m%d.%H%M%S).tar.xz" | tee /dev/null
    ```

@@ -16,7 +16,7 @@ builders:
     linked: false # Create full copy to decrease the image size
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
-    boot_wait: 80s # Till the first screen
+    boot_wait: 160s # Till the first screen
     boot_command:
       - <enter><wait10> # Selecting "English" language and next
 
@@ -34,7 +34,7 @@ builders:
       - <leftCtrlOn><leftAltOn><leftShiftOn><up><leftShiftOff><down><right><spacebar><leftAltOff><leftCtrlOff><wait> # Go to Install button and press it via VoiceOver
       - <leftSuperOn><f5><leftSuperOff> # Disable VoiceOver
 
-      - <wait20m> # Wait while the installer unpacks files to the disk and reboots (~17mins)
+      - <wait25m> # Wait while the installer unpacks files to the disk and reboots (~17mins)
 
       - United States<tab><tab><spacebar><wait> # Select country and next button
       - <tab><tab><tab><spacebar><wait> # Select keyboard locale and next button
@@ -70,7 +70,7 @@ builders:
     disk_additional_size: [102400] # 100GB
     disk_adapter_type: sata
     vmdk_name: MainDisk
-    disk_type_id: 0
+    disk_type_id: 1 # Sparse disk to replace .vmdk `parentFileNameHint` absolute path in the linked clones
     vmx_data:
       sata0:1.fileName: "{{ user `iso_full_path` }}"
       sata0:0.present: "TRUE" # Enable the main disk
@@ -89,8 +89,7 @@ post-processors:
     command: "empty"
     execute_command:
       - sed
-      - -i'.orig'
-      - -e
+      - -i.orig
       - /sata0:1/d
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
 

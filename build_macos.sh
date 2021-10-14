@@ -54,8 +54,11 @@ while true; do
             continue
         fi
 
-        [ "${DEBUG}" ] || packer build "${json}"
-        [ -z "${DEBUG}" ] || PACKER_LOG=1 packer build -on-error=ask "${json}"
+        # Cleaning the non-tracked files from the init directory
+        git clean -fX ./init/ || true
+
+        [ "${DEBUG}" ] || packer build -var "aquarium_bait_stage=$(($stage-1))" "${json}"
+        [ -z "${DEBUG}" ] || PACKER_LOG=1 packer build -var "aquarium_bait_stage=$(($stage-1))" -on-error=ask "${json}"
     done
     stage=$(($stage+1))
 done
