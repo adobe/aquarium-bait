@@ -11,5 +11,5 @@
 /iso/*
 !/iso/*.md
 
-/playbooks/files/mac/*
-!/playbooks/files/mac/*.md
+/playbooks/files/*
+!/playbooks/files/*.md

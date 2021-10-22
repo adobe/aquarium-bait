@@ -6,7 +6,7 @@
 root_dir=$(realpath "$(dirname "$0")")
 cd "${root_dir}"
 
-for image in out/macos-*; do
+for image in out/*; do
     # Skip if path not in the filter
     if [ "$1" ]; then
         skip_image=true

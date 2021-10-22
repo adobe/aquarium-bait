@@ -1,0 +1,9 @@
+---
+- name: Install pstools to execute in interactive mode
+  import_tasks: windows_pstools.yml
+
+- name: Install sdelete to compact the disk
+  import_tasks: windows_sdelete.yml
+
+- name: Run optimizations
+  import_tasks: windows_osot.yml

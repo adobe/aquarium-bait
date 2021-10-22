@@ -1,0 +1,15 @@
+---
+
+- name: Clean caches & tmp dirs
+  changed_when: true
+  win_shell: Remove-Item '{{ item }}' -force -recurse
+  with_items:
+    - C:\tmp\*
+    - C:\Windows\Temp\*
+    - C:\Windows\Prefetch\*
+    - C:\Documents and Settings\*\Local Settings\temp\*
+    - C:\Users\*\Appdata\Local\Temp\*
+
+- name: Compact the disk
+  changed_when: true
+  win_command: 'C:\util\sdelete\sdelete.exe /accepteula -z C:'

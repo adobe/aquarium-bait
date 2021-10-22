@@ -1,0 +1,134 @@
+---
+# VMWare OS Optimization Tool to prepare the windows image for use
+
+- name: Get OSOT on VM
+  block:
+    - name: Create archive directory
+      win_file:
+        path: C:\tmp\{{ init_osot_archive_local | dirname }}
+        state: directory
+
+    - name: Get archive from the localhost files
+      ignore_errors: true
+      register: reg_copy_local_file
+      win_copy:
+        src: "{{ init_osot_archive_local }}"
+        dest: C:\tmp\{{ init_osot_archive_local }}
+
+    - name: Download archive if local file is not available
+      when: reg_copy_local_file.failed
+      delegate_to: localhost
+      win_get_url:
+        url: "{{ init_osot_archive_url }}"
+        dest: "{{ playbook_dir }}/files/{{ init_osot_archive_local }}"
+        mode: "0440"
+        checksum: "{{ init_osot_archive_checksum }}"
+
+    - name: Get archive from the localhost files
+      when: reg_copy_local_file.failed
+      win_copy:
+        src: "{{ init_osot_archive_local }}"
+        dest: C:\tmp\{{ init_osot_archive_local }}
+
+- name: Copy OSOT generalize answers
+  win_copy:
+    src: osot-generalize-answers.xml
+    dest: C:\tmp\osot-generalize-answers.xml
+
+# The next commands will mess up with the network interface, so need
+# to execute them and after they are completed restart the system
+- name: Create bat file to execute in the background
+  win_copy:
+    content: >
+      echo started > C:\tmp\osot_status.txt
+
+      C:\tmp\{{ init_osot_archive_local }} -v -optimize
+      -VisualEffect Performance
+      -Notification Disable
+      -WindowsUpdate Disable
+      -OfficeUpdate Disable
+      -StoreApp Remove-all
+      -Background "#000000"
+      -Firewall Disable
+      -Antivirus Disable
+      -SecurityCenter Disable
+      -SmartScreen Disable
+      -HVCI Disable
+      -Finalize All
+      > C:\tmp\osot_opt_fin.log 2>&1
+
+      C:\tmp\{{ init_osot_archive_local }} -v
+      -Generalize C:\tmp\osot-generalize-answers.xml
+      > C:\tmp\osot_gen.log 2>&1
+
+      echo completed > C:\tmp\osot_status.txt
+
+      shutdown /r /t 1
+    dest: C:\tmp\execute_osot_reboot.bat
+
+# This command will stall until the system will be rebooted, so will
+# fail with "Unexpected failure during module execution" error and it's ok.
+# Later we validate the logs out of OSOT tool, so can make sure it was executed properly
+- name: Run OSOT optimization, generalization and finalization (fail due to "Unexpected failure during module execution" is ok)
+  changed_when: true
+  ignore_errors: true  # This task will fail due to the network interface reinit
+  win_psexec:
+    executable: C:\util\pstools\PsExec.exe
+    interactive: true
+    command: C:\tmp\execute_osot_reboot.bat
+
+# VM will reboot and restore winrm connection
+- name: Wait for winrm port
+  delegate_to: localhost
+  wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ ansible_port }}"
+
+- name: Check the OSOT process is completed
+  win_wait_for:
+    path: C:\tmp\osot_status.txt
+    regex: completed
+
+- name: Get log from OSOT optimization and finalization
+  changed_when: true
+  register: reg_osot_opt_fin_log
+  win_shell: type C:\tmp\osot_opt_fin.log
+
+- name: Show OSOT optimization and finalization log
+  debug:
+    var: reg_osot_opt_fin_log.stdout_lines
+
+- name: Get log from OSOT generalization
+  changed_when: true
+  register: reg_osot_gen_log
+  win_shell: type C:\tmp\osot_gen.log
+
+- name: Show OSOT generalization log
+  debug:
+    var: reg_osot_gen_log.stdout_lines
+
+# Validate the OSOT logs to contain the necessary lines - this way we
+# make sure the optimization was executed properly and not fail somewhere
+- name: Verify OSOT opt fin log
+  when: item not in reg_osot_opt_fin_log.stdout_lines
+  fail:
+    msg: OSOT opt fin log does not contains the required line "{{ item }}"
+  with_items:
+    - Turn off Windows Antimalware - Machine Policy
+    - Disable Behavior Monitoring - Machine Policy
+    - Disable On Access Protection - Machine Policy
+    - Disable Realtime Scan - Machine Policy
+    - Disable defender antivirus service - Service
+    - Disable Windows Defender Verification - Scheduled Task
+    - Disable All Firewall Profiles - Command
+    - Adjust for best performance - HKLM Registry
+    - Disable Windows Search - Service
+    - Optimization is done.
+    - Finalize is done.
+
+- name: Verify OSOT gen log
+  when: item not in reg_osot_gen_log.stdout_lines
+  fail:
+    msg: OSOT gen log does not contains the required line "{{ item }}"
+  with_items:
+    - Generalize is done, please reboot your computer.

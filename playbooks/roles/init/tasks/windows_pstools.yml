@@ -1,0 +1,37 @@
+---
+# PSTools contains useful psexec which allows to run apps in interactive (GUI) mode
+
+- name: Get PSTools on VM
+  block:
+    - name: Create archive directory
+      win_file:
+        path: C:\tmp\{{ init_pstools_archive_local | dirname }}
+        state: directory
+
+    - name: Get archive from the localhost files
+      ignore_errors: true
+      register: reg_copy_local_file
+      win_copy:
+        src: "{{ init_pstools_archive_local }}"
+        dest: C:\tmp\{{ init_pstools_archive_local }}
+
+    - name: Download archive if local file is not available
+      when: reg_copy_local_file.failed
+      delegate_to: localhost
+      win_get_url:
+        url: "{{ init_pstools_archive_url }}"
+        dest: "{{ playbook_dir }}/files/{{ init_pstools_archive_local }}"
+        mode: "0440"
+        checksum: "{{ init_pstools_archive_checksum }}"
+
+    - name: Get archive from the localhost files
+      when: reg_copy_local_file.failed
+      win_copy:
+        src: "{{ init_pstools_archive_local }}"
+        dest: C:\tmp\{{ init_pstools_archive_local }}
+
+- name: Unzip the PSTools archive
+  win_unzip:
+    src: C:\tmp\{{ init_pstools_archive_local }}
+    dest: C:\util\pstools
+    creates: C:\util\pstools\PsExec.exe

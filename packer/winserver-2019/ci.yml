@@ -1,0 +1,70 @@
+---
+min_packer_version: 1.7.0
+variables:
+  vm_name: winserver-2019-ci
+  out_full_path: "{{ env `PWD` }}/out"
+  vmx_full_path: "{{ user `out_full_path` }}/winserver-2019/winserver-2019.vmx"
+  username: Administrator # Username is predefined by the setup
+  password: packer-1 # It not allow to use the usual password...
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `vm_name` }}"
+    display_name: "{{ user `vm_name` }}"
+    source_path: "{{ user `vmx_full_path` }}"
+    linked: true # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
+    # headless: true TODO: enable
+    boot_wait: 15s
+    boot_command: # Disable System Integrity Protection to allow access to the disks. It will enter BIOS mode only once
+      - <down><down><down><down><down><enter><wait5s> # Choose "Setup menu"
+      - <down><down><enter><wait5s> # boot from a file menu
+      - <down><down><down><enter><wait5s> # choose Recovery
+      - <enter><wait5s> # Recovery mode has 1 partition, thus, 1 choice.  Just hit enter
+      - <down><down><down><down><down><down><enter> # boot.efi is the 6th item
+      - <wait3m> # Wait recovery mode to boot
+      - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
+      - <left><left> # Focus on Utiltiess menu
+      - <down><down><down><down><enter><wait10s> # Select and execute Terminal
+      - csrutil disable<enter><wait5s> # Disable System Integrity Protection to simplify access to disks
+      - reboot<enter> # Reboot into usual system
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+    vmx_data:
+      bios.forceSetupOnce: "TRUE"
+
+provisioners:
+  - type: ansible
+    command: ./run_ansible.sh
+    user: "{{ user `username` }}"
+    playbook_file: playbooks/ci_image.yml
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - vmtools_vm_type=vmware
+      - -e
+      - jre_extract_path=/opt/srv/jre8
+
+post-processors:
+  - type: shell-local # Use relative path in vmx
+    command: "empty"
+    execute_command:
+      - sed
+      - -i.orig
+      - -e
+      - s|{{ user `out_full_path` }}|..|g
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+
+  - type: shell-local # Create snapshot
+    command: "empty"
+    execute_command:
+      - vmrun
+      - snapshot
+      - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+      - original
