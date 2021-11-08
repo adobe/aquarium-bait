@@ -1,0 +1,49 @@
+---
+# NSSM is a service manager which allows to set arguments to the running applications
+
+- name: Get NSSM on VM
+  block:
+    - name: Create archive directory
+      win_file:
+        path: C:\tmp\{{ jenkins_agent_win_nssm_archive_local | dirname }}
+        state: directory
+
+    - name: Get archive from the localhost files
+      ignore_errors: true
+      register: reg_copy_local_file
+      win_copy:
+        src: "{{ jenkins_agent_win_nssm_archive_local }}"
+        dest: C:\tmp\{{ jenkins_agent_win_nssm_archive_local }}
+
+    - name: Download archive if local file is not available
+      when: reg_copy_local_file.failed
+      delegate_to: localhost
+      win_get_url:
+        url: "{{ jenkins_agent_win_nssm_archive_url }}"
+        dest: "{{ playbook_dir }}/files/{{ jenkins_agent_win_nssm_archive_local }}"
+        mode: "0440"
+        checksum: "{{ jenkins_agent_win_nssm_archive_checksum }}"
+
+    - name: Get archive from the localhost files
+      when: reg_copy_local_file.failed
+      win_copy:
+        src: "{{ jenkins_agent_win_nssm_archive_local }}"
+        dest: C:\tmp\{{ jenkins_agent_win_nssm_archive_local }}
+
+- name: Unzip the NSSM archive
+  win_unzip:
+    src: C:\tmp\{{ jenkins_agent_win_nssm_archive_local }}
+    dest: C:\tmp\nssm
+    creates: C:\tmp\nssm\win64\nssm64.exe
+
+- name: Create NSSM util directory
+  win_file:
+    path: C:\util\nssm
+    state: directory
+
+- name: Copy executable to the util folder
+  win_copy:
+    remote_src: true
+    src: C:\tmp\nssm\nssm-2.24\win64\nssm.exe
+    dest: C:\util\nssm\nssm.exe
+    creates: C:\util\nssm\nssm.exe

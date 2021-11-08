@@ -1,0 +1,68 @@
+---
+- name: Install NSSM
+  import_tasks: windows_nssm.yml
+
+- name: Add jenkins group
+  win_group:
+    name: jenkins-group
+    description: Jenkins group
+    state: present
+
+- name: Add user jenkins with group jenkins
+  win_user:
+    name: jenkins
+    fullname: jenkins
+    password_never_expires: true
+    account_disabled: false
+    groups:
+      - jenkins-group
+
+- name: Create extract directory
+  win_file:
+    path: C:\srv\jenkins_agent
+    state: directory
+
+- name: Create log directory
+  win_file:
+    path: C:\Users\jenkins
+    state: directory
+
+- name: Add jenkins home dir allow rights
+  win_acl:
+    path: C:\Users\jenkins
+    user: jenkins
+    rights: FullControl
+    type: allow
+
+- name: Store jenkins agent executable scripts
+  win_copy:
+    src: win/jenkins_agent.ps1
+    dest: C:\srv\jenkins_agent\jenkins_agent.ps1
+
+- name: Create service to run jenkins agent
+  win_nssm:
+    executable: C:\util\nssm\nssm.exe
+    name: jenkins_agent
+    working_directory: C:\Users\jenkins
+    application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+    stdout_file: C:\Users\jenkins\jenkins_agent.log
+    stderr_file: C:\Users\jenkins\jenkins_agent.log
+    arguments:
+      - -ExecutionPolicy
+      - Bypass
+      - -NoProfile
+      - -f
+      - C:\srv\jenkins_agent\jenkins_agent.ps1
+
+- name: Set environment variable for jenkins_agent nssm service
+  win_command: C:\util\nssm\nssm.exe set jenkins_agent AppEnvironmentExtra "JAVA_HOME={{ jenkins_agent_java_home }}"
+  changed_when: true
+
+- name: Configure the jenkins_agent service
+  win_service:
+    name: jenkins_agent
+    dependencies:
+      - tcpip
+    user: jenkins
+    start_mode: auto
+    state: stopped

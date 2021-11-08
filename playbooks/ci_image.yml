@@ -2,8 +2,6 @@
 - name: CI image provision
   hosts: default
   roles:
-    - role: check_sip
-
     - role: init_ci
 
     - role: vmtools

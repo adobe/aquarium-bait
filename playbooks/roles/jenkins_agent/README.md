@@ -4,5 +4,5 @@ This role setup jenkins user and automatic service retreiver of jnlp jenkins age
 
 ## Tasks
 
-* Install jenkins user
+* Setup jenkins user
 * Creates retreiver & runner of service for jenkins agent

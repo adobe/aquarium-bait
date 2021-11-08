@@ -32,6 +32,12 @@ for image in out/*; do
         exit 1
     fi
 
+    # Check the lock files are not present
+    if [ "$(find "${image}" -name '*.lck')" ]; then
+        echo "ERROR: Image '${image}' contains lock files, please stop the vmware vms and the application."
+        exit 1
+    fi
+
     vmsd_file="${image}/${name}.vmsd"
     if [ -f "${vmsd_file}" ]; then
         # Save backup to restore later and replace absolute path with token to change on the target

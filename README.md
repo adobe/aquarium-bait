@@ -22,6 +22,11 @@ process, so the leaves of the trees will require the parents to be in place.
    * macos-1015-**ci** - jenkins user and autorunning jnlp agent
       * macos-1015-ci-**xcode-12.2** - the Xcode tools of a specific version
 
+The VMX packer specs are using `source_path` (in `packer/macos-1015/ci.yml` for example) to build
+the `CI` image on top of the previously created `macos-1015` image. That's why `build_macos.sh`
+wrapper is executing the directory tree levels sequentially - to make sure we already built the
+previous level image to use it in the next levels of images.
+
 ## Using of the images
 
 Basic VM and VM build system right now uses 2CPU and 4GB for VM build process.

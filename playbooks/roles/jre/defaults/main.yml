@@ -1,7 +1,11 @@
 ---
-jre_archive_url: https://artifact-storage/aquarium/files/mac/jre-8u281-macosx-x64/jre-8u281-macosx-x64.tar.gz
-jre_archive_checksum: sha256:839e9d98a29587311a62cbf4117957d801be146fa7829be4d12f57308235b615
-jre_archive_local: mac/jre-8u281-macosx-x64.tar.gz
+jre_mac_archive_url: https://artifact-storage/aquarium/files/mac/jre-8u281-macosx-x64.tar.gz
+jre_mac_archive_checksum: sha256:839e9d98a29587311a62cbf4117957d801be146fa7829be4d12f57308235b615
+jre_mac_archive_local: mac/jre-8u281-macosx-x64.tar.gz
+
+jre_win_archive_url: https://artifact-storage/aquarium/files/win/jre-8u281-windows-x64.tar.gz
+jre_win_archive_checksum: sha256:e7e76bd683b832dec6c9badf62d9cb44e669b67d0d9715be3496aadb10089f6a
+jre_win_archive_local: win/jre-8u281-windows-x64.tar.gz
 
 required_vars:
   - jre_extract_path  # Path to the extract directory

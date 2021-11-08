@@ -1,4 +1,7 @@
 ---
+- name: Check System Integrity Protection - we don't need it in CI system
+  import_tasks: macos_check_sip.yml
+
 - name: Disable not needed services
   command: launchctl unload -w /System/Library/{{ item }}
   become: true
