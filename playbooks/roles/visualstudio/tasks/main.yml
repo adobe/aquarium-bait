@@ -1,0 +1,3 @@
+---
+- name: Install Visual Studio
+  import_tasks: vs.yml

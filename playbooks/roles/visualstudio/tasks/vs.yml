@@ -1,0 +1,60 @@
+---
+- name: Get VisualStudio on VM
+  block:
+    - name: Create archive directory
+      win_file:
+        path: C:\tmp\{{ visualstudio_archive_local | dirname }}
+        state: directory
+
+    - name: Get archive from the localhost files
+      ignore_errors: true
+      register: reg_copy_local_file
+      win_copy:
+        src: "{{ visualstudio_archive_local }}"
+        dest: C:\tmp\{{ visualstudio_archive_local }}
+
+    - name: Download archive if local file is not available
+      when: reg_copy_local_file.failed
+      delegate_to: localhost
+      win_get_url:
+        url: "{{ visualstudio_archive_url }}"
+        dest: "{{ playbook_dir }}/files/{{ visualstudio_archive_local }}"
+        mode: "0440"
+        checksum: "{{ visualstudio_archive_checksum }}"
+
+    - name: Get archive from the localhost files
+      when: reg_copy_local_file.failed
+      win_copy:
+        src: "{{ visualstudio_archive_local }}"
+        dest: C:\tmp\{{ visualstudio_archive_local }}
+
+- name: Unzip the VisualStudio archive
+  win_unzip:
+    src: C:\tmp\{{ visualstudio_archive_local }}
+    dest: C:\tmp\vs
+    creates: C:\tmp\vs\VS2019\Catalog.json
+
+- name: Register VisualStudio Install Certificates
+  win_certificate_store:
+    file_type: der
+    store_location: LocalMachine
+    store_name: Root
+    state: present
+    path: "{{ item }}"
+  with_items:
+    - C:\tmp\vs\VS2019\certificates\manifestRootCertificate.cer
+    - C:\tmp\vs\VS2019\certificates\manifestCounterSignRootCertificate.cer
+    - C:\tmp\vs\VS2019\certificates\vs_installer_opc.RootCertificate.cer
+
+- name: Copy Response.json for unattended install
+  win_copy:
+    src: C:\tmp\vs\vs2019-16.9.3.json
+    dest: C:\tmp\vs\VS2019\Response.json
+    remote_src: true
+
+- name: Install VisualStudio
+  changed_when: true
+  register: reg_install_result
+  win_command: C:\tmp\vs\VS2019\vs_Professional_2019_16.9.3.exe --wait
+  args:
+    creates: C:\Program Files (x86)\Microsoft Visual Studio\2019_16.9\Professional\Common7\IDE\devenv.exe
