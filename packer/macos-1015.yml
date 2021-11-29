@@ -90,6 +90,7 @@ post-processors:
     execute_command:
       - sed
       - -i.orig
+      - -e
       - /sata0:1/d
       - "{{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
 

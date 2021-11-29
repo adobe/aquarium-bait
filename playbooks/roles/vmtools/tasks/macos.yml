@@ -32,3 +32,30 @@
   command: installer -pkg /tmp/{{ vmtools_vmware_mac_archive_local }} -target /
   become: true
   changed_when: true
+  register: reg_vmtools_result
+  ignore_errors: true
+
+- name: MacOS 11 will not allow to install kext even with disabled SIP
+  when: reg_vmtools_result.rc != 0
+  block:
+    - name: Execute vncdo in case installation failed to allow kernel extensions
+      include_role:
+        name: vncdo
+      vars:
+        vncdo_template: system_preferences_security_vendor_allow.vdo
+
+    # Rerun the copy and installation
+    - name: Create archive directory
+      file:
+        path: /tmp/{{ vmtools_vmware_mac_archive_local | dirname }}
+        state: directory
+
+    - name: Get archive from the localhost files
+      copy:
+        src: "{{ vmtools_vmware_mac_archive_local }}"
+        dest: /tmp/{{ vmtools_vmware_mac_archive_local }}
+
+    - name: Install VMware tools from the pkg archive
+      command: installer -pkg /tmp/{{ vmtools_vmware_mac_archive_local }} -target /
+      become: true
+      changed_when: true

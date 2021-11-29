@@ -28,18 +28,10 @@
         src: "{{ vmtools_vmware_win_archive_local }}"
         dest: C:\tmp\{{ vmtools_vmware_win_archive_local }}
 
-- name: Mount iso image with tools
-  changed_when: true
-  win_shell: Mount-DiskImage -ImagePath C:\tmp\{{ vmtools_vmware_win_archive_local }}
-
 - name: Install VMware tools
   changed_when: true
   register: reg_vmtools_result
   failed_when: reg_vmtools_result.rc != 3010
-  win_command: D:\setup64.exe /S /v "/qn REBOOT=R ADDLOCAL=ALL REMOVE=Hgfs"
+  win_command: C:\tmp\{{ vmtools_vmware_win_archive_local }} /qn REBOOT=R ADDLOCAL=ALL REMOVE=Hgfs
   args:
     creates: C:\Program Files\VMware\VMware Tools\vmtoolsd.exe
-
-- name: Umount iso image with tools
-  changed_when: true
-  win_shell: Dismount-DiskImage -ImagePath C:\tmp\{{ vmtools_vmware_win_archive_local }}

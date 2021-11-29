@@ -10,4 +10,8 @@ pip install --upgrade pip wheel
 pip install -r "${root_dir}/requirements.txt"
 
 # Run the playbook
-"${root_dir}/.venv/bin/ansible-playbook" "$@"
+if [ "x$DEBUG" != "x" ]; then
+    "${root_dir}/.venv/bin/ansible-playbook" -vvv "$@"
+else
+    "${root_dir}/.venv/bin/ansible-playbook" "$@" 2>/dev/null
+fi

@@ -1,0 +1,9 @@
+---
+vncdo_host: '' # Host to connect to
+vncdo_port: '' # VNC port
+vncdo_password: '' # VNC password
+
+# Uses the next variables
+#  * vncdo_vmx_path - path to vmx file to get vnc creds from
+#  * vncdo_script - variable with the text script to execute
+#  * vncdo_template - variable contains name of the vncdo role template without '.j2' suffix

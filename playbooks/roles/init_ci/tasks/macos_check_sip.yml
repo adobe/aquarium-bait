@@ -5,7 +5,11 @@
   changed_when: false
   register: reg_csrstatus
 
+- name: Print csrstatus configuration
+  debug:
+    var: reg_csrstatus.stdout_lines
+
 - name: Validate System Integrity Protection status
-  when: "not reg_csrstatus.stdout.endswith('status: disabled.')"
+  when: "reg_csrstatus.stdout.endswith('status: enabled.')"
   fail:
-    msg: "The System Integrity Protection is not disabled: {{ reg_csrstatus.stdout }}"
+    msg: "The System Integrity Protection is enabled."

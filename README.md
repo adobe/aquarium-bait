@@ -20,7 +20,7 @@ process, so the leaves of the trees will require the parents to be in place.
 
 * **macos-1015** - the base os with low-level configs ([base_image.yml](playbooks/base_image.yml))
    * macos-1015-**ci** - jenkins user and autorunning jnlp agent
-      * macos-1015-ci-**xcode-12.2** - the Xcode tools of a specific version
+      * macos-1015-ci-**xcode-122** - the Xcode tools of a specific version
 
 The VMX packer specs are using `source_path` (in `packer/macos-1015/ci.yml` for example) to build
 the `CI` image on top of the previously created `macos-1015` image. That's why `build_macos.sh`
@@ -102,7 +102,7 @@ Roles can download files from artifact storage, but in case it's not an option (
 can't use VPN due to client routing restrictions) - you can place the files locally.
 
 Ansible playbooks uses a number of binary packages you can find in artifact storage, check the
-[playbooks/files/mac/README.md](playbooks/files/mac/README.md) and the other dirs to get the clue.
+[playbooks/files/README.md](playbooks/files/README.md) and the other dirs to get the clue.
 
 ### 3. Run build
 
@@ -117,14 +117,21 @@ Now when all the required things are ready - you can run the image builder:
 $ ./build_macos.sh
 ```
 
-This script will automatically create the useful slim base image in out directory
+This script will automatically create the not-existing images in out directory. You can specify the
+packer yml files as arguments to build the specific images. Also you can put `DEBUG=1` env var to
+tell builder to ask in case of any issue happening during the build.
+
+Also the builder supports `screenshot-packer` during the build process, you just need to build or
+place binary into `screenshot-packer` directory and run the build script.
 
 ### 4. Run pack of the images
 
-Now you can run script to pack all the generated macos images into tight tar.xz archives:
+Now you can run script to pack all the generated images into tight tar.xz archives:
 ```
 $ ./pack_macos.sh
 ```
+
+As with the build you can pack specific images by defining the out directories to pack.
 
 ## Upload the artifacts
 

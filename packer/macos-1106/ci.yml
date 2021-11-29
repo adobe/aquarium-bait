@@ -1,9 +1,9 @@
 ---
 min_packer_version: 1.7.1
 variables:
-  vm_name: macos-1015-ci
+  vm_name: macos-1106-ci
   out_full_path: "{{ env `PWD` }}/out"
-  vmx_full_path: "{{ user `out_full_path` }}/macos-1015/macos-1015.vmx"
+  vmx_full_path: "{{ user `out_full_path` }}/macos-1106/macos-1106.vmx"
   aquarium_bait_stage: NONE # Used to find out the disk clone index
   username: packer
   password: packer
@@ -18,19 +18,19 @@ builders:
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
     boot_wait: 15s
+    boot_key_interval: 10ms
     boot_command: # Disable System Integrity Protection to allow access to the disks. It will enter BIOS mode only once
-      - <pageDown><up><up><enter><wait10s> # Choose "Setup Menu"
-      - <down><down><enter><wait5s> # boot from a file menu
-      - <down><down><down><enter><wait5s> # choose Recovery
-      - <enter><wait5s> # Recovery mode has 1 partition, thus, 1 choice.  Just hit enter
-      - <down><down><down><down><down><down><enter> # boot.efi is the 6th item
-      - <wait3m> # Wait recovery mode to boot
-      - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
-      - <left><left> # Focus on Utiltiess menu
-      - <down><down><down><down><enter><wait10s> # Select and execute Terminal
-      - spctl kext-consent disable<enter><wait5s> # Disable kext verification
-      - csrutil disable<enter><wait5s> # Disable System Integrity Protection to simplify access to disks
-      - reboot<enter> # Reboot into usual system
+      - <pageDown><up><up><up><enter><wait10s> # Choose "EFI Internal Shell"
+      - FS0:<enter>vol<enter><wait> # Switch disk to "EFI" and print the label info
+      - dmpstore Asr-active-config -s csr.bin<enter><wait10s> # Save the part of nvram to disk
+      - hexedit c<tab><enter><wait> # Begin editing of the binary csr file
+      - <right><right><right><right>63<wait10s> # Change 5th byte to 'c' (0x63) 
+      - <f3>Y<wait10s> # Exit hexedit and save the file
+      - dmpstore -l c<tab><enter><wait> # Load the nvram with the changed data
+      - exit<enter><wait> # Exit the EFI Shell
+      - <pageUp><enter> # Select "Boot Normally" menu item and run it
+      - <wait2m> # Wait MacOS to boot
+      - "{{ user `password` }}<enter><wait20s>" # Login to the desktop to properly install VMWare tools
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
@@ -38,6 +38,7 @@ builders:
     ssh_read_write_timeout: 10s
     ssh_wait_timeout: 2m
     vmx_data:
+      bios.bootOrder: "hdd" # Otherwise "EFI Network" could be the last option
       bios.forceSetupOnce: "TRUE"
 
 provisioners:
@@ -48,6 +49,8 @@ provisioners:
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx
       - -e
       - vmtools_vm_type=vmware
       - -e

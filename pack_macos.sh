@@ -18,6 +18,7 @@ for image in out/*; do
 
     name=$(basename "${image}")
 
+    echo
     echo "INFO: Packing image '${name}'..."
 
     # Skip if image is a file or already have been packed
@@ -38,6 +39,23 @@ for image in out/*; do
         exit 1
     fi
 
+    # Make sure the image was build in release mode
+    if [ ! -f "${image}/packer.log" ]; then
+        echo "ERROR: Image '${image}' was build in DEBUG mode."
+        exit 1
+    fi
+
+    # Check that only allowed files are in the image
+    find_pattern=''
+    for pattern in 'MainDisk-*.vmdk' 'packer.log' "$name.vmx" "$name.vmsd" "*.vm*.orig" "$name.nvram" "$name-Snapshot*.vmsn" "$name.vmxf" "$name.sha256"; do
+        find_pattern="$find_pattern ! -name '$pattern'"
+    done
+    noneed_files=$(sh -c "find '${image}' $find_pattern")
+    if [ "x$noneed_files" != "x${image}" ]; then
+        echo "ERROR: Image '${image}' contains weird files need to be cleaned before packing: $noneed_files"
+        exit 1
+    fi
+
     vmsd_file="${image}/${name}.vmsd"
     if [ -f "${vmsd_file}" ]; then
         # Save backup to restore later and replace absolute path with token to change on the target
@@ -49,8 +67,21 @@ for image in out/*; do
     # Cleaning the .orig files
     rm -f "${image}"/*.orig
 
+    # Print out the image size
+    echo "  Unpacked image size: $(du -d 1 -h "${image}" | tail -1 | cut -f 1)"
+
+    # Run checksum of all the files in the archive
+    rm -f "${name}/${name}.sha256"
+    cd "${root_dir}/out"
+    shasum -a 256 -b ${name}/* > "${name}.sha256"
+    mv "${name}.sha256" "${name}/${name}.sha256"
+    cd "${root_dir}"
+
     # Pack the image hard, using half of available vcores to not overload the system
-    XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/2))" tar -C out -cJf "${image}.tar.xz" "${name}"
+    XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/4))" tar -C out -cvJf "${image}.tar.xz" "${name}"
+
+    # Print out the image size
+    echo "  Packed image size: $(du -h "${image}.tar.xz" | cut -f 1)"
 
     # Restore the vmsd file
     [ ! -f "${vmsd_file}.bak" ] || mv "${vmsd_file}.bak" "${vmsd_file}"

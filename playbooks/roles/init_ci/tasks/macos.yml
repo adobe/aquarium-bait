@@ -21,3 +21,8 @@
     state: present
     reload: false  # Not working on macos
     sysctl_set: true  # To set the value on macos
+
+- name: Allow all the apps to be running
+  become: true
+  changed_when: true
+  command: spctl --master-disable # seems working on 11.06 but as deprecated option of --global-disable

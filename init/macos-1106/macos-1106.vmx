@@ -2,7 +2,7 @@
 config.version = "8"
 
 # Common
-displayName = "macos-1015-init"
+displayName = "macos-1106-init"
 
 tools.syncTime = "TRUE"
 tools.upgrade.policy = "upgradeAtPowerCycle"
@@ -23,7 +23,7 @@ memsize = "4096"
 virtualHW.productCompatibility = "hosted"
 virtualHW.version = "18"
 firmware = "efi"
-guestOS = "darwin19-64"
+guestOS = "darwin20-64"
 keyboardAndMouseProfile = "macProfile"
 smbios.reflectHost = "FALSE"
 smbios.restrictSerialCharset = "TRUE"

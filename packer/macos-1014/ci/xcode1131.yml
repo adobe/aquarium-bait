@@ -1,9 +1,9 @@
 ---
 min_packer_version: 1.7.1
 variables:
-  vm_name: macos-1015-ci
+  vm_name: macos-1014-ci-xcode1131
   out_full_path: "{{ env `PWD` }}/out"
-  vmx_full_path: "{{ user `out_full_path` }}/macos-1015/macos-1015.vmx"
+  vmx_full_path: "{{ user `out_full_path` }}/macos-1014-ci/macos-1014-ci.vmx"
   aquarium_bait_stage: NONE # Used to find out the disk clone index
   username: packer
   password: packer
@@ -17,41 +17,36 @@ builders:
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
-    boot_wait: 15s
-    boot_command: # Disable System Integrity Protection to allow access to the disks. It will enter BIOS mode only once
-      - <pageDown><up><up><enter><wait10s> # Choose "Setup Menu"
-      - <down><down><enter><wait5s> # boot from a file menu
-      - <down><down><down><enter><wait5s> # choose Recovery
-      - <enter><wait5s> # Recovery mode has 1 partition, thus, 1 choice.  Just hit enter
-      - <down><down><down><down><down><down><enter> # boot.efi is the 6th item
-      - <wait3m> # Wait recovery mode to boot
-      - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
-      - <left><left> # Focus on Utiltiess menu
-      - <down><down><down><down><enter><wait10s> # Select and execute Terminal
-      - spctl kext-consent disable<enter><wait5s> # Disable kext verification
-      - csrutil disable<enter><wait5s> # Disable System Integrity Protection to simplify access to disks
-      - reboot<enter> # Reboot into usual system
+    boot_wait: 30s
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
     ssh_timeout: 10s
     ssh_read_write_timeout: 10s
     ssh_wait_timeout: 2m
-    vmx_data:
-      bios.forceSetupOnce: "TRUE"
 
 provisioners:
   - type: ansible
     command: ./run_ansible.sh
     user: "{{ user `username` }}"
-    playbook_file: playbooks/ci_image.yml
+    playbook_file: playbooks/xcode_image.yml
     extra_arguments:
-      - -e
+      - --extra-vars
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - vmtools_vm_type=vmware
+      - xcode_archive_url=https://artifact-storage/aquarium/files/mac/Xcode_11.3.1.xip
       - -e
-      - jre_extract_path=/opt/srv/jre8
+      - xcode_archive_checksum=sha256:9a92379b90734a9068832f858d594d3c3a30a7ddc3bdb6da49c738aed9ad34b5
+      - -e
+      - xcode_archive_local=mac/Xcode_11.3.1.xip
+      - -e
+      - xcode_archive_extraction_timeout=2000
+      - -e
+      - xcode_cmd_archive_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_11.3.1.dmg
+      - -e
+      - xcode_cmd_archive_checksum=sha256:1c4b477285641cca5313f456b712bf726aca8db77f38793420e1d451588673f9
+      - -e
+      - xcode_cmd_archive_local=mac/Command_Line_Tools_for_Xcode_11.3.1.dmg
 
 post-processors:
   - type: shell-local # Use relative path in vmx and vmdk

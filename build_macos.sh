@@ -21,8 +21,19 @@ done
 
 # Disable packer auto-update calls
 export CHECKPOINT_DISABLE=1
+# No need to color the output to store proper log files
+export PACKER_NO_COLOR=1
 # Set root dir to use in packer configs
 export PACKER_ROOT="${root_dir}"
+
+# Clean of the running apps in bg on exit
+function clean_bg {
+    if [ -f "${root_dir}/screenshot-packer/screenshot-packer" ]; then
+        pkill screenshot-packer || true
+    fi
+    pkill -f 'tail -f' || true
+}
+trap "clean_bg" EXIT
 
 # The process walks on the different levels of packer dir tree and process the configs
 stage=1
@@ -45,20 +56,35 @@ while true; do
             [ -z "${skip_image}" ] || continue
         fi
 
-        name=$(basename "${json}" | cut -d'.' -f1)
+        image=$(echo "${json}" | cut -d. -f1 | cut -d/ -f2- | tr / -)
 
-        echo "INFO: Building image for '${name}'..."
+        echo "INFO: Building image for '${image}'..."
 
-        if [ -e "out/${name}" ]; then
-            echo "INFO:  skip: the output path '${out}/${name}' is existing"
+        if [ -e "out/${image}" ]; then
+            echo "INFO:  skip: the output path '${out}/${image}' is existing"
             continue
         fi
 
         # Cleaning the non-tracked files from the init directory
         git clean -fX ./init/ || true
 
-        [ "${DEBUG}" ] || packer build -var "aquarium_bait_stage=$(($stage-1))" "${json}"
-        [ -z "${DEBUG}" ] || PACKER_LOG=1 packer build -var "aquarium_bait_stage=$(($stage-1))" -on-error=ask "${json}"
+        clean_bg
+        if [ -f ./screenshot-packer/screenshot-packer ]; then
+            ./screenshot-packer/screenshot-packer "out/${image}.log" "screenshots/${image}-$(date '+%y%m%d%H%M%S')/${image}" &
+        fi
+        rm -f "out/${image}.log"
+        if [ "x${DEBUG}" = 'x' ]; then
+            PACKER_LOG=1 PACKER_LOG_PATH="out/${image}.log" packer build -var "aquarium_bait_stage=$(($stage-1))" "${json}"
+            # Log is placed into the image only if it's not debug mode
+            mv "out/${image}.log" "out/${image}/packer.log"
+        else
+            echo "WARNING: Running DEBUG image build"
+            touch "out/${image}.log"
+            tail -f "out/${image}.log" &
+            PACKER_LOG=1 packer build -var "aquarium_bait_stage=$(($stage-1))" -on-error=ask "${json}" > "out/${image}.log" 2>&1
+        fi
+
+        clean_bg
     done
     stage=$(($stage+1))
 done

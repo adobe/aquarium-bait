@@ -33,13 +33,19 @@
   become: true
   changed_when: true
 
-- name: Make sure the volume will be detached
-  block:
-    - name: Install cmd tools from mounted DMG volume
-      command: installer -pkg '/tmp/clt_xcode/Command Line Tools.pkg' -target /
-      become: true
-      changed_when: true
-  always:
-    - name: Umount cmd tools DMG file
-      become: true
-      command: hdiutil detach /tmp/clt_xcode
+- name: Find pkg files in the mounted directory
+  find:
+    file_type: file
+    paths: /tmp/clt_xcode
+    patterns: "*.pkg"
+  register: reg_pkgs
+
+- name: Install cmd tools from found pkgs
+  command: installer -pkg '{{ item.path }}' -target /
+  with_items: "{{ reg_pkgs.files }}"
+  become: true
+  changed_when: true
+
+- name: Umount cmd tools DMG file
+  become: true
+  command: hdiutil detach /tmp/clt_xcode

@@ -1,0 +1,12 @@
+---
+- name: Get vnc vars from vmx file
+  when: "'vncdo_vmx_path' in vars"
+  delegate_to: localhost
+  block:
+    - name: Read vmx file and set vnc facts
+      set_fact:
+        '{{ item.key }}': "{{ (lookup('file', vncdo_vmx_path).split('\n') | select('match', '^'+item.value+' ?=') | first).split('= ') | last | trim('\"') }}"
+      with_dict:
+        vncdo_host: remotedisplay.vnc.ip
+        vncdo_port: remotedisplay.vnc.port
+        vncdo_password: remotedisplay.vnc.password

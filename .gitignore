@@ -13,3 +13,5 @@
 
 /playbooks/files/*
 !/playbooks/files/*.md
+
+/screenshot-packer/screenshot-packer
