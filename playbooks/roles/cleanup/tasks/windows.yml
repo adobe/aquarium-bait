@@ -1,11 +1,18 @@
 ---
 
-- name: Stop the VMWare service for now to be able to clean up the tmp folder
-  ignore_errors: true
+- name: Stop the VMWare services for now to be able to clean up the tmp folder
+  ignore_errors: true  # don't fail in case those services are not here
   win_service:
-    name: VMTools
+    name: '{{ item }}'
     start_mode: auto
     state: stopped
+  with_items:
+    - VMTools
+    - vmvss
+
+- name: Stop vmtoolsd.exe - it's not available through services
+  ignore_errors: true  # don't fail in case those services are not here
+  win_shell: Stop-Process -Name vmtoolsd -Force
 
 - name: Clean caches & tmp dirs
   changed_when: true

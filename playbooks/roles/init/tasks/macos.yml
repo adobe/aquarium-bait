@@ -64,6 +64,6 @@
 #                                DTrace Rest.    /       \     Task for PID
 #                                      Apple Int.         Kernel Debug.
 - name: Add template nvram variable to disable SIP later
-  command: nvram Asr-active-config=o%03%00%00 # 0110 1111 0011 - csr & kext-consent disabled
+  command: nvram Asr-active-config=o%03%00%00  # 0110 1111 0011 - csr & kext-consent disabled
   become: true
   changed_when: true

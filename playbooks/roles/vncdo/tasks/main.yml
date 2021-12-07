@@ -1,7 +1,7 @@
 ---
 - name: Get the VNC credentials
   import_tasks: get_vnc_creds.yml
-  when: "vncdo_host == '' or vncdo_port == '' or vncdo_password == ''"
+  when: not vncdo_host or not vncdo_port or not vncdo_password
 
 - name: Create temporary file
   delegate_to: localhost
@@ -9,37 +9,36 @@
     suffix: vncdo_script
   register: reg_vncdo_script_tempfile
 
-- block:
-    - name: Fill temp file with the script data
-      when: "'vncdo_script' in vars"
-      delegate_to: localhost
-      copy:
-        content: "{{ vncdo_script }}"
-        dest: "{{ reg_vncdo_script_tempfile.path }}"
+- name: Fill temp file with the script data
+  when: "'vncdo_script' in vars"
+  delegate_to: localhost
+  copy:
+    content: "{{ vncdo_script }}"
+    dest: "{{ reg_vncdo_script_tempfile.path }}"
 
-    - name: Fill temp file with the template data
-      when: "'vncdo_template' in vars"
-      delegate_to: localhost
-      template:
-        src: "{{ vncdo_template }}.j2"
-        dest: "{{ reg_vncdo_script_tempfile.path }}"
+- name: Fill temp file with the template data
+  when: "'vncdo_template' in vars"
+  delegate_to: localhost
+  template:
+    src: "{{ vncdo_template }}.j2"
+    dest: "{{ reg_vncdo_script_tempfile.path }}"
 
-    - name: Run vncdo with provided script
-      delegate_to: localhost
-      command:
-      args:
-        argv:
-          - vncdo
-          - -s
-          - "{{ vncdo_host }}::{{ vncdo_port }}"
-          - -p
-          - "{{ vncdo_password }}"
-          - "{{ reg_vncdo_script_tempfile.path }}"
+- name: Run vncdo with provided script
+  delegate_to: localhost
+  changed_when: true
+  command:
+  args:
+    argv:
+      - vncdo
+      - -s
+      - "{{ vncdo_host }}::{{ vncdo_port }}"
+      - -p
+      - "{{ vncdo_password }}"
+      - "{{ reg_vncdo_script_tempfile.path }}"
 
-  always:
-    - name: Delete the vncdo_script file
-      delegate_to: localhost
-      when: reg_vncdo_script_tempfile.path is defined
-      file:
-        path: "{{ reg_vncdo_script_tempfile.path }}"
-        state: absent
+- name: Delete the vncdo_script file
+  delegate_to: localhost
+  when: reg_vncdo_script_tempfile.path is defined
+  file:
+    path: "{{ reg_vncdo_script_tempfile.path }}"
+    state: absent

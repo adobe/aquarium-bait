@@ -1,4 +1,3 @@
 ---
 required_mac_vars:
   - init_ci_mac_vmx_path  # Path to the VMX file to change it
-  - init_ci_mac_disable_sip_vncdo_script # VNCdo script which allows to disable mac SIP

@@ -28,10 +28,30 @@
         src: "{{ vmtools_vmware_win_archive_local }}"
         dest: C:\tmp\{{ vmtools_vmware_win_archive_local }}
 
+# In case you see errors - check the log file:
+# C:\Users\packer\AppData\Local\Temp\vminst.log
 - name: Install VMware tools
   changed_when: true
   register: reg_vmtools_result
-  failed_when: reg_vmtools_result.rc != 3010
-  win_command: C:\tmp\{{ vmtools_vmware_win_archive_local }} /qn REBOOT=R ADDLOCAL=ALL REMOVE=Hgfs
+  failed_when: reg_vmtools_result.rc != 3010 and reg_vmtools_result.rc != 1641  # Reboot suppressed and ends up as those exit codes
+  win_command: C:\tmp\{{ vmtools_vmware_win_archive_local }} /qn REBOOT=ReallySuppress ADDLOCAL=ALL REMOVE=Hgfs
   args:
     creates: C:\Program Files\VMware\VMware Tools\vmtoolsd.exe
+
+- name: Reboot the machine
+  ignore_errors: true  # Win host becomes unreachable
+  ignore_unreachable: true
+  register: reg_vm_reboot
+  win_reboot:
+
+- name: Reboot happened, but fails - wait additional time before connecting back
+  delegate_to: localhost
+  wait_for:
+    host: '{{ ansible_host }}'
+    port: '{{ ansible_port }}'
+
+- name: Execute vncdo to login as user to complete the vmware tools installation
+  include_role:
+    name: vncdo
+  vars:
+    vncdo_template: win/login.vdo

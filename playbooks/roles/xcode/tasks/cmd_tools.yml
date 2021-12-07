@@ -49,3 +49,4 @@
 - name: Umount cmd tools DMG file
   become: true
   command: hdiutil detach /tmp/clt_xcode
+  changed_when: true

@@ -35,14 +35,14 @@
   register: reg_vmtools_result
   ignore_errors: true
 
-- name: MacOS 11 will not allow to install kext even with disabled SIP
+- name: MacOS 11 will not allow to simple install kext even with disabled SIP
   when: reg_vmtools_result.rc != 0
   block:
     - name: Execute vncdo in case installation failed to allow kernel extensions
       include_role:
         name: vncdo
       vars:
-        vncdo_template: system_preferences_security_vendor_allow.vdo
+        vncdo_template: mac/system_preferences_security_vendor_allow.vdo
 
     # Rerun the copy and installation
     - name: Create archive directory

@@ -1,7 +1,7 @@
 ---
-vncdo_host: '' # Host to connect to
-vncdo_port: '' # VNC port
-vncdo_password: '' # VNC password
+vncdo_host: ''  # Host to connect to
+vncdo_port: ''  # VNC port
+vncdo_password: ''  # VNC password
 
 # Uses the next variables
 #  * vncdo_vmx_path - path to vmx file to get vnc creds from

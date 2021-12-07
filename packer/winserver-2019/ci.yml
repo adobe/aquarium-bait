@@ -23,6 +23,8 @@ builders:
     winrm_username: "{{ user `username` }}"
     winrm_password: "{{ user `password` }}"
     winrm_timeout: 2m
+    vmx_data:
+      proxyApps.publishToHost: "FALSE" # Do not create Applications directory in VM folder
 
 provisioners:
   - type: ansible
@@ -35,6 +37,8 @@ provisioners:
     extra_arguments:
       - -e
       - ansible_password={{ user `password` }}
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx
       - -e
       - vmtools_vm_type=vmware
       - -e

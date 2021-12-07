@@ -1,4 +1,9 @@
 ---
+- name: VS will be installed to the next directory
+  when: visualstudio_install_path | length > 0
+  debug:
+    var: visualstudio_install_path
+
 - name: Get VisualStudio on VM
   block:
     - name: Create archive directory
@@ -32,7 +37,14 @@
   win_unzip:
     src: C:\tmp\{{ visualstudio_archive_local }}
     dest: C:\tmp\vs
-    creates: C:\tmp\vs\VS2019\Catalog.json
+
+- name: Detect the visual studio install certificates
+  win_find:
+    paths: C:\tmp\vs
+    patterns: '*.cer'
+    recurse: true
+  register: reg_vs_install_certs
+  failed_when: reg_vs_install_certs.matched < 1
 
 - name: Register VisualStudio Install Certificates
   win_certificate_store:
@@ -40,21 +52,59 @@
     store_location: LocalMachine
     store_name: Root
     state: present
-    path: "{{ item }}"
-  with_items:
-    - C:\tmp\vs\VS2019\certificates\manifestRootCertificate.cer
-    - C:\tmp\vs\VS2019\certificates\manifestCounterSignRootCertificate.cer
-    - C:\tmp\vs\VS2019\certificates\vs_installer_opc.RootCertificate.cer
+    path: "{{ item.path }}"
+  with_items: '{{ reg_vs_install_certs.files }}'
 
-- name: Copy Response.json for unattended install
+- name: Locate the visual studio installer
+  win_find:
+    paths: C:\tmp\vs
+    patterns: vs_setup.exe
+    recurse: true
+  register: reg_vs_installer_path
+  failed_when: reg_vs_installer_path.matched != 1
+
+- name: Locate the visual studio installer Response answers
+  win_find:
+    paths: C:\tmp\vs
+    patterns: vs*.json
+  register: reg_vs_installer_answers
+  failed_when: reg_vs_installer_answers.matched != 1
+
+- name: Copy the response answers to installer directory
   win_copy:
-    src: C:\tmp\vs\vs2019-16.9.3.json
-    dest: C:\tmp\vs\VS2019\Response.json
+    src: '{{ (reg_vs_installer_answers.files | first).path }}'
+    dest: '{{ (reg_vs_installer_path.files | first).path | win_dirname }}\Response.json'
     remote_src: true
 
+# In case it fails - you can check the log file:
+# C:\Users\packer\AppData\Local\Temp\dd_installer_<datetime>.log
 - name: Install VisualStudio
   changed_when: true
-  register: reg_install_result
-  win_command: C:\tmp\vs\VS2019\vs_Professional_2019_16.9.3.exe --wait
-  args:
-    creates: C:\Program Files (x86)\Microsoft Visual Studio\2019_16.9\Professional\Common7\IDE\devenv.exe
+  win_command: >
+    {{ (reg_vs_installer_path.files | first).path }}
+    --in "{{ (reg_vs_installer_path.files | first).path | win_dirname }}\Response.json"
+    {% if visualstudio_install_path %}--installPath "{{ visualstudio_install_path }}"{% endif %}
+    --noRestart --noWeb --force --quiet --wait
+
+# The var will not be set until the install directory is defined - we don't need
+# to deal with the complicated heuristics trying to determine where installer
+# put the visual studio files
+- when: visualstudio_install_path | length > 0
+  block:
+    - name: Check the VS was installed correctly
+      win_stat:
+        path: '{{ visualstudio_install_path }}\{{ item }}'
+      with_items:
+        - Common7\IDE\devenv.exe
+        - Common7\IDE\Extensions\TestPlatform\vstest.console.exe
+        - MSBuild\Current\Bin\MSBuild.exe
+        - VC\Auxiliary\Build\vcvars64.bat
+      register: reg_stat_file
+      failed_when: not reg_stat_file.stat.exists
+
+    - name: Set system env variable of VS location
+      win_environment:
+        level: machine
+        state: present
+        name: VS_LOCATION
+        value: '{{ visualstudio_install_path }}'

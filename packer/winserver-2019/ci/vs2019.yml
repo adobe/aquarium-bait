@@ -35,6 +35,8 @@ provisioners:
     extra_arguments:
       - -e
       - ansible_password={{ user `password` }}
+      - -e
+      - 'visualstudio_install_path="C:\Program Files (x86)\MSVS"'
 
 post-processors:
   - type: shell-local # Use relative path in vmx and vmdk

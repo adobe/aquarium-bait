@@ -1,0 +1,5 @@
+# Send alt-ctrl-del to login and wait
+key ctrl-alt-del pause 5
+
+# Login with password
+type "{{ ansible_password }}" pause 1 key enter pause 10
