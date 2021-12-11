@@ -15,3 +15,5 @@
 !/playbooks/files/*.md
 
 /screenshot-packer/screenshot-packer
+
+.DS_Store

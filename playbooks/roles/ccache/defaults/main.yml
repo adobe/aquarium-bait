@@ -1,0 +1,4 @@
+---
+ccache_archive_url: https://artifact-storage/aquarium/files/mac/ccache-3.7.12.tar.gz
+ccache_archive_checksum: sha256:d2abe88d4c283ce960e233583061127b156ffb027c6da3cf10770fc0c7244194
+ccache_archive_local: mac/ccache-3.7.12.tar.gz

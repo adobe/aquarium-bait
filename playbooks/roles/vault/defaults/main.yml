@@ -1,0 +1,4 @@
+---
+vault_archive_url: https://artifact-storage/aquarium/files/mac/vault_1.5.0_darwin_amd64.zip
+vault_archive_checksum: sha256:12f76f032d6192cc16ea79205c09c7a97635228d92f34568c5938ce1e1514877
+vault_archive_local: mac/vault_1.5.0_darwin_amd64.zip
