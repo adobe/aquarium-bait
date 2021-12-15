@@ -4,38 +4,16 @@
   debug:
     var: visualstudio_install_path
 
-- name: Get VisualStudio on VM
-  block:
-    - name: Create archive directory
-      win_file:
-        path: C:\tmp\{{ visualstudio_archive_local | dirname }}
-        state: directory
-
-    - name: Get archive from the localhost files
-      ignore_errors: true
-      register: reg_copy_local_file
-      win_copy:
-        src: "{{ visualstudio_archive_local }}"
-        dest: C:\tmp\{{ visualstudio_archive_local }}
-
-    - name: Download archive if local file is not available
-      when: reg_copy_local_file.failed
-      delegate_to: localhost
-      win_get_url:
-        url: "{{ visualstudio_archive_url }}"
-        dest: "{{ playbook_dir }}/files/{{ visualstudio_archive_local }}"
-        mode: "0440"
-        checksum: "{{ visualstudio_archive_checksum }}"
-
-    - name: Get archive from the localhost files
-      when: reg_copy_local_file.failed
-      win_copy:
-        src: "{{ visualstudio_archive_local }}"
-        dest: C:\tmp\{{ visualstudio_archive_local }}
+- name: Download Visual Studio archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ visualstudio_download_url }}'
+    download_checksum: '{{ visualstudio_download_checksum }}'
 
 - name: Unzip the VisualStudio archive
   win_unzip:
-    src: C:\tmp\{{ visualstudio_archive_local }}
+    src: '{{ download_path }}'
     dest: C:\tmp\vs
 
 - name: Detect the visual studio install certificates

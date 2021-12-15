@@ -1,7 +1,6 @@
 ---
-visualstudio_archive_url: https://artifact-storage/aquarium/files/win/VS2019-16.9.3-ARM.zip
-visualstudio_archive_checksum: sha256:b1250c78a0b6a29bef1a864eedc559dbcafe5a7da6490406f318a678dfc34940
-visualstudio_archive_local: win/VS2019-16.9.3-ARM.zip
+visualstudio_download_url: https://artifact-storage/aquarium/files/win/VS2019-16.9.3-ARM.zip
+visualstudio_download_checksum: sha256:b1250c78a0b6a29bef1a864eedc559dbcafe5a7da6490406f318a678dfc34940
 
 # Where VS will be installed, if empty - will use default path or the one specified in
 # json in the root of the vs archive

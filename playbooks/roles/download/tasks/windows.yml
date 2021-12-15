@@ -1,0 +1,43 @@
+---
+- name: Set fact with downloaded file for use from caller role
+  set_fact:
+    download_path: '{{ download_win_tmp }}\{{ download_url | basename }}'
+
+- name: Create download directory
+  win_file:
+    path: '{{ download_win_tmp }}'
+    state: directory
+
+- name: Get archive from the localhost files
+  ignore_errors: true
+  register: reg_remote_file
+  win_copy:
+    src: '{{ download_win_dir }}/{{ download_url | basename }}'
+    dest: '{{ download_path }}'
+
+- name: When the localhost file is not available - download it
+  when: reg_remote_file.failed
+  block:
+    - name: Download binary and verify checksum
+      delegate_to: localhost
+      win_get_url:
+        url: '{{ download_url }}'
+        dest: '{{ playbook_dir }}/files/{{ download_win_dir }}/{{ download_url | basename }}'
+        mode: '0440'
+        checksum: '{{ download_checksum }}'
+
+    - name: Get archive from the localhost files
+      win_copy:
+        src: '{{ download_win_dir }}/{{ download_url | basename }}'
+        dest: '{{ download_path }}'
+
+# We need to validate file when it's copied by the next reasons:
+# - the localhost copied file could be corrupted
+# - during making of playbooks it's easy to forgot to update checksum of the file
+# - the copy process potentially could transfer files wrong
+- name: Make sure the copied file checksum is ok
+  register: reg_remote_file
+  win_stat:
+    path: '{{ download_path }}'
+    checksum_algorithm: '{{ download_checksum.split(":") | first }}'
+  failed_when: reg_remote_file.stat.checksum != (download_checksum.split(":") | last)

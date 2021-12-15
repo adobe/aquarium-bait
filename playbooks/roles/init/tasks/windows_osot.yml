@@ -1,34 +1,12 @@
 ---
 # VMWare OS Optimization Tool to prepare the windows image for use
 
-- name: Get OSOT on VM
-  block:
-    - name: Create archive directory
-      win_file:
-        path: C:\tmp\{{ init_osot_archive_local | dirname }}
-        state: directory
-
-    - name: Get archive from the localhost files
-      ignore_errors: true
-      register: reg_copy_local_file
-      win_copy:
-        src: "{{ init_osot_archive_local }}"
-        dest: C:\tmp\{{ init_osot_archive_local }}
-
-    - name: Download archive if local file is not available
-      when: reg_copy_local_file.failed
-      delegate_to: localhost
-      win_get_url:
-        url: "{{ init_osot_archive_url }}"
-        dest: "{{ playbook_dir }}/files/{{ init_osot_archive_local }}"
-        mode: "0440"
-        checksum: "{{ init_osot_archive_checksum }}"
-
-    - name: Get archive from the localhost files
-      when: reg_copy_local_file.failed
-      win_copy:
-        src: "{{ init_osot_archive_local }}"
-        dest: C:\tmp\{{ init_osot_archive_local }}
+- name: Download OSOT executable to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ init_osot_download_url }}'
+    download_checksum: '{{ init_osot_download_checksum }}'
 
 - name: Copy OSOT generalize answers
   win_copy:
@@ -42,7 +20,7 @@
     content: >
       echo started > C:\tmp\osot_status.txt
 
-      C:\tmp\{{ init_osot_archive_local }} -v -optimize
+      {{ download_path }} -v -optimize
       -VisualEffect Performance
       -Notification Disable
       -WindowsUpdate Disable
@@ -57,7 +35,7 @@
       -Finalize All
       > C:\tmp\osot_opt_fin.log 2>&1
 
-      C:\tmp\{{ init_osot_archive_local }} -v
+      {{ download_path }} -v
       -Generalize C:\tmp\osot-generalize-answers.xml
       > C:\tmp\osot_gen.log 2>&1
 

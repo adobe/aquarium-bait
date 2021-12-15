@@ -1,32 +1,10 @@
 ---
-- name: Get ccache on VM
-  block:
-    - name: Create archive directory
-      file:
-        path: /tmp/{{ ccache_archive_local | dirname }}
-        state: directory
-
-    - name: Get archive from the localhost files
-      ignore_errors: true
-      register: reg_copy_local_file
-      copy:
-        src: "{{ ccache_archive_local }}"
-        dest: /tmp/{{ ccache_archive_local }}
-
-    - name: Download archive if local file is not available
-      when: reg_copy_local_file.failed
-      delegate_to: localhost
-      get_url:
-        url: "{{ ccache_archive_url }}"
-        dest: "{{ playbook_dir }}/files/{{ ccache_archive_local }}"
-        mode: "0440"
-        checksum: "{{ ccache_archive_checksum }}"
-
-    - name: Get archive from the localhost files
-      when: reg_copy_local_file.failed
-      copy:
-        src: "{{ ccache_archive_local }}"
-        dest: /tmp/{{ ccache_archive_local }}
+- name: Download ccache sources to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ ccache_download_url }}'
+    download_checksum: '{{ ccache_download_checksum }}'
 
 # Build & install ccache
 - name: Create build directory
@@ -36,7 +14,7 @@
 
 - name: Unzip ccache
   changed_when: true
-  command: tar --strip-components=1 -xf /tmp/{{ ccache_archive_local }} -C /tmp/ccache_build
+  command: tar --strip-components=1 -xf "{{ download_path }}" -C /tmp/ccache_build
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on macos by default
 

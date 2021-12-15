@@ -1,38 +1,16 @@
 ---
-- name: Get Groovy on VM
-  block:
-    - name: Create archive directory
-      file:
-        path: /tmp/{{ groovy_archive_local | dirname }}
-        state: directory
-
-    - name: Get archive from the localhost files
-      ignore_errors: true
-      register: reg_copy_local_file
-      copy:
-        src: "{{ groovy_archive_local }}"
-        dest: /tmp/{{ groovy_archive_local }}
-
-    - name: Download archive if local file is not available
-      when: reg_copy_local_file.failed
-      delegate_to: localhost
-      get_url:
-        url: "{{ groovy_archive_url }}"
-        dest: "{{ playbook_dir }}/files/{{ groovy_archive_local }}"
-        mode: "0440"
-        checksum: "{{ groovy_archive_checksum }}"
-
-    - name: Get archive from the localhost files
-      when: reg_copy_local_file.failed
-      copy:
-        src: "{{ groovy_archive_local }}"
-        dest: /tmp/{{ groovy_archive_local }}
+- name: Download groovy archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ groovy_download_url }}'
+    download_checksum: '{{ groovy_download_checksum }}'
 
 - name: Unzip groovy
   become: true
   register: reg_groovy_unpacked
   unarchive:
-    src: /tmp/{{ groovy_archive_local }}
+    src: '{{ download_path }}'
     dest: /usr/local
     remote_src: true
     list_files: true

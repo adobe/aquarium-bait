@@ -34,19 +34,15 @@ provisioners:
       - --extra-vars
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - xcode_archive_url=https://artifact-storage/aquarium/files/mac/Xcode_13.1.xip
+      - xcode_download_url=https://artifact-storage/aquarium/files/mac/Xcode_13.1.xip
       - -e
-      - xcode_archive_checksum=sha256:4efdeea0eeeda1957bb394128cccd1daac3cb0a3d074224e0fab90855cca09c4
+      - xcode_download_checksum=sha256:4efdeea0eeeda1957bb394128cccd1daac3cb0a3d074224e0fab90855cca09c4
       - -e
-      - xcode_archive_local=mac/Xcode_13.1.xip
+      - xcode_extraction_timeout=2000
       - -e
-      - xcode_archive_extraction_timeout=2000
+      - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.1.dmg
       - -e
-      - xcode_cmd_archive_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.1.dmg
-      - -e
-      - xcode_cmd_archive_checksum=sha256:9a64702299c0fce068c729fbeb316705afd810c5812f83a180a9cccfc5ae4e00
-      - -e
-      - xcode_cmd_archive_local=mac/Command_Line_Tools_for_Xcode_13.1.dmg
+      - xcode_cmd_download_checksum=sha256:9a64702299c0fce068c729fbeb316705afd810c5812f83a180a9cccfc5ae4e00
 
 post-processors:
   - type: shell-local # Use relative path in vmx and vmdk

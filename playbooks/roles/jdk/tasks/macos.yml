@@ -1,35 +1,13 @@
 ---
-- name: Get JDK on VM
-  block:
-    - name: Create archive directory
-      file:
-        path: /tmp/{{ jdk_mac_archive_local | dirname }}
-        state: directory
-
-    - name: Get archive from the localhost files
-      ignore_errors: true
-      register: reg_copy_local_file
-      copy:
-        src: "{{ jdk_mac_archive_local }}"
-        dest: /tmp/{{ jdk_mac_archive_local }}
-
-    - name: Download archive if local file is not available
-      when: reg_copy_local_file.failed
-      delegate_to: localhost
-      get_url:
-        url: "{{ jdk_mac_archive_url }}"
-        dest: "{{ playbook_dir }}/files/{{ jdk_mac_archive_local }}"
-        mode: "0440"
-        checksum: "{{ jdk_mac_archive_checksum }}"
-
-    - name: Get archive from the localhost files
-      when: reg_copy_local_file.failed
-      copy:
-        src: "{{ jdk_mac_archive_local }}"
-        dest: /tmp/{{ jdk_mac_archive_local }}
+- name: Download JDK DMG to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ jdk_mac_download_url }}'
+    download_checksum: '{{ jdk_mac_download_checksum }}'
 
 - name: Mount JDK DMG file
-  command: hdiutil attach '/tmp/{{ jdk_mac_archive_local }}' -nobrowse -mountpoint /tmp/jdk
+  command: hdiutil attach '{{ download_path }}' -nobrowse -mountpoint /tmp/jdk
   become: true
   changed_when: true
 

@@ -1,11 +1,9 @@
 ---
-vmtools_vmware_mac_archive_url: https://artifact-storage/aquarium/files/mac/VMware-tools-11.3.5-18557794.pkg
-vmtools_vmware_mac_archive_checksum: sha256:112fdad3217775214e7f5cb5a13be0cf46b875260974f534ae5f28b36b243c79
-vmtools_vmware_mac_archive_local: mac/VMware-tools-11.3.5-18557794.pkg
+vmtools_vmware_mac_download_url: https://artifact-storage/aquarium/files/mac/VMware-tools-11.3.5-18557794.pkg
+vmtools_vmware_mac_download_checksum: sha256:112fdad3217775214e7f5cb5a13be0cf46b875260974f534ae5f28b36b243c79
 
-vmtools_vmware_win_archive_url: https://artifact-storage/aquarium/files/win/VMware-tools-11.3.5-18557794-x86_64.exe
-vmtools_vmware_win_archive_checksum: sha256:22bf2f91e78e13e4964ae3d2c52db8c341e21518aa78996696474b1dd905e8ca
-vmtools_vmware_win_archive_local: win/VMware-tools-11.3.5-18557794-x86_64.exe
+vmtools_vmware_win_download_url: https://artifact-storage/aquarium/files/win/VMware-tools-11.3.5-18557794-x86_64.exe
+vmtools_vmware_win_download_checksum: sha256:22bf2f91e78e13e4964ae3d2c52db8c341e21518aa78996696474b1dd905e8ca
 
 required_vars:
   - vmtools_vm_type  # Which tool to install

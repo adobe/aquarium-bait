@@ -1,32 +1,10 @@
 ---
-- name: Get JRE on VM
-  block:
-    - name: Create archive directory
-      file:
-        path: /tmp/{{ jre_mac_archive_local | dirname }}
-        state: directory
-
-    - name: Get archive from the localhost files
-      ignore_errors: true
-      register: reg_copy_local_file
-      copy:
-        src: "{{ jre_mac_archive_local }}"
-        dest: /tmp/{{ jre_mac_archive_local }}
-
-    - name: Download archive if local file is not available
-      when: reg_copy_local_file.failed
-      delegate_to: localhost
-      get_url:
-        url: "{{ jre_mac_archive_url }}"
-        dest: "{{ playbook_dir }}/files/{{ jre_mac_archive_local }}"
-        mode: "0440"
-        checksum: "{{ jre_mac_archive_checksum }}"
-
-    - name: Get archive from the localhost files
-      when: reg_copy_local_file.failed
-      copy:
-        src: "{{ jre_mac_archive_local }}"
-        dest: /tmp/{{ jre_mac_archive_local }}
+- name: Download JRE archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ jre_mac_download_url }}'
+    download_checksum: '{{ jre_mac_download_checksum }}'
 
 - name: Create extract directory
   become: true
@@ -38,7 +16,7 @@
 - name: Unpack only bin & lib from archive to directory
   become: true
   command: >
-    tar -C "{{ jre_extract_path }}" --strip-components=4 -xf "/tmp/{{ jre_mac_archive_local }}"
+    tar -C "{{ jre_extract_path }}" --strip-components=4 -xf "{{ download_path }}"
     "*/Contents/Home/bin" "*/Contents/Home/lib"
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on macos by default

@@ -1,0 +1,13 @@
+---
+# Would not recommend to change those variables:
+#  - download_*_tmp path - cleaned by `cleanup` role and if you want to customize - you will need
+#                          to take care of those files yourself if they are not needed
+#  - download_*_dir name - used to distribute the artifacts on localhost in `playbooks/files` dir
+download_mac_tmp: /tmp
+download_mac_dir: mac
+download_win_tmp: C:\tmp
+download_win_dir: win
+
+required_vars:
+  - download_url  # https://artifact-storage/...
+  - download_checksum  # sha256:1234567890abcdef...
