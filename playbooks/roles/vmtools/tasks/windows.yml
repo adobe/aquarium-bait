@@ -11,20 +11,13 @@
 - name: Install VMware tools
   changed_when: true
   register: reg_vmtools_result
-  failed_when: reg_vmtools_result.rc != 3010 and reg_vmtools_result.rc != 1641  # Reboot suppressed and ends up as those exit codes
-  win_command: '{{ download_path }} /qn REBOOT=ReallySuppress ADDLOCAL=ALL REMOVE=Hgfs'
-  args:
-    creates: C:\Program Files\VMware\VMware Tools\vmtoolsd.exe
+  failed_when: reg_vmtools_result.rc != 1641  # Reboot will cause this exit code
+  win_command: '{{ download_path }} /qn ADDLOCAL=ALL'
 
-- name: Reboot the machine
-  ignore_errors: true  # Win host becomes unreachable
-  ignore_unreachable: true
-  register: reg_vm_reboot
-  win_reboot:
-
-- name: Reboot happened, but fails - wait additional time before connecting back
+- name: Wait additional time before connecting back
   delegate_to: localhost
   wait_for:
+    delay: 20
     host: '{{ ansible_host }}'
     port: '{{ ansible_port }}'
 
@@ -33,3 +26,11 @@
     name: vncdo
   vars:
     vncdo_template: win/login.vdo
+
+- name: Check the VMWare tools was installed correctly
+  win_wait_for_process:
+    process_name_exact: '{{ item }}'
+    timeout: 20
+  with_items:
+    - vmtoolsd
+    - vm3dservice
