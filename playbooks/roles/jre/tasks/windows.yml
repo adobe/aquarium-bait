@@ -41,3 +41,9 @@
     "*/bin" "*/lib"
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on windows by default
+
+- name: Check java binary was unpacked properly
+  win_stat:
+    path: '{{ jre_extract_path }}\bin\java.exe'
+  register: reg_jre_bin_file
+  failed_when: not reg_jre_bin_file.stat.exists

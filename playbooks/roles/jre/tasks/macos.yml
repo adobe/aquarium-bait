@@ -38,8 +38,14 @@
 - name: Unpack only bin & lib from archive to directory
   become: true
   command: >
-    tar -C "{{ jre_extract_path }}" --strip-components=3 -xf "/tmp/{{ jre_mac_archive_local }}"
+    tar -C "{{ jre_extract_path }}" --strip-components=4 -xf "/tmp/{{ jre_mac_archive_local }}"
     "*/Contents/Home/bin" "*/Contents/Home/lib"
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on macos by default
   changed_when: true
+
+- name: Check java binary was unpacked properly
+  stat:
+    path: '{{ jre_extract_path }}/bin/java'
+  register: reg_jre_bin_file
+  failed_when: not reg_jre_bin_file.stat.exists

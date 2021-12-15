@@ -1,11 +1,11 @@
 ---
-jre_mac_archive_url: https://artifact-storage/aquarium/files/mac/jre-8u281-macosx-x64.tar.gz
-jre_mac_archive_checksum: sha256:839e9d98a29587311a62cbf4117957d801be146fa7829be4d12f57308235b615
-jre_mac_archive_local: mac/jre-8u281-macosx-x64.tar.gz
+jre_mac_archive_url: https://artifact-storage/aquarium/files/mac/zulu8.58.0.14-sa-jre8.0.312-macosx_x64.tar.gz
+jre_mac_archive_checksum: sha256:cb945aa49ea1747eea217fd1c9bf26040790ffecc64a8070e7c408cd15161dbb
+jre_mac_archive_local: mac/{{ jre_mac_archive_url | basename }}
 
-jre_win_archive_url: https://artifact-storage/aquarium/files/win/jre-8u281-windows-x64.tar.gz
-jre_win_archive_checksum: sha256:e7e76bd683b832dec6c9badf62d9cb44e669b67d0d9715be3496aadb10089f6a
-jre_win_archive_local: win/jre-8u281-windows-x64.tar.gz
+jre_win_archive_url: https://artifact-storage/aquarium/files/win/zulu8.58.0.14-sa-jre8.0.312-win_x64.tar.gz
+jre_win_archive_checksum: sha256:119429e02cc345f18f755fe242b82f3b1d1122adf0ca4b23975efacd8108357a
+jre_win_archive_local: win/{{ jre_win_archive_url | basename }}
 
 required_vars:
   - jre_extract_path  # Path to the extract directory

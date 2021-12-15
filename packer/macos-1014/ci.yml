@@ -16,7 +16,7 @@ builders:
     linked: true # Use base image to simplify the data transfer
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
-    #headless: true
+    headless: true
     boot_wait: 10s
     boot_key_interval: 10ms
     boot_command: # Disable System Integrity Protection to allow access to the disks. It will enter BIOS mode only once

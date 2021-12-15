@@ -32,7 +32,7 @@ builders:
       - <leftCtrlOn><leftShiftOn><f3><leftShiftOff><leftCtrlOff> # Entering the Audit Mode for optimizations
       - <wait1m>
 
-      - <leftSuperOn>r<leftSuperOff><wait1s>powershell<enter><wait5s> # Entering powershell
+      - <leftSuperOn>r<leftSuperOff><wait1s>powershell<enter><wait10s> # Entering powershell
 
       # Disable password complexity requirements policy
       - mkdir C:\tmp
@@ -42,13 +42,15 @@ builders:
       - (gc C:\tmp\secpol.cfg).replace("PasswordComplexity = 1", "PasswordComplexity = 0") | Out-File C:\tmp\secpol.cfg
       - <enter>
       - secedit /configure /db C:\windows\security\local.sdb /cfg C:\tmp\secpol.cfg /areas SECURITYPOLICY
-      - <enter>
+      - <enter><wait10s>
 
       # Create superuser
       - net user /add {{ user `username` }} {{ user `password` }}
       - <enter>
       - net localgroup Administrators {{ user `username` }} /add
       - <enter>
+      - Set-LocalUser -Name {{ user `username` }} -PasswordNeverExpires 1
+      - <enter><wait10s>
 
       # Enable WinRM HTTP
       - winrm quickconfig
@@ -57,7 +59,7 @@ builders:
       - winrm set winrm/config/service/auth '@{Basic="true"}'
       - <enter><wait5s> # Enabling basic auth
       - winrm set winrm/config/service '@{AllowUnencrypted="true"}'
-      - <enter><wait5s> # Allow unencrypted data transfer
+      - <enter><wait10s> # Allow unencrypted data transfer
 
       # Enable WinRM HTTPS
       # this one is not working stable with the OSOT, because looks like it
