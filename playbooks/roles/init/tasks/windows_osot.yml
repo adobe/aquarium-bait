@@ -48,7 +48,6 @@
 # fail with "Unexpected failure during module execution" error and it's ok.
 # Later we validate the logs out of OSOT tool, so can make sure it was executed properly
 - name: Run OSOT optimization, generalization and finalization (fail due to "Unexpected failure during module execution" is ok)
-  changed_when: true
   ignore_errors: true  # This task will fail due to the network interface reinit
   win_psexec:
     executable: C:\util\pstools\PsExec.exe
@@ -68,7 +67,6 @@
     regex: completed
 
 - name: Get log from OSOT optimization and finalization
-  changed_when: true
   register: reg_osot_opt_fin_log
   win_shell: type C:\tmp\osot_opt_fin.log
 
@@ -77,7 +75,6 @@
     var: reg_osot_opt_fin_log.stdout_lines
 
 - name: Get log from OSOT generalization
-  changed_when: true
   register: reg_osot_gen_log
   win_shell: type C:\tmp\osot_gen.log
 

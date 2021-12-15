@@ -9,7 +9,6 @@
 # In case you see errors - check the log file:
 # C:\Users\packer\AppData\Local\Temp\vminst.log
 - name: Install VMware tools
-  changed_when: true
   register: reg_vmtools_result
   failed_when: reg_vmtools_result.rc != 1641  # Reboot will cause this exit code
   win_command: '{{ download_path }} /qn ADDLOCAL=ALL'

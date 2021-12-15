@@ -13,7 +13,6 @@
 
 # Uses BSD tar, GNU will require --wildcards in addition
 - name: Unpack only bin & lib from archive to directory
-  changed_when: true
   win_shell: >
     tar -C "{{ jre_extract_path }}" --strip-components=1 -xf '{{ download_path }}'
     "*/bin" "*/lib"

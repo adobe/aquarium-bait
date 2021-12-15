@@ -15,7 +15,6 @@
   win_shell: Stop-Process -Name vmtoolsd -Force
 
 - name: Clean caches & tmp dirs
-  changed_when: true
   win_shell: Remove-Item '{{ item }}' -force -recurse
   with_items:
     - C:\tmp\*
@@ -25,9 +24,7 @@
     - C:\Users\*\Appdata\Local\Temp\*
 
 - name: Clean event log
-  changed_when: true
   win_shell: Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log }
 
 - name: Compact the disk
-  changed_when: true
   win_command: 'C:\util\sdelete\sdelete.exe /accepteula -z C:'

@@ -13,26 +13,22 @@
     state: directory
 
 - name: Unzip ccache
-  changed_when: true
   command: tar --strip-components=1 -xf "{{ download_path }}" -C /tmp/ccache_build
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on macos by default
 
 - name: Run configure for ccache
-  changed_when: true
   command: ./configure --prefix=/usr/local
   args:
     chdir: /tmp/ccache_build
 
 - name: Build ccache
-  changed_when: true
   command: make
   args:
     chdir: /tmp/ccache_build
 
 - name: Install ccache
   become: true
-  changed_when: true
   command: make install
   args:
     chdir: /tmp/ccache_build

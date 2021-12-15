@@ -8,7 +8,6 @@
 - name: Get the current {{ key }}
   command: systemsetup -get{{ key }}
   become: true
-  changed_when: false
   register: reg_key
 
 - name: Set {{ key }} to {{ value }}

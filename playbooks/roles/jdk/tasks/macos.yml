@@ -9,14 +9,11 @@
 - name: Mount JDK DMG file
   command: hdiutil attach '{{ download_path }}' -nobrowse -mountpoint /tmp/jdk
   become: true
-  changed_when: true
 
 - name: Install JDK from mounted DMG volume
   shell: installer -pkg /tmp/jdk/*.pkg -target /
   become: true
-  changed_when: true
 
 - name: Umount JDK DMG file
   become: true
   command: hdiutil detach /tmp/jdk
-  changed_when: true

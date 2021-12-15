@@ -56,7 +56,6 @@
 
 - name: Set environment variable for jenkins_agent nssm service
   win_command: C:\util\nssm\nssm.exe set jenkins_agent AppEnvironmentExtra "JAVA_HOME={{ jenkins_agent_java_home }}"
-  changed_when: true
 
 - name: Configure the jenkins_agent service
   win_service:

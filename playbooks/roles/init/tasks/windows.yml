@@ -9,5 +9,4 @@
   import_tasks: windows_osot.yml
 
 - name: Disable Administrator local user account
-  changed_when: true
   win_shell: Disable-LocalUser Administrator

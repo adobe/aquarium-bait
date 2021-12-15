@@ -57,7 +57,6 @@
 # In case it fails - you can check the log file:
 # C:\Users\packer\AppData\Local\Temp\dd_installer_<datetime>.log
 - name: Install VisualStudio
-  changed_when: true
   win_command: >
     {{ (reg_vs_installer_path.files | first).path }}
     --in "{{ (reg_vs_installer_path.files | first).path | win_dirname }}\Response.json"

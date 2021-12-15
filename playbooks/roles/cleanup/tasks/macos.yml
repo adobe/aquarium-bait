@@ -43,5 +43,4 @@
 
 - name: Fill free space with zeroes
   shell: cat /dev/zero > wipefile; rm -f wipefile
-  changed_when: false
   become: true

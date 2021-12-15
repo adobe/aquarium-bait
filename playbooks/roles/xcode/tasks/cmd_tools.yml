@@ -9,7 +9,6 @@
 - name: Mount cmd tools DMG file
   command: hdiutil attach '{{ download_path }}' -nobrowse -mountpoint /tmp/clt_xcode
   become: true
-  changed_when: true
 
 - name: Find pkg files in the mounted directory
   find:
@@ -22,9 +21,7 @@
   command: installer -pkg '{{ item.path }}' -target /
   with_items: "{{ reg_pkgs.files }}"
   become: true
-  changed_when: true
 
 - name: Umount cmd tools DMG file
   become: true
   command: hdiutil detach /tmp/clt_xcode
-  changed_when: true

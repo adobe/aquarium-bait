@@ -1,3 +1,11 @@
 # https://docs.ansible.com/ansible-lint/configuring/configuring.html
 use_default_rules: true
 verbosity: 1
+
+skip_list:
+  # Disabled: "301 Commands should not change things if nothing needs doing"
+  # Reason: due to the known previous state of the VM - we can remove unnecessary if's and execute
+  #         just a simple plain commands, that means we don't need to use the change management,
+  #         but only the sequential steps execution without additional headache. So to remove the
+  #         need of putting `changed_when: true` everywhere this rule was disabled.
+  - '301'  # no-changed-when

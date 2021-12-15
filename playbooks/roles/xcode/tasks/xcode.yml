@@ -13,14 +13,11 @@
     chdir: /Applications
   async: "{{ xcode_extraction_timeout }}"  # Prevent SSH connections timing out waiting for extraction
   poll: 30
-  changed_when: true
 
 - name: Accept License Agreement
   command: xcodebuild -license accept
   become: true
-  changed_when: true
 
 - name: Run Xcode first launch
   command: xcodebuild -runFirstLaunch
   become: true
-  changed_when: true

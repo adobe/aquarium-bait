@@ -2,7 +2,6 @@
 - name: Get System Integrity Protection status
   command: csrutil status
   become: true
-  changed_when: false
   register: reg_csrstatus
 
 - name: Print csrstatus configuration

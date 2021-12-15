@@ -25,7 +25,6 @@
 
 - name: Run vncdo with provided script
   delegate_to: localhost
-  changed_when: true
   command:
   args:
     argv:

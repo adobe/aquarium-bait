@@ -9,7 +9,6 @@
 - name: Install VMware tools from the pkg archive
   command: installer -pkg '{{ download_path }}' -target /
   become: true
-  changed_when: true
   register: reg_vmtools_result
   ignore_errors: true
 
@@ -33,4 +32,3 @@
     - name: Install VMware tools from the pkg archive
       command: installer -pkg '{{ download_path }}' -target /
       become: true
-      changed_when: true
