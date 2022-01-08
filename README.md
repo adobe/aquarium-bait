@@ -112,6 +112,11 @@ VM only have connection to host, not to the local net or internet. In case you w
 images locally - you will need to fill the binaries directory as described in **Ansible files**
 section.
 
+**NOTICE:** during the build the script takes pictures of the VM screen through VNC and places them
+into `./screenshots/<image_name>` directory - so you can always check what's happened if your build
+accedentally crashed during packer `boot_command` execution. For additional info look into
+[./build_macos.sh](build_macos.sh) and [./scripts/screenshot.py](scripts/screenshot.py).
+
 Now when all the required things are ready - you can run the image builder:
 ```
 $ ./build_macos.sh
@@ -120,9 +125,6 @@ $ ./build_macos.sh
 This script will automatically create the not-existing images in out directory. You can specify the
 packer yml files as arguments to build the specific images. Also you can put `DEBUG=1` env var to
 tell builder to ask in case of any issue happening during the build.
-
-Also the builder supports `screenshot-packer` during the build process, you just need to build or
-place binary into `screenshot-packer` directory and run the build script.
 
 ### 4. Run pack of the images
 

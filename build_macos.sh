@@ -28,9 +28,7 @@ export PACKER_ROOT="${root_dir}"
 
 # Clean of the running apps in bg on exit
 function clean_bg {
-    if [ -f "${root_dir}/screenshot-packer/screenshot-packer" ]; then
-        pkill screenshot-packer || true
-    fi
+    pkill -f './scripts/screenshot.py' || true
     pkill -f 'tail -f' || true
 }
 trap "clean_bg" EXIT
@@ -69,10 +67,13 @@ while true; do
         git clean -fX ./init/ || true
 
         clean_bg
-        if [ -f ./screenshot-packer/screenshot-packer ]; then
-            ./screenshot-packer/screenshot-packer "out/${image}.log" "screenshots/${image}-$(date '+%y%m%d%H%M%S')/${image}" &
-        fi
+
+        # Running the screenshot application to capture VNC screens during the build
+        rm -rf "./screenshots/${image}"
+        mkdir -p "./screenshots/${image}"
         rm -f "out/${image}.log"
+        ./run_screenshot.sh "out/${image}.log" "screenshots/${image}/${image}" &
+
         if [ "x${DEBUG}" = 'x' ]; then
             PACKER_LOG=1 PACKER_LOG_PATH="out/${image}.log" packer build -var "aquarium_bait_stage=$(($stage-1))" "${json}"
             # Log is placed into the image only if it's not debug mode
