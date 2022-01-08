@@ -6,42 +6,31 @@
 root_dir=$(realpath "$(dirname "$0")")
 cd "${root_dir}"
 
-for image in out/*; do
+for path in out/*; do
+    # Skipping non-dir target
+    [ -d "${path}" ] || continue
+
     # Skip if path not in the filter
     if [ "$1" ]; then
         skip_image=true
         for filter in "$@"; do
-            [ "${image}" != "${filter}" ] || skip_image=""
+            [ "${path}" != "${filter}" ] || skip_image=""
         done
         [ -z "${skip_image}" ] || continue
     fi
 
-    name=$(basename "${image}")
-
-    echo
-    echo "INFO: Packing image '${name}'..."
-
-    # Skip if image is a file or already have been packed
-    if [ -f "${image}" -o -f "${image}.tar.xz" ]; then
-        echo "INFO:   skip: '${image}'"
-        continue
-    fi
-
-    # Check that the machine was not running manually after packing
-    if [ -f "${image}/vmware.log" -o -f "${image}/startMenu.plist" ]; then
-        echo "ERROR: Image '${image}' is not clean, please remove it and build it again"
-        exit 1
-    fi
+    # date -r "$file" +%y%m%d.%H%M%S
+    name=$(basename "${path}")
 
     # Check the lock files are not present
-    if [ "$(find "${image}" -name '*.lck')" ]; then
-        echo "ERROR: Image '${image}' contains lock files, please stop the vmware vms and the application."
+    if [ "$(find "${path}" -name '*.lck')" ]; then
+        echo "ERROR: Image '${path}' contains lock files, please stop the vmware vms and the application."
         exit 1
     fi
 
     # Make sure the image was build in release mode
-    if [ ! -f "${image}/packer.log" ]; then
-        echo "ERROR: Image '${image}' was build in DEBUG mode."
+    if [ ! -f "${path}/packer.log" ]; then
+        echo "ERROR: Image '${path}' was build in DEBUG mode, only the release images can be packed."
         exit 1
     fi
 
@@ -50,13 +39,24 @@ for image in out/*; do
     for pattern in 'MainDisk-*.vmdk' 'packer.log' "$name.vmx" "$name.vmsd" "*.vm*.orig" "$name.nvram" "$name-Snapshot*.vmsn" "$name.vmxf" "$name.sha256"; do
         find_pattern="$find_pattern ! -name '$pattern'"
     done
-    noneed_files=$(sh -c "find '${image}' $find_pattern")
-    if [ "x$noneed_files" != "x${image}" ]; then
-        echo "ERROR: Image '${image}' contains weird files need to be cleaned before packing: $noneed_files"
+    noneed_files=$(sh -c "find '${path}' $find_pattern")
+    if [ "x$noneed_files" != "x${path}" ]; then
+        echo "ERROR: Image '${path}' contains weird files need to be cleaned before packing: $noneed_files"
         exit 1
     fi
 
-    vmsd_file="${image}/${name}.vmsd"
+    # Making the package path based on the last changed file in the image
+    package="$path-$(for f in "$path"/*; do date -r "$f" +%y%m%d.%H%M%S; done | sort | tail -1).tar.xz"
+
+    echo
+    echo "INFO: Processing '${package}'..."
+
+    if [ -f "${package}" ]; then
+        echo "INFO:   skip since '${path}' is already packed"
+        continue
+    fi
+
+    vmsd_file="${path}/${name}.vmsd"
     if [ -f "${vmsd_file}" ]; then
         # Save backup to restore later and replace absolute path with token to change on the target
         [ -f "${vmsd_file}.bak" ] || cp "${vmsd_file}" "${vmsd_file}.bak"
@@ -65,10 +65,10 @@ for image in out/*; do
     fi
 
     # Cleaning the .orig files
-    rm -f "${image}"/*.orig
+    rm -f "${path}"/*.orig
 
     # Print out the image size
-    echo "  Unpacked image size: $(du -d 1 -h "${image}" | tail -1 | cut -f 1)"
+    echo "  Unpacked image size: $(du -d 1 -h "${path}" | tail -1 | cut -f 1)"
 
     # Run checksum of all the files in the archive
     rm -f "${name}/${name}.sha256"
@@ -77,11 +77,11 @@ for image in out/*; do
     mv "${name}.sha256" "${name}/${name}.sha256"
     cd "${root_dir}"
 
-    # Pack the image hard, using half of available vcores to not overload the system
-    XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/4))" tar -C out -cvJf "${image}.tar.xz" "${name}"
+    # Pack the image hard, using quarter of the available vcores to not overload the system
+    XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/4))" tar -C out -cvJf "${package}" "${name}"
 
     # Print out the image size
-    echo "  Packed image size: $(du -h "${image}.tar.xz" | cut -f 1)"
+    echo "  Packed image size: $(du -h "${package}" | cut -f 1)"
 
     # Restore the vmsd file
     [ ! -f "${vmsd_file}.bak" ] || mv "${vmsd_file}.bak" "${vmsd_file}"

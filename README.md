@@ -146,11 +146,11 @@ As with the build you can pack specific images by defining the out directories t
 
 * VM Image:
    ```
-   file=out/macos-1015.tar.xz ;
-   name=$(basename "$file" | cut -d. -f1) ;
-   curl --progress-bar -u "<user>:<token>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)"  -T "$file" \
-     "https://artifact-storage/aquarium/image/$name/$name-$(date -r "$file" +%y%m%d.%H%M%S).tar.xz" | tee /dev/null
+   file=$(ls out/macos-1106-ci-xcode131-*.tar.xz) ;
+   name=$(basename "$file" | rev | cut -d- -f2- | rev) ;
+   curl --progress-bar -u "<LOGIN>:<ARTIFACT_STORAGE_TOKEN>" -X PUT \
+     -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)" -T "$file" \
+     "https://artifact-storage/aquarium/image/$name/$file" | tee /dev/null
    ```
 
 ## Advices on testing
