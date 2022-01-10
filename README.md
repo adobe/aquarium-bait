@@ -8,9 +8,9 @@ images can be used with versioning to easily reproduce the same results of the p
 * Host: the installer delays are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected
   to power outlet). Make sure you have at least 200GB of disk space to build an image.
 * Python 3 + venv
-* [Packer v1.7.1](https://www.packer.io/downloads)
+* [Packer v1.7.9](https://www.packer.io/downloads)
 * For MacOS image:
-  * Can only be running on MacOS (license restrictions)
+  * Can only be running on MacOS host (license restrictions)
   * VMWare fusion 12.1.0
 
 ## Image structure
@@ -29,20 +29,31 @@ previous level image to use it in the next levels of images.
 
 ## Using of the images
 
-Basic VM and VM build system right now uses 2CPU and 4GB for VM build process.
-
-During actual run on the target system you can change CPU & MEM values to the required values, but
-please leave some for the HOST system:
-
 ### VMWare
 
-Change `.vmx` file:
+#### Change the `.vmsd` file:
+
+The child images have this parameter and it is the only that requires absolute path to the parent
+vmx file, the initial image (like base os image) doesn't have it.
+
+* `snapshot0.clone0` - just unpacked image will contain `<REPLACE_PARENT_VM_FULL_PATH>` and you will
+need to replace it with your path to the images directory. And not only the latest one - all the
+child images in the stack need to be modified like that.
+
+#### Change `.vmx` file:
+
+When you just cloned the new VM to run it on the target system - you need to make sure that you will
+use the most of the resources you have - so don't forget this part otherwise you will struggle of
+the performance penalty.
+
+During actual run on the target system you can change CPU & MEM values to the required values, but
+please leave some for the HOST system.
 
 * CPU (if you have more than one CPU socket - use `CPUS_PER_SOCKET = TOTAL_CPUS / <NUM_SOCKETS>`
   to preserve the NUMA config):
    ```
    # CPU
-   numvcpus = "<TOTAL_CPUS>"
+   numvcpus = "<TOTAL_CPU_THREADS>"
    cpuid.coresPerSocket = "<CPUS_PER_SOCKET>"
    ```
 * RAM:
@@ -99,18 +110,16 @@ file, but with the iso extension.
 #### Ansible files
 
 Roles can download files from artifact storage, but in case it's not an option (you're remote and
-can't use VPN due to client routing restrictions) - you can place the files locally.
-
-Ansible playbooks uses a number of binary packages you can find in artifact storage, check the
-[playbooks/files/README.md](playbooks/files/README.md) and the other dirs to get the clue.
+can't use VPN for some reason) - you can place the files locally: Ansible playbooks uses a number
+of binary packages you can find on artifact-storage, check the [playbooks/files/README.md](playbooks/files/README.md)
+for additional information.
 
 ### 3. Run build
 
-**WARNING:** if you're remote - make sure you don't have VPN enabled, otherwise it will lead to
-redirecting all your traffic through VPN and packer will never find your VM to execute operations.
-VM only have connection to host, not to the local net or internet. In case you want to build the
-images locally - you will need to fill the binaries directory as described in **Ansible files**
-section.
+**NOTICE:** the Aquarium Bait supports building images with corporate VPN connected through special
+local proxy which ignores the routing rules and always uses the local interfaces. For additional
+info please look into [./build_macos.sh](build_macos.sh), [./scripts/proxy.py](scripts/proxy.py)
+and [./packer/.yml](packer/) specs.
 
 **NOTICE:** during the build the script takes pictures of the VM screen through VNC and places them
 into `./screenshots/<image_name>` directory - so you can always check what's happened if your build
@@ -119,7 +128,7 @@ accedentally crashed during packer `boot_command` execution. For additional info
 
 Now when all the required things are ready - you can run the image builder:
 ```
-$ ./build_macos.sh
+$ ./build_macos.sh [packer/spec.yml] [...]
 ```
 
 This script will automatically create the not-existing images in out directory. You can specify the
@@ -130,7 +139,7 @@ tell builder to ask in case of any issue happening during the build.
 
 Now you can run script to pack all the generated images into tight tar.xz archives:
 ```
-$ ./pack_macos.sh
+$ ./pack_macos.sh [out/image_dir] [...]
 ```
 
 As with the build you can pack specific images by defining the out directories to pack.
@@ -140,7 +149,7 @@ As with the build you can pack specific images by defining the out directories t
 * ISO installer:
    ```
    file=iso/MacOS-Catalina-10.15.7.iso ;
-   name=$(basename "$file" | rev | cut -d. -f2-) | rev ;
+   name=$(basename "$file" | rev | cut -d. -f2- | rev) ;
    curl --progress-bar -u "<user>:<token>" -X PUT \
      -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)"  -T "$file" \
      "https://artifact-storage/aquarium/installer/$name/$name-$(date -r "$file" +%y%m%d.%H%M%S).iso" | tee /dev/null

@@ -26,14 +26,28 @@ export PACKER_NO_COLOR=1
 # Set root dir to use in packer configs
 export PACKER_ROOT="${root_dir}"
 
-# Clean of the running apps in bg on exit
+# Clean of the running background apps on exit
 function clean_bg {
     pkill -f './scripts/screenshot.py' || true
     pkill -f 'tail -f' || true
 }
-trap "clean_bg" EXIT
 
+trap "clean_bg ; pkill -f './scripts/proxy.py' || true" EXIT
+
+##
+# Running the local proxy process to workaround the VPN tunnel routing
+##
+# Get the available port to listen on localhost
+proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.0.0.1", 0)); print(sock.getsockname()[1]); sock.close()')
+./run_proxy.sh $proxy_port &
+# Exporting proxy for the Ansible WinRM transport
+# TODO: Don't really like the user:password requirement, but
+# for now found no useful way of creating socks5 with no auth
+export http_proxy="socks5://packer:packer@127.0.0.1:$proxy_port"
+
+##
 # The process walks on the different levels of packer dir tree and process the configs
+##
 stage=1
 while true; do
     to_process=$(find packer -mindepth ${stage} -maxdepth ${stage} -type f -name '*.json')
@@ -75,14 +89,14 @@ while true; do
         ./run_screenshot.sh "out/${image}.log" "screenshots/${image}/${image}" &
 
         if [ "x${DEBUG}" = 'x' ]; then
-            PACKER_LOG=1 PACKER_LOG_PATH="out/${image}.log" packer build -var "aquarium_bait_stage=$(($stage-1))" "${json}"
+            PACKER_LOG=1 PACKER_LOG_PATH="out/${image}.log" packer build -var "aquarium_bait_stage=$(($stage-1))" -var "aquarium_bait_proxy_port=${proxy_port}" "${json}"
             # Log is placed into the image only if it's not debug mode
             mv "out/${image}.log" "out/${image}/packer.log"
         else
-            echo "WARNING: Running DEBUG image build"
+            echo "WARNING: Running DEBUG image build - do not upload it"
             touch "out/${image}.log"
             tail -f "out/${image}.log" &
-            PACKER_LOG=1 packer build -var "aquarium_bait_stage=$(($stage-1))" -on-error=ask "${json}" > "out/${image}.log" 2>&1
+            PACKER_LOG=1 packer build -var "aquarium_bait_stage=$(($stage-1))" -var "aquarium_bait_proxy_port=${proxy_port}" -on-error=ask "${json}" > "out/${image}.log" 2>&1
         fi
 
         clean_bg

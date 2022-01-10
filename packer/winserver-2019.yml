@@ -1,10 +1,11 @@
 ---
-min_packer_version: 1.6.6
+min_packer_version: 1.7.9
 variables:
   vm_name: winserver-2019
   out_full_path: "{{ env `PWD` }}/out"
   iso_full_path: "{{ env `PWD` }}/iso/Windows-Server-2019_1809.16_64Bit_English_DC_STD_MLF_X22-67487.iso"
   vmx_full_path: "{{ env `PWD` }}/init/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
+  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
   username: packer
   password: packer
 
@@ -79,6 +80,10 @@ builders:
     communicator: winrm
     winrm_username: "{{ user `username` }}"
     winrm_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_proxy_username: "{{ user `username` }}"
+    ssh_proxy_password: "{{ user `password` }}"
     #winrm_use_ssl: true # To work with winrm https
     #winrm_insecure: true # To work with winrm https
     winrm_timeout: 2m
