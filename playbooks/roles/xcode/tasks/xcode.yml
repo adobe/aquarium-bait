@@ -21,3 +21,10 @@
 - name: Run Xcode first launch
   command: xcodebuild -runFirstLaunch
   become: true
+
+# This tweak is needed to not ask automation about the keychain unlock
+- name: Remove the xcode additional git configuration
+  become: true
+  file:
+    path: /Applications/Xcode.app/Contents/Developer/usr/share/git-core/gitconfig
+    state: absent
