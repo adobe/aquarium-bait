@@ -55,11 +55,8 @@
     command: C:\tmp\execute_osot_reboot.bat
 
 # VM will reboot and restore winrm connection
-- name: Wait for winrm port
-  delegate_to: localhost
-  wait_for:
-    host: "{{ ansible_host }}"
-    port: "{{ ansible_port }}"
+- name: Wait for winrm connection
+  wait_for_connection:
 
 - name: Check the OSOT process is completed
   win_wait_for:

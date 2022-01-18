@@ -1,12 +1,13 @@
 /.venv
 /out
+/screenshots
 /packer_cache
 
 /packer/*.json
 /packer/**/*.json
 
-/init/*/*
-!/init/*/*.vmx
+# We don't need any modifications in init until it's necessary (use -f)
+/init
 
 /iso/*
 !/iso/*.md

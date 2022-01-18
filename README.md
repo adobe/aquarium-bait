@@ -31,15 +31,6 @@ previous level image to use it in the next levels of images.
 
 ### VMWare
 
-#### Change the `.vmsd` file:
-
-The child images have this parameter and it is the only that requires absolute path to the parent
-vmx file, the initial image (like base os image) doesn't have it.
-
-* `snapshot0.clone0` - just unpacked image will contain `<REPLACE_PARENT_VM_FULL_PATH>` and you will
-need to replace it with your path to the images directory. And not only the latest one - all the
-child images in the stack need to be modified like that.
-
 #### Change `.vmx` file:
 
 When you just cloned the new VM to run it on the target system - you need to make sure that you will
@@ -128,7 +119,7 @@ accedentally crashed during packer `boot_command` execution. For additional info
 
 Now when all the required things are ready - you can run the image builder:
 ```
-$ ./build_macos.sh [packer/spec.yml] [...]
+$ ./build_macos.sh <packer/spec.yml> [...]
 ```
 
 This script will automatically create the not-existing images in out directory. You can specify the
@@ -161,7 +152,7 @@ As with the build you can pack specific images by defining the out directories t
    name=$(basename "$file" | rev | cut -d- -f2- | rev) ;
    curl --progress-bar -u "<LOGIN>:<ARTIFACT_STORAGE_TOKEN>" -X PUT \
      -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)" -T "$file" \
-     "https://artifact-storage/aquarium/image/$name/$file" | tee /dev/null
+     "https://artifact-storage/aquarium/image/$name/$(basename $file)" | tee /dev/null
    ```
 
 ## Advices on testing

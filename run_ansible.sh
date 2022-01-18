@@ -1,5 +1,7 @@
 #!/bin/sh -e
 # Script to quickly run ansible
+#
+# No needed to be run manually - executed by the ansible provisioner section of the packer spec.
 
 root_dir=$(dirname "$0")
 

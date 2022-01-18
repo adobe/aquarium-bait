@@ -19,8 +19,9 @@ for path in out/*; do
         [ -z "${skip_image}" ] || continue
     fi
 
-    # date -r "$file" +%y%m%d.%H%M%S
-    name=$(basename "${path}")
+    image=$(basename "${path}")
+    # Strip version to get name of the image
+    name=$(echo "$image" | rev | cut -d- -f2- | rev)
 
     # Check the lock files are not present
     if [ "$(find "${path}" -name '*.lck')" ]; then
@@ -35,18 +36,25 @@ for path in out/*; do
     fi
 
     # Check that only allowed files are in the image
-    find_pattern=''
-    for pattern in 'MainDisk-*.vmdk' 'packer.log' "$name.vmx" "$name.vmsd" "*.vm*.orig" "$name.nvram" "$name-Snapshot*.vmsn" "$name.vmxf" "$name.sha256"; do
-        find_pattern="$find_pattern ! -name '$pattern'"
+    need_files=''
+    find_noneed_pattern=''
+    for filename in 'MainDisk-*.vmdk' 'packer.log' "$name.vmx" "$name.vmsd" "$name.nvram" "$name-Snapshot*.vmsn" "$name.vmxf" "$image.sha256" "$image.req"; do
+        if [ "x$(sh -c "find '${path}' -name '$filename'")" = 'x' ]; then
+            need_files="$need_files $filename"
+        fi
+        find_noneed_pattern="$find_noneed_pattern ! -name '$filename'"
     done
-    noneed_files=$(sh -c "find '${path}' $find_pattern")
+    if [ "x$need_files" != 'x' ]; then
+        echo "ERROR: Image '${path}' doesn't contain the required files for packing:\n$need_files"
+        exit 1
+    fi
+    noneed_files=$(sh -c "find '${path}' $find_noneed_pattern")
     if [ "x$noneed_files" != "x${path}" ]; then
         echo "ERROR: Image '${path}' contains weird files need to be cleaned before packing: $noneed_files"
         exit 1
     fi
 
-    # Making the package path based on the last changed file in the image
-    package="$path-$(for f in "$path"/*; do date -r "$f" +%y%m%d.%H%M%S; done | sort | tail -1).tar.xz"
+    package="$path.tar.xz"
 
     echo
     echo "INFO: Processing '${package}'..."
@@ -58,33 +66,20 @@ for path in out/*; do
 
     vmsd_file="${path}/${name}.vmsd"
     if [ -f "${vmsd_file}" ]; then
-        # Save backup to restore later and replace absolute path with token to change on the target
-        [ -f "${vmsd_file}.bak" ] || cp "${vmsd_file}" "${vmsd_file}.bak"
-        grep -F -v 'snapshot0.clone0' "${vmsd_file}.bak" | grep -F -v 'snapshot0.numClones' > "${vmsd_file}"
-        sed -i.orig -e "s|${root_dir}/out|<REPLACE_PARENT_VM_FULL_PATH>|" "${vmsd_file}"
+        # Cleaning the snapshot clones which is created by the child linked VMs
+        mv "${vmsd_file}" "${vmsd_file}.bak"
+        grep -F -v -e 'snapshot0.clone' -e 'snapshot0.numClones' "${vmsd_file}.bak" > "${vmsd_file}"
+        rm -f "${vmsd_file}.bak"
     fi
-
-    # Cleaning the .orig files
-    rm -f "${path}"/*.orig
 
     # Print out the image size
     echo "  Unpacked image size: $(du -d 1 -h "${path}" | tail -1 | cut -f 1)"
 
-    # Run checksum of all the files in the archive
-    rm -f "${name}/${name}.sha256"
-    cd "${root_dir}/out"
-    shasum -a 256 -b ${name}/* > "${name}.sha256"
-    mv "${name}.sha256" "${name}/${name}.sha256"
-    cd "${root_dir}"
-
     # Pack the image hard, using quarter of the available vcores to not overload the system
-    XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/4))" tar -C out -cvJf "${package}" "${name}"
+    XZ_OPT="-e9 --threads=$(($(getconf _NPROCESSORS_ONLN)/4))" tar -C out -cvJf "${package}" "${image}"
 
     # Print out the image size
     echo "  Packed image size: $(du -h "${package}" | cut -f 1)"
-
-    # Restore the vmsd file
-    [ ! -f "${vmsd_file}.bak" ] || mv "${vmsd_file}.bak" "${vmsd_file}"
 done
 
 echo "INFO: Pack operation done"

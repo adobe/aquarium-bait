@@ -14,11 +14,8 @@
   win_command: '{{ download_path }} /qn ADDLOCAL=ALL'
 
 - name: Wait additional time before connecting back
-  delegate_to: localhost
-  wait_for:
+  wait_for_connection:
     delay: 20
-    host: '{{ ansible_host }}'
-    port: '{{ ansible_port }}'
 
 - name: Execute vncdo to login as user to complete the vmware tools installation
   include_role:

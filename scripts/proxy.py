@@ -21,9 +21,6 @@ class ThreadingTCPServer(ThreadingMixIn, TCPServer):
     pass
 
 class SocksProxy(StreamRequestHandler):
-    username = 'packer'
-    password = 'packer'
-
     def handle(self):
         print('PROXY: Accepting connection from:', self.client_address)
 
@@ -39,17 +36,8 @@ class SocksProxy(StreamRequestHandler):
         # get available methods
         methods = self.get_available_methods(nmethods)
 
-        # accept only USERNAME/PASSWORD auth
-        if 2 not in set(methods):
-            # close connection
-            self.server.close_request(self.request)
-            return
-
         # send welcome message
-        self.connection.sendall(struct.pack("!BB", SOCKS_VERSION, 2))
-
-        if not self.verify_credentials():
-            return
+        self.connection.sendall(struct.pack("!BB", SOCKS_VERSION, 0))
 
         # request
         version, cmd, _, address_type = struct.unpack("!BBBB", self.connection.recv(4))
@@ -65,6 +53,7 @@ class SocksProxy(StreamRequestHandler):
 
         # reply
         try:
+            print('PROXY: Connecting to:', address, port)
             if cmd == 1:  # CONNECT
                 remote = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 remote.setsockopt(socket.SOL_SOCKET, socket.SO_DONTROUTE, 1)
@@ -98,28 +87,6 @@ class SocksProxy(StreamRequestHandler):
             methods.append(ord(self.connection.recv(1)))
         return methods
 
-    def verify_credentials(self):
-        version = ord(self.connection.recv(1))
-        assert version == 1
-
-        username_len = ord(self.connection.recv(1))
-        username = self.connection.recv(username_len).decode('utf-8')
-
-        password_len = ord(self.connection.recv(1))
-        password = self.connection.recv(password_len).decode('utf-8')
-
-        if username == self.username and password == self.password:
-            # success, status = 0
-            response = struct.pack("!BB", version, 0)
-            self.connection.sendall(response)
-            return True
-
-        # failure, status != 0
-        response = struct.pack("!BB", version, 0xFF)
-        self.connection.sendall(response)
-        self.server.close_request(self.request)
-        return False
-
     def generate_failed_reply(self, address_type, error_number):
         return struct.pack("!BBBBIH", SOCKS_VERSION, error_number, 0, address_type, 0, 0)
 
@@ -129,13 +96,21 @@ class SocksProxy(StreamRequestHandler):
             r, w, e = select.select([client, remote], [], [])
 
             if client in r:
-                data = client.recv(4096)
-                if remote.send(data) <= 0:
+                try:
+                    data = client.recv(4096)
+                    if remote.send(data) <= 0:
+                        break
+                except ConnectionResetError:
+                    print("PROXY: Connection was reset by client")
                     break
 
             if remote in r:
-                data = remote.recv(4096)
-                if client.send(data) <= 0:
+                try:
+                    data = remote.recv(4096)
+                    if client.send(data) <= 0:
+                        break
+                except ConnectionResetError:
+                    print("PROXY: Connection was reset by remote")
                     break
 
 if __name__ == '__main__':
@@ -143,5 +118,5 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     with ThreadingTCPServer(('127.0.0.1', port), SocksProxy) as server:
-        print("Started Aquarium Bait noroute proxy on %s %s" % server.server_address)
+        print("PROXY: Started Aquarium Bait noroute proxy on %s %s" % server.server_address)
         server.serve_forever()
