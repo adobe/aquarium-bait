@@ -1,6 +1,6 @@
 /.venv
 /out
-/screenshots
+/records
 /packer_cache
 
 /packer/*.json

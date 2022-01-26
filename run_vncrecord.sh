@@ -1,6 +1,6 @@
 #!/bin/sh -e
-# Script to run screenshot python script in venv
-# It's used to capture VNC screens during the packer build process
+# Script to run vncrecord python script in venv
+# It's used to capture VNC screen during the packer build process
 #
 # No needed to be run manually - executed by the build_image.sh script to read the packer build log
 
@@ -13,4 +13,4 @@ pip -q install --upgrade pip wheel
 pip -q install -r "${root_dir}/requirements.txt"
 
 # Run the screenshot application
-"${root_dir}/scripts/screenshot.py" "$@"
+"${root_dir}/scripts/vncrecord.py" "$@"

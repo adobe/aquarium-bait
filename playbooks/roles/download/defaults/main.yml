@@ -7,6 +7,7 @@ download_mac_tmp: /tmp
 download_mac_dir: mac
 download_win_tmp: C:\tmp
 download_win_dir: win
+download_result_var: download_path  # The output variable name contains downloaded file
 
 required_vars:
   - download_url  # https://artifact-storage/...

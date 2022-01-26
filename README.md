@@ -117,10 +117,10 @@ local proxy which ignores the routing rules and always uses the local interfaces
 info please look into [./build_image.sh](build_image.sh), [./scripts/proxy.py](scripts/proxy.py)
 and [./packer/.yml](packer/) specs.
 
-**NOTICE:** during the build the script takes pictures of the VM screen through VNC and places them
-into `./screenshots/<image_name>` directory - so you can always check what's happened if your build
-accedentally crashed during packer `boot_command` execution. For additional info look into
-[./build_image.sh](build_image.sh) and [./scripts/screenshot.py](scripts/screenshot.py).
+**NOTICE:** during the build the script records the VM screen through VNC and places it into
+`./records/<image_name>.mp4` - so you can always check what's happened if your build accedentally
+crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
+and [./scripts/vncrecorder.py](scripts/vncrecorder.py).
 
 Now when all the required things are ready - you can run the image builder:
 ```

@@ -1,0 +1,68 @@
+---
+- name: Example project tools and ci image provision
+  hosts: default
+
+  pre_tasks:
+    - name: Make local bin directory
+      become: true
+      file:
+        dest: /usr/local/bin
+        state: directory
+        mode: "0755"
+
+    # The tools installed uses /usr/local/bin to place the executables
+    - name: Set /usr/local/bin directory in PATH for the entire system
+      become: true
+      command: launchctl config "{{ item }}" path "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      with_items:
+        - system  # Will work for shh and system LaunchDaemons
+        - user  # Will work for user LaunchAgents too
+
+    # Example project already migrated to python3, but still uses "python" in the scripts
+    # Unfortunately simple symlink is not working on BigSur (exe choose the version based on name)
+    - name: Make python to run python3 by default
+      become: true
+      copy:
+        mode: '0755'
+        dest: /usr/local/bin/python
+        content: |
+          #!/bin/sh
+          python3 "$@"
+
+  roles:
+    - role: 7zip
+    - role: cmake
+    - role: ninja
+    - role: nodejs
+    - role: ruby_gem
+      vars:
+        ruby_gem_list:
+          - name: rouge  # Dependency of xcpretty
+            version: 2.0.7
+            checksum: sha256:2da14eb856839a81ad708883c2495507f50f973f3f46904cc7d87784039ed169
+          - name: xcpretty  # Is used by psm-validate-ios-release-device stage
+            version: 0.3.0
+            checksum: sha256:75c7cc577be3527e7663ca627cbeb47613904c3a44f34cca3a92d202053e04f7
+          - name: xcpretty-json-formatter  # Is used by psm-validate-ios-release-device stage
+            version: 0.1.1
+            checksum: sha256:7494823ed0129bbc31257188b06337b207f31dfccc632c7e3302acd4b7248ea5
+    - role: jdk
+    - role: groovy
+    - role: ccache
+    - role: vault
+
+    # From CI to simplify the image build process
+    - role: jre
+    - role: jenkins_agent
+
+  post_tasks:
+    - name: Configure jenkins user ccache
+      become: true
+      command: sudo su - jenkins -c '/usr/local/bin/ccache {{ item }}'
+      with_items:
+        - --set-config cache_dir=/Volumes/workspace/.ccache  # Place the cache files in workspace volume
+        - --max-size 100  # User 100GB of space
+
+    - name: Cleaning up after the installation
+      include_role:
+        name: cleanup

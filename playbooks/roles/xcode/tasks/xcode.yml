@@ -1,4 +1,10 @@
 ---
+- name: Ensure the install dir is exists
+  become: true
+  file:
+    path: '{{ xcode_install_path }}'
+    state: directory
+
 - name: Download XCode archive to the environment
   include_role:
     name: download
@@ -10,9 +16,23 @@
   become: true
   command: xip --expand '{{ download_path }}'
   args:
-    chdir: /Applications
-  async: "{{ xcode_extraction_timeout }}"  # Prevent SSH connections timing out waiting for extraction
+    chdir: '{{ xcode_install_path }}'
+  async: '{{ xcode_extraction_timeout }}'  # Prevent SSH connections timing out waiting for extraction
   poll: 30
+
+# Make the installed Xcode default one
+- when: xcode_install_path != '/Applications'
+  block:
+    - name: Create symlink to the installed xcode
+      become: true
+      file:
+        src: '{{ xcode_install_path }}/Xcode.app'
+        dest: /Applications/Xcode.app
+        state: link
+
+    - name: Make xcode-select to know where is default Xcode
+      become: true
+      command: xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 - name: Accept License Agreement
   command: xcodebuild -license accept
@@ -26,5 +46,5 @@
 - name: Remove the xcode additional git configuration
   become: true
   file:
-    path: /Applications/Xcode.app/Contents/Developer/usr/share/git-core/gitconfig
+    path: '{{ xcode_install_path }}/Xcode.app/Contents/Developer/usr/share/git-core/gitconfig'
     state: absent

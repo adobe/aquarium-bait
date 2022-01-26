@@ -53,7 +53,7 @@
     # The password is needed for autologin, so generating and set it
     - name: Create kcpassword file for autologin
       become: true
-      command: python /tmp/autologin_kcpassword.py
+      command: python3 /tmp/autologin_kcpassword.py
       args:
         stdin: jenkins  # Jenkins password is "jenkins"
 

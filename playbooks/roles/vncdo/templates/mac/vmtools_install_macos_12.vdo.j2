@@ -1,0 +1,49 @@
+# Script to install the mounted vmtools iso
+
+# Wait for window with iso opens, selecting the first "Install VMware Tools" item and open it
+pause 20 key tab key super-down pause 10
+
+# Enter voiceover
+key super-f5 pause 5 key enter
+
+# On welcome screen switch to and press Continue button
+pause 10 key shift-tab key space
+
+# On install location switch to and press Install button
+pause 10 key shift-tab key space
+
+# In password request window enter password and press Install Software button
+pause 10 type "{{ ansible_sudo_pass }}" pause 1 key enter
+
+# Wait for installation of first kext and skip entering the security preferences
+pause 20 key enter
+
+# Popup about the "Installer needs admin access" so allowing that
+pause 10 key alt-ctrl-down pause 2 key space
+
+# Wait for installation of another kext and enter the security preferences again
+pause 20 key space
+
+# Click on unlocking the admin changes
+pause 10 key shift-tab pause 1 key shift-tab pause 1 key shift-tab pause 1 key shift-tab pause 1 key space
+
+# Enter password to unlock admin changes
+pause 5 type "{{ ansible_sudo_pass }}" pause 1 key enter
+
+# Go to Allow button and click it
+pause 5 key shift-tab pause 1 key shift-tab pause 1 key shift-tab pause 1 key space
+
+# Press Not Now in reboot request popup
+pause 5 key enter
+
+# Disable voiceover
+pause 1 key super-f5
+
+# Close the settings window and switch back to installer
+pause 5 key super-w
+
+# Wait 2m for the installation completion and press Restart button to trigger reboot
+pause 120 key enter
+
+# Wait for reboot
+pause 120

@@ -1,0 +1,54 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_* script based on the path
+  vm_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  vmx_full_path: "{{ user `out_full_path` }}/parent_image/parent_image.vmx"
+  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `vm_name` }}"
+    display_name: "{{ user `vm_name` }}"
+    source_path: "{{ user `vmx_full_path` }}"
+    linked: true # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
+    headless: true
+    boot_wait: 30s
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+
+provisioners:
+  - type: ansible
+    command: ./run_ansible.sh
+    user: "{{ user `username` }}"
+    playbook_file: playbooks/xcode_image.yml
+    # Use python3 installed before instead of the default not working one (/usr/bin/python3)
+    # due to not installed developer tools and absent of any built-in python.
+    # Using inventory here because extra_arguments are working for localhost (vncdo) too.
+    inventory_file_template: >
+      {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
+      ansible_python_interpreter=/usr/local/bin/python3
+    extra_arguments:
+      - --extra-vars
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - xcode_download_url=https://artifact-storage/aquarium/files/mac/Xcode_13.3.xip
+      - -e
+      - xcode_download_checksum=sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
+      - -e
+      - xcode_extraction_timeout=2000
+      - -e
+      - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
+      - -e
+      - xcode_cmd_download_checksum=sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3

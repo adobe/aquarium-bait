@@ -1,0 +1,49 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_* script based on the path
+  vm_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  vmx_full_path: "{{ user `out_full_path` }}/parent_image/parent_image.vmx"
+  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `vm_name` }}"
+    display_name: "{{ user `vm_name` }}"
+    source_path: "{{ user `vmx_full_path` }}"
+    linked: true # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
+    headless: true
+    boot_wait: 2m
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+    vmx_data:
+      # Enabling paravirt GPU driver for Apple Metal framework support
+      # needed by ipad air simulator tests.
+      appleGPU0.present: "TRUE"
+      appleGPU.allowRemovableDevices: "TRUE"
+      svga.present: "FALSE"
+      vvtd.enable: "FALSE" # Need to be disabled, otherwise no boot
+
+provisioners:
+  - type: ansible
+    command: ./run_ansible.sh
+    user: "{{ user `username` }}"
+    playbook_file: playbooks/project_example_toolsci_image.yml
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - jre_extract_path=/opt/srv/jre8
+      - -e
+      - jenkins_agent_ui=true # MacOS needs UI to work properly

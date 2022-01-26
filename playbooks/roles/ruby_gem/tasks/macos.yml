@@ -1,0 +1,22 @@
+---
+- name: Download gems to the environment
+  loop: '{{ ruby_gem_list }}'
+  loop_control:
+    index_var: index
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ ruby_gem_download_url }}/{{ item.name }}-{{ item.version }}.gem'
+    download_checksum: '{{ item.checksum }}'
+    download_result_var: 'download_path_{{ index }}'
+
+- name: Install gems
+  become: true
+  loop: '{{ ruby_gem_list }}'
+  loop_control:
+    index_var: index
+  gem:
+    name: '{{ item.name }}'
+    state: present
+    gem_source: '{{ vars["download_path_"+index|string] }}'
+    user_install: false

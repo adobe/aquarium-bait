@@ -1,0 +1,45 @@
+---
+- name: Download 7zip archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ sevenzip_download_url }}'
+    download_checksum: '{{ sevenzip_download_checksum }}'
+
+- name: Unzip 7zip
+  become: true
+  register: reg_7zip_unpacked
+  unarchive:
+    src: '{{ download_path }}'
+    dest: /usr/local
+    remote_src: true
+    list_files: true
+
+- name: Check binary was unpacked properly
+  stat:
+    path: /usr/local/{{ (reg_7zip_unpacked.files | first).split("/") | first }}/7zr
+  register: reg_7zip_bin_file
+  failed_when: not reg_7zip_bin_file.stat.exists
+
+- name: Create bin directory
+  become: true
+  file:
+    path: /usr/local/bin
+    state: directory
+
+- name: Create symlinks
+  become: true
+  file:
+    src: /usr/local/{{ (reg_7zip_unpacked.files | first).split("/") | first }}/{{ item }}
+    dest: /usr/local/bin/{{ item }}
+    state: link
+  loop:
+    - 7zr
+    - 7za
+
+- name: Create symlink from 7za to 7z
+  become: true
+  file:
+    src: /usr/local/bin/7za
+    dest: /usr/local/bin/7z
+    state: link

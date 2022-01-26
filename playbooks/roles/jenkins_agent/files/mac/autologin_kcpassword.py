@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # The script generates /etc/kcpassword file to enable user autologin along with
 # writing default username to com.apple.loginwindow.plist
 
 import sys
 
-passwd = raw_input().strip()
+passwd = input().strip()
 key = [125, 137, 82, 35, 210, 188, 221, 234, 163, 185, 31]
 key_len = len(key)
 

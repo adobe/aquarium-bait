@@ -18,6 +18,7 @@ from socketserver import ThreadingMixIn, TCPServer, StreamRequestHandler
 SOCKS_VERSION = 5
 
 class ThreadingTCPServer(ThreadingMixIn, TCPServer):
+    _running = True
     pass
 
 class SocksProxy(StreamRequestHandler):
@@ -65,8 +66,7 @@ class SocksProxy(StreamRequestHandler):
 
             addr = struct.unpack("!I", socket.inet_aton(bind_address[0]))[0]
             port = bind_address[1]
-            reply = struct.pack("!BBBBIH", SOCKS_VERSION, 0, 0, 1,
-                                addr, port)
+            reply = struct.pack("!BBBBIH", SOCKS_VERSION, 0, 0, 1, addr, port)
 
         except Exception as err:
             print("PROXY: Error:", err)
@@ -91,7 +91,7 @@ class SocksProxy(StreamRequestHandler):
         return struct.pack("!BBBBIH", SOCKS_VERSION, error_number, 0, address_type, 0, 0)
 
     def exchange_loop(self, client, remote):
-        while True:
+        while self.server._running:
             # wait until client or remote is available for read
             r, w, e = select.select([client, remote], [], [])
 
@@ -119,4 +119,8 @@ if __name__ == '__main__':
         port = int(sys.argv[1])
     with ThreadingTCPServer(('127.0.0.1', port), SocksProxy) as server:
         print("PROXY: Started Aquarium Bait noroute proxy on %s %s" % server.server_address)
-        server.serve_forever()
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("PROXY: Stopping the proxy process...")
+            server._running = False

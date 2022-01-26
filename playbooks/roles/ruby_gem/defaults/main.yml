@@ -1,0 +1,10 @@
+---
+# Used to download the specific gems provided in ruby_gem_list variable
+ruby_gem_download_url: https://artifact-storage/aquarium/gems
+
+required_vars:
+  - ruby_gem_list  # List of gems with name, version and checksum
+  # ruby_gem_list:
+  #   - name: xcpretty
+  #     version: 0.3.0
+  #     checksum: sha256:75c7cc577be3527e7663ca627cbeb47613904c3a44f34cca3a92d202053e04f7

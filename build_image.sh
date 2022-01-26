@@ -16,11 +16,19 @@ export PACKER_NO_COLOR=1
 # Set root dir to use in packer configs
 export PACKER_ROOT="${root_dir}"
 
+# Make sure no VM is running currently to provide the clean environment for the build
+if which vmrun > /dev/null 2>&1; then
+    if [ "x$(vmrun list | head -1 | rev | cut -d" " -f 1)" != "x0" ]; then
+        echo "ERROR: Found running VMware VM's, please shutdown them before running the build:\n$(vmrun list)"
+        exit 1
+    fi
+fi
+
 # Clean of the running background apps on exit
 function clean_bg {
     find "${root_dir}/packer" -name '*.json' -delete
-    pkill -f './scripts/screenshot.py' || true
-    pkill -f 'tail -f' || true
+    pkill -SIGINT -f './scripts/vncrecord.py' || true
+    pkill -SIGINT -f 'tail -f' || true
 }
 
 trap "clean_bg ; pkill -f './scripts/proxy.py' || true" EXIT
@@ -77,8 +85,8 @@ while true; do
         image=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f2- | tr / -)
         echo "INFO: Building image for '${image}'..."
 
-        if [ "$(find ./out -maxdepth 1 -type d -name "${image}*")" ]; then
-            echo "INFO:  skip: the output path 'out/${image}*' already exists"
+        if [ "$(find ./out -maxdepth 1 -type d -name "${image}-[0-9]*")" ]; then
+            echo "INFO:  skip: the output path 'out/${image}-[0-9]*' already exists"
             continue
         fi
 
@@ -120,11 +128,11 @@ while true; do
         echo "INFO:  generating packer json for '${yml}'..."
         ruby -ryaml -rjson -e "puts YAML.load_file('${yml}').to_json" > "${yml}.json"
 
-        # Running the screenshot application to capture VNC screens during the build
-        rm -rf "./screenshots/${image}"
-        mkdir -p "./screenshots/${image}"
+        # Running the vncrecord script to capture VNC screen during the build
+        rm -rf "./records/${image}.mp4"
+        mkdir -p ./records
         rm -f /tmp/packer.log
-        ./run_screenshot.sh /tmp/packer.log "screenshots/${image}/${image}" &
+        ./run_vncrecord.sh /tmp/packer.log "./records/${image}.mp4" &
 
         echo 'INFO:  running packer build'
         if [ "x${DEBUG}" = 'x' ]; then

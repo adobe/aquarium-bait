@@ -1,0 +1,35 @@
+---
+- name: Download CMake archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ cmake_mac_download_url }}'
+    download_checksum: '{{ cmake_mac_download_checksum }}'
+
+- name: Create extract directory
+  become: true
+  file:
+    path: /usr/local/cmake
+    state: directory
+
+# Uses BSD tar, GNU will require --wildcards in addition
+- name: Unpack only bin & lib from archive to directory
+  become: true
+  command: >
+    tar -C "/usr/local/cmake" --strip-components=3 -xf "{{ download_path }}"
+    "*/CMake.app/Contents/bin" "*/CMake.app/Contents/share"
+  args:
+    warn: false  # Unarchive requires GNU tar that is not installed on macos by default
+
+- name: Check cmake binary was unpacked properly
+  stat:
+    path: /usr/local/cmake/bin/cmake
+  register: reg_cmake_bin_file
+  failed_when: not reg_cmake_bin_file.stat.exists
+
+- name: Create symlink
+  become: true
+  file:
+    src: /usr/local/cmake/bin/cmake
+    dest: /usr/local/bin/cmake
+    state: link
