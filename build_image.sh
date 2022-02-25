@@ -1,10 +1,10 @@
 #!/bin/sh -e
-# Build macos vmware images (only on macos)
+# Build packer images
 # Usage:
-#   ./build_macos.sh <path_to_yml> [...]
+#   ./build_image.sh <packer/path/to.yml> [...]
 #
 # Debug mode:
-#   DEBUG=true ./build_macos.sh ...
+#   DEBUG=true ./build_image.sh ...
 
 cd "$(dirname "$0")"
 root_dir="$PWD"
@@ -77,8 +77,8 @@ while true; do
         image=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f2- | tr / -)
         echo "INFO: Building image for '${image}'..."
 
-        if [ -e "out/${image}" ]; then
-            echo "INFO:  skip: the output path 'out/${image}' is existing"
+        if [ "$(find ./out -name "${image}*")" ]; then
+            echo "INFO:  skip: the output path 'out/${image}*' already exists"
             continue
         fi
 
@@ -89,7 +89,8 @@ while true; do
         packer_params="$packer_params -var out_full_path=${root_dir}/out"
         if [ $stage -gt 1 ]; then
             parent_name=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f2- | rev | cut -d/ -f2- | rev | tr / -)
-            parent_image=$(find "${root_dir}/out" -type d -name "${parent_name}*")
+            # Filter the dirs in addition with grep due to the childrens could be found too
+            parent_image=$(find "${root_dir}/out" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$")
             if [ $(echo "$parent_image" | wc -l) -gt 1 ]; then
                 echo "ERROR:  there is more than one parent image '${parent_name}'."
                 echo "        Please move the unnecessary one aside of out directory:\n$parent_image"

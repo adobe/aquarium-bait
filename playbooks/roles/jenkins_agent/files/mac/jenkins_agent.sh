@@ -8,6 +8,8 @@
 #   $ NO_CONFIG_WAIT=1 JENKINS_URL=<url> JENKINS_AGENT_SECRET=<secret> JENKINS_AGENT_NAME=<name> ./jenkins_agent.sh
 
 # If the CONFIG_FILE var is not set then use workspace volume config env file path
+# Works well only if System Integrity Protection (SIP) is disabled, otherwise the jenkins user
+# will not be able to access the mounted workspace disk.
 [ "$CONFIG_FILE" ] || CONFIG_FILE=/Volumes/workspace/config/jenkins_agent.env
 
 receiveMetadata() {

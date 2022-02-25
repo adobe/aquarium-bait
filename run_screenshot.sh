@@ -2,7 +2,7 @@
 # Script to run screenshot python script in venv
 # It's used to capture VNC screens during the packer build process
 #
-# No needed to be run manually - executed by the build_macos.sh script to read the packer build log
+# No needed to be run manually - executed by the build_image.sh script to read the packer build log
 
 root_dir=$(dirname "$0")
 

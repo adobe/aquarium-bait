@@ -4,5 +4,9 @@ jenkins_agent_java_home: "{{ jre_extract_path }}"
 jenkins_agent_win_nssm_download_url: https://artifact-storage/aquarium/files/win/nssm-2.24.zip
 jenkins_agent_win_nssm_download_checksum: sha256:727d1e42275c605e0f04aba98095c38a8e1e46def453cdffce42869428aa6743
 
+# This option here is to provide UI for the test environments. Regular build enviroments don't need
+# that, but in case testing of UI is needed - change this option to `true`.
+jenkins_agent_ui: false
+
 required_vars:
   - jenkins_agent_java_home  # Path to the JAVA_HOME directory

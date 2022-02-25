@@ -83,4 +83,12 @@ sound.virtualDev = "hdaudio"
 usb.present = "TRUE"
 usb_xhci.present = "TRUE"
 
+# Do not install the tools by default
 isolation.tools.autoInstall.disable = "TRUE"
+
+# Disable mitigations in order to improve performance
+ulm.disableMitigations = "TRUE"
+
+# Allow to execute nested virtualization
+vhv.enable = "TRUE"
+vvtd.enable = "TRUE"

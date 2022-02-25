@@ -9,6 +9,9 @@ variables:
   username: packer
   password: packer
 
+  # CD is used to enter recovery mode
+  iso_full_path: "{{ env `PWD` }}/iso/MacOS-Catalina-10.15.7.iso"
+
 builders:
   - type: vmware-vmx
     vm_name: "{{ user `vm_name` }}"
@@ -18,14 +21,14 @@ builders:
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
-    boot_wait: 15s
-    boot_command: # Disable System Integrity Protection to allow access to the disks. It will enter BIOS mode only once
-      - <pageDown><up><up><enter><wait10s> # Choose "Setup Menu"
-      - <down><down><enter><wait5s> # boot from a file menu
-      - <down><down><down><enter><wait5s> # choose Recovery
-      - <enter><wait5s> # Recovery mode has 1 partition, thus, 1 choice.  Just hit enter
-      - <down><down><down><down><down><down><enter> # boot.efi is the 6th item
-      - <wait3m> # Wait recovery mode to boot
+    boot_wait: 2s
+    boot_key_interval: 10ms
+    # We don't use BIOS interface much to access recovery or EFI because it's buggy (VNC commands
+    # are not passing properly due to some bug in VMWare which like "sleep" some time - makes delays
+    # and eats the commands)
+    boot_command: # Disable System Integrity Protection (SIP) to allow access to the disks.
+      - <down><down><down><enter> # Quickly select to boot from CD drive in BIOS
+      - <wait2m> # Wait for recovery to boot
       - <leftCtrlOn><leftShiftOn><f2><leftShiftOff><leftCtrlOff><wait1s> # Focus on Apple menu
       - <left><left> # Focus on Utiltiess menu
       - <down><down><down><down><enter><wait10s> # Select and execute Terminal
@@ -41,6 +44,9 @@ builders:
     ssh_read_write_timeout: 10s
     ssh_wait_timeout: 2m
     vmx_data:
+      sata0:1.deviceType: "cdrom-image"
+      sata0:1.fileName: "{{ user `iso_full_path` }}"
+      sata0:1.present: "TRUE"
       bios.forceSetupOnce: "TRUE"
 
 provisioners:
@@ -55,6 +61,8 @@ provisioners:
       - vmtools_vm_type=vmware
       - -e
       - jre_extract_path=/opt/srv/jre8
+      - -e
+      - jenkins_agent_ui=true # MacOS needs UI to work properly
 
 post-processors:
   - type: shell-local # Execute a number of steps to complete the image

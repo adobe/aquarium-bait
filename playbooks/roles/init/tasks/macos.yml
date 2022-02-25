@@ -5,7 +5,7 @@
     key: timezone
     value: GMT
 
-- name: Disable sleep
+- name: Disable system sleep
   include_tasks: macos_systemsetup.yml
   vars:
     key: "{{ item }}"
@@ -15,17 +15,37 @@
     - displaysleep
     - harddisksleep
 
-- name: Disable hibernate
-  command: pmset hibernatemode 0
+- name: Disable automatic update check
   become: true
+  osx_defaults:
+    domain: /Library/Preferences/com.apple.SoftwareUpdate
+    key: AutomaticCheckEnabled
+    type: int
+    value: 0
 
-- name: Disable App Sleep
+- name: Disable automatic download of the updates
+  become: true
+  osx_defaults:
+    domain: /Library/Preferences/com.apple.SoftwareUpdate
+    key: AutomaticDownload
+    type: bool
+    value: false
+
+- name: Disable Spotlight indexing for root
+  become: true
+  command: mdutil -i off /
+
+- name: Disable hibernate
+  become: true
+  command: pmset hibernatemode 0
+
+- name: Disable App Sleep for admin user
   osx_defaults:
     key: NSAppSleepDisabled
     type: bool
     value: true
 
-- name: Disable screensaver password
+- name: Disable screensaver password for admin user
   osx_defaults:
     host: currentHost
     domain: com.apple.screensaver
@@ -33,34 +53,10 @@
     type: bool
     value: false
 
-- name: Disable automatic update check
+- name: Disable screensaver for admin user
   osx_defaults:
-    domain: /Library/Preferences/com.apple.SoftwareUpdate
-    key: AutomaticCheckEnabled
+    host: currentHost
+    domain: com.apple.screensaver
+    key: idleTime
     type: int
     value: 0
-  become: true
-
-- name: Disable Spotlight indexing for root
-  command: mdutil -i off /
-  become: true
-
-# Value was taken from: https://osxlatitude.com/forums/topic/11553-how-do-i-disable-sip-system-integrity-protection/
-# nibble:              #3        |         #2        |         #1
-# nibble bits:   4   3   2   1   |   4   3   2   1   |   4   3   2   1           Bit #1 = Allow untrusted kexts
-# bits:         12  11  10   9   |   8   7   6   5   |   4   3   2   1           Bit #2 = Allow unrestricted FileSystem
-#                -   -   -   -       -   -   -   -       -   -   -   -           Bit #3 = Allow task for PID
-#              N/A   |   |   |       |   |   |   |       |   |   |   |           Bit #4 = Allow kernel debugger
-#                    |   |   |       |   |   |   |       |   |   |   |           Bit #5 = Allow Apple internal
-#                    |   |   |       |   |   |   |       |   |   |   |           Bit #6 = Allow unrestricted DTrace
-#                    /   |   |       |   |   |   |       |   |   |   |           Bit #7 = Allow unrestricted NVRAM
-#        Policy Over.    /   |       |   |   |   |       |   |   |   |           Bit #8 = Allow device configuration
-#               Kext App.    /       |   |   |   |       |   |   |   |           Bit #9 = Allow any recovery OS
-#                   Recov. OS        /   |   |   |       |   |   |   \           Bit #10 = Allow unapproved kexts
-#                      Device Config.    /   |   |       |   |   \    Kext Sig.  Bit #11 = Allow executable policy override
-#                             NVRAM Prot.    /   |       |    \   FS Prot.       Bit #12 = N/A
-#                                DTrace Rest.    /       \     Task for PID
-#                                      Apple Int.         Kernel Debug.
-- name: Add template nvram variable to disable SIP later
-  command: nvram Asr-active-config=o%03%00%00  # 0110 1111 0011 - csr & kext-consent disabled
-  become: true

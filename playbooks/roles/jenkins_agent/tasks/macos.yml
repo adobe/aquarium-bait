@@ -10,8 +10,14 @@
   user:
     name: jenkins
     group: jenkins
+    groups:
+      - _developer  # Developer group needed to use DevToolsSecurity mode
     uid: 5001
     comment: Jenkins
+
+- name: Enabling the DevToolsSecurity mode in order to allow debugging of the running processes
+  become: true
+  command: DevToolsSecurity -enable
 
 - name: Create extract directory
   become: true
@@ -28,7 +34,85 @@
     group: wheel
     mode: "0755"
 
-- name: Store service plist file for agent autorun
+- when: jenkins_agent_ui
+  tags: jenkins_agent_service_config
+  block:
+    - name: Making jenkins user to autologin
+      become: true
+      command: defaults write /Library/Preferences/com.apple.loginwindow.plist autoLoginUser jenkins
+
+    - name: Put kcpassword generator script to the system
+      become: true
+      copy:
+        src: mac/autologin_kcpassword.py
+        dest: /tmp/autologin_kcpassword.py
+        owner: root
+        group: wheel
+        mode: "0750"
+
+    # The password is needed for autologin, so generating and set it
+    - name: Create kcpassword file for autologin
+      become: true
+      command: python /tmp/autologin_kcpassword.py
+      args:
+        stdin: jenkins  # Jenkins password is "jenkins"
+
+    - name: Put the same password for jenkins user
+      become: true
+      user:
+        name: jenkins
+        password: jenkins
+
+    # If user was just created - during the first run macos asks him about the stuff like data
+    # pivacy, siri etc. If we will just reboot - the next boot will simple skip the questions.
+    # https://derflounder.wordpress.com/2018/04/04/suppressing-the-data-privacy-pop-up-window-on-macos-high-sierra/
+    - name: Reboot the system in order to trigger the first user run
+      become: true
+      command: shutdown -r +1  # Reboot halts packer for some reason, so using this dirty hack
+
+    # VM will reboot and restore ssh connection
+    - name: Wait for ssh connection
+      wait_for_connection:
+        delay: 200
+
+    - name: Wait for jenkins user to fill its home directory
+      wait_for:
+        path: /Users/jenkins/Desktop
+
+    - name: Wait for sudo to be available
+      command: sudo --stdin echo ok
+      args:
+        stdin: '{{ ansible_sudo_pass }}'
+      retries: 20  # sudo could take a while to complete this become
+      delay: 10
+      register: reg_result
+      until: reg_result.rc == 0
+
+    - name: Create jenkins user LaunchAgents directory
+      become: true
+      file:
+        path: /Users/jenkins/Library/LaunchAgents
+        state: directory
+
+    - name: Store LaunchAgent plist file for agent autorun during user login
+      become: true
+      template:
+        src: aquarium.ci.agent.plist.j2
+        dest: /Users/jenkins/Library/LaunchAgents/aquarium.ci.agent.plist
+        owner: root
+        group: wheel
+        mode: "0644"
+      vars:
+        java_home: "{{ jenkins_agent_java_home }}"
+        script_path: /opt/srv/jenkins_agent/jenkins_agent.sh
+
+    - name: Disable jenkins user screensaver
+      become: true
+      command: sudo -u jenkins defaults -currentHost write com.apple.screensaver idleTime 0
+
+- name: Store LaunchDaemon plist file for agent autorun during system startup
+  when: not jenkins_agent_ui
+  tags: jenkins_agent_service_config
   become: true
   template:
     src: aquarium.ci.agent.plist.j2

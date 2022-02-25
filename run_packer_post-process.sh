@@ -19,8 +19,8 @@ vm_name_completed="${VM_NAME}-${vm_timestamp}_$(grep '^CID=' "${disk_file}" | cu
 
 
 
-if [ "x${disk_file_cloned}" = "x" ]; then
-    echo 'Removing iso from the virtual machine config for the root image'
+if grep -q '^sata0:1.*iso"\?$' "${VM_NAME}/${VM_NAME}.vmx"; then
+    echo 'Removing iso from the virtual machine config for the image'
     sed -i.orig -e '/^sata0:1/d' "${VM_NAME}/${VM_NAME}.vmx"
 fi
 

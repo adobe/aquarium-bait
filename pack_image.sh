@@ -1,23 +1,11 @@
 #!/bin/sh -e
 # Pack the images in out directory
 # Usage:
-#   ./pack_macos.sh [path_of_the_image_dir_to_pack [...]]
+#   ./pack_image.sh <out/image_dir> [...]
 
-root_dir=$(realpath "$(dirname "$0")")
-cd "${root_dir}"
-
-for path in out/*; do
+for path in "$@"; do
     # Skipping non-dir target
     [ -d "${path}" ] || continue
-
-    # Skip if path not in the filter
-    if [ "$1" ]; then
-        skip_image=true
-        for filter in "$@"; do
-            [ "${path}" != "${filter}" ] || skip_image=""
-        done
-        [ -z "${skip_image}" ] || continue
-    fi
 
     image=$(basename "${path}")
     # Strip version to get name of the image

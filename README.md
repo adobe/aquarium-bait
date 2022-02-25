@@ -11,19 +11,19 @@ images can be used with versioning to easily reproduce the same results of the p
 * [Packer v1.7.9](https://www.packer.io/downloads)
 * For MacOS image:
   * Can only be running on MacOS host (license restrictions)
-  * VMWare fusion 12.1.0
+  * VMWare fusion 12.2.0
 
 ## Image structure
 
 The image forms a tree and basically reuses the parent disks to optimize the storage and the build
 process, so the leaves of the trees will require the parents to be in place.
 
-* **macos-1015** - the base os with low-level configs ([base_image.yml](playbooks/base_image.yml))
-   * macos-1015-**ci** - jenkins user and autorunning jnlp agent
-      * macos-1015-ci-**xcode-122** - the Xcode tools of a specific version
+* **macos1015** - the base os with low-level configs ([base_image.yml](playbooks/base_image.yml))
+   * macos1015-**ci** - jenkins user and autorunning jnlp agent
+      * macos1015-ci-**xcode-122** - the Xcode tools of a specific version
 
-The VMX packer specs are using `source_path` (in `packer/macos-1015/ci.yml` for example) to build
-the `CI` image on top of the previously created `macos-1015` image. That's why `build_macos.sh`
+The VMX packer specs are using `source_path` (in `packer/macos1015/ci.yml` for example) to build
+the `CI` image on top of the previously created `macos1015` image. That's why `build_image.sh`
 wrapper is executing the directory tree levels sequentially - to make sure we already built the
 previous level image to use it in the next levels of images.
 
@@ -109,17 +109,17 @@ for additional information.
 
 **NOTICE:** the Aquarium Bait supports building images with corporate VPN connected through special
 local proxy which ignores the routing rules and always uses the local interfaces. For additional
-info please look into [./build_macos.sh](build_macos.sh), [./scripts/proxy.py](scripts/proxy.py)
+info please look into [./build_image.sh](build_image.sh), [./scripts/proxy.py](scripts/proxy.py)
 and [./packer/.yml](packer/) specs.
 
 **NOTICE:** during the build the script takes pictures of the VM screen through VNC and places them
 into `./screenshots/<image_name>` directory - so you can always check what's happened if your build
 accedentally crashed during packer `boot_command` execution. For additional info look into
-[./build_macos.sh](build_macos.sh) and [./scripts/screenshot.py](scripts/screenshot.py).
+[./build_image.sh](build_image.sh) and [./scripts/screenshot.py](scripts/screenshot.py).
 
 Now when all the required things are ready - you can run the image builder:
 ```
-$ ./build_macos.sh <packer/spec.yml> [...]
+$ ./build_image.sh <packer/spec.yml> [...]
 ```
 
 This script will automatically create the not-existing images in out directory. You can specify the
@@ -130,32 +130,50 @@ tell builder to ask in case of any issue happening during the build.
 
 Now you can run script to pack all the generated images into tight tar.xz archives:
 ```
-$ ./pack_macos.sh [out/image_dir] [...]
+$ ./pack_image.sh [out/image_dir] [...]
 ```
 
 As with the build you can pack specific images by defining the out directories to pack.
 
-## Upload the artifacts
+### 5. Upload the packed images
 
-* ISO installer:
-   ```
-   file=iso/MacOS-Catalina-10.15.7.iso ;
-   name=$(basename "$file" | rev | cut -d. -f2- | rev) ;
-   curl --progress-bar -u "<user>:<token>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)"  -T "$file" \
-     "https://artifact-storage/aquarium/installer/$name/$name-$(date -r "$file" +%y%m%d.%H%M%S).iso" | tee /dev/null
-   ```
+The last step is to upload the image to artifact storage to use it across the organization:
+```
+$ ./upload_image.sh <out/image.tar.xz> [...]
+```
 
-* VM Image:
-   ```
-   file=$(ls out/macos-1106-ci-xcode131-*.tar.xz) ;
-   name=$(basename "$file" | rev | cut -d- -f2- | rev) ;
-   curl --progress-bar -u "<LOGIN>:<ARTIFACT_STORAGE_TOKEN>" -X PUT \
-     -H "X-Checksum-Sha256: $(sha256sum "$file" | cut -d' ' -f1)" -T "$file" \
-     "https://artifact-storage/aquarium/image/$name/$(basename $file)" | tee /dev/null
-   ```
+It will output the upload progress and info about the uploaded image when it will be completed.
 
 ## Advices on testing
+
+### SSH: connecting through proxy
+
+In order to connect to the local VM with VPN connection it's necessary to use the local proxy
+started up by the `build_image.sh` script.
+
+1. Run image build in debug mode and wait until the error happened:
+   ```
+   $ DEBUG=1 ./build_image.sh packer/<PACKER_SPEC_PATH>.yml
+   ```
+2. Find in console line `PROXY: Started Aquarium Bait noroute proxy on` which will contain proxy
+host and port.
+3. Find in console line `PROXY: Connected to:` which will show you the VM IP address
+4. Run the next SSH command to use `nc` as the SSH transport for socks5 proxy with located info:
+   ```
+   $ ssh -o ProxyCommand='nc -X 5 -x 127.0.0.1:<PROXY_PORT> %h %p' packer@<VM_IP>
+   ```
+5. Type the default password `packer` and you good to go!
+
+### VMWare Fusion visual debugging
+
+Sometimes it's useful to get visual representation of the running VM and there is 2 ways to do that:
+
+1. Modify the packer spec yml file to comment the `headless` option - but don't forget to change it
+back after that. This way packer will run the build process with showing the VM GUI.
+
+2. Just open the VMWare Fusion UI and it will show the currently active VM GUI. It's dangerous,
+because if you will leave the VMWare Fusion UI - it will not remove the lock files in the VM dir,
+so make sure when you complete the debugging you're properly close any signs of VMWare Fusion UI.
 
 ### Ansible: run playbook
 
