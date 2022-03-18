@@ -110,6 +110,10 @@
       become: true
       command: sudo -u jenkins defaults -currentHost write com.apple.screensaver idleTime 0
 
+    - name: Disable jenkins user save windows on logout and restore on login
+      become: true
+      command: sudo -u jenkins defaults -currentHost write com.apple.loginwindow TALLogoutSavesState 0
+
 - name: Store LaunchDaemon plist file for agent autorun during system startup
   when: not jenkins_agent_ui
   tags: jenkins_agent_service_config

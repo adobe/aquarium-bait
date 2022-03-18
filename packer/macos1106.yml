@@ -8,7 +8,7 @@ variables:
   username: packer
   password: packer
 
-  iso_full_path: "{{ env `PWD` }}/iso/MacOS-BigSur-11.06.iso"
+  iso_full_path: "{{ env `PWD` }}/iso/MacOS-BigSur-11.06.4.iso"
   init_vmx_full_path: "{{ env `PWD` }}/init/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx"
 
 builders:
@@ -45,18 +45,19 @@ builders:
       - <leftCtrlOn><leftAltOn><leftShiftOn><up><leftShiftOff><down><right><spacebar><leftAltOff><leftCtrlOff><wait> # Go to Install button and press it via VoiceOver
       - <leftSuperOn><f5><leftSuperOff> # Disable VoiceOver
 
-      - <wait35m> # Wait while the installer unpacks files to the disk and reboots (~30mins)
+      - <wait30m> # Wait while the installer unpacks files to the disk and reboots (~30mins)
 
+      - <up><wait5s> # Wake up the screen in case it gets dark
       - United States<tab><tab><spacebar><wait2s> # Select country and next button
       - <tab><tab><tab><spacebar><wait2s> # Select keyboard locale and next button
       - <tab><tab><tab><tab><tab><tab><spacebar><wait2s> # Skip accessibility
       - <down><tab><tab><spacebar><wait5s><tab><spacebar><wait20s> # Select no internet and continue and confirm
       - <tab><tab><tab><spacebar><wait5s> # Data privacy info and continue
       - <tab><tab><tab><spacebar><wait5s> # Do not transfer info and continue
-      - <tab><tab><spacebar><wait2s><tab><wait><spacebar><wait5s> # License agreement next and Agree
+      - <tab><tab><spacebar><wait2s><tab><wait><spacebar><wait10s> # License agreement next and Agree
       - "{{ user `username` }}<tab>" # Enter username
-      - <tab> # Skip account name as the same as username
-      - "{{ user `password` }}<tab>{{ user `password` }}<tab>" # Set user password and verify
+      - <wait5s><tab><wait5s> # Skip account name as the same as username
+      - "{{ user `password` }}<tab><wait5s>{{ user `password` }}<tab>" # Set user password and verify
       - <tab><tab><spacebar><wait30s> # Click continue
       - <tab><wait2s><tab><wait2s><tab><spacebar><wait10s> # Skip customize settings and continue
       - <spacebar><wait10s> # Close window about data privacy if it's here
@@ -97,9 +98,9 @@ provisioners:
     user: "{{ user `username` }}"
     playbook_file: playbooks/base_image.yml
     extra_arguments:
-      - --extra-vars
+      - -e
       - ansible_sudo_pass={{ user `password` }}
-
-post-processors:
-  - type: shell-local # Execute a number of steps to complete the image
-    command: ./run_packer_post-process.sh "{{ user `out_full_path` }}" "{{ user `vm_name` }}"
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx
+      - -e
+      - vmtools_vm_type=vmware

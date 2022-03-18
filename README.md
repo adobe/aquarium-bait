@@ -19,13 +19,14 @@ The image forms a tree and basically reuses the parent disks to optimize the sto
 process, so the leaves of the trees will require the parents to be in place.
 
 * **macos1015** - the base os with low-level configs ([base_image.yml](playbooks/base_image.yml))
-   * macos1015-**ci** - jenkins user and autorunning jnlp agent
-      * macos1015-ci-**xcode-122** - the Xcode tools of a specific version
+   * macos1015-**xcode122** - the Xcode tools of a specific version
+      * macos1015-xcode122-**ci** - jenkins user and autorunning jnlp agent
 
-The VMX packer specs are using `source_path` (in `packer/macos1015/ci.yml` for example) to build
-the `CI` image on top of the previously created `macos1015` image. That's why `build_image.sh`
-wrapper is executing the directory tree levels sequentially - to make sure we already built the
-previous level image to use it in the next levels of images.
+The VMX packer specs are using `source_path` (in `packer/macos1015/xcode122/ci.yml` for example) to
+build the `CI` image on top of the previously created `xcode122` image which was created as a child
+of the `macos1015` image. That's why `build_image.sh` wrapper is executing the directory tree levels
+sequentially - to make sure we already built the previous level image to use it in the next levels
+of images.
 
 ## Using of the images
 
@@ -79,8 +80,12 @@ script and it will execute docker to validate the playbooks.
    ```
 5. Umount the dmg:
    ```
-   $ hdiutil detach /Volumes/macos-installer
+   $ hdiutil detach /Volumes/Install\ macOS*
    ```
+   * If here is an error - check the usage by and detach/kill the apps from the inside:
+      ```
+      sudo lsof | grep '/Volumes/Install macOS'
+      ```
 6. Convert the dmg to cdr and iso:
    ```
    $ hdiutil convert /tmp/macos-installer.dmg -format UDTO -o /tmp/macos-installer.cdr
@@ -124,7 +129,8 @@ $ ./build_image.sh <packer/spec.yml> [...]
 
 This script will automatically create the not-existing images in out directory. You can specify the
 packer yml files as arguments to build the specific images. Also you can put `DEBUG=1` env var to
-tell builder to ask in case of any issue happening during the build.
+tell builder to ask in case of any issue happening during the build, but debug mode created images
+are not supposed to be uploaded to the artifact storage - just for debugging.
 
 ### 4. Run pack of the images
 

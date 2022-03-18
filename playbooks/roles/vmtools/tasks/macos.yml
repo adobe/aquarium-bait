@@ -6,29 +6,22 @@
     download_url: '{{ vmtools_mac_vmware_download_url }}'
     download_checksum: '{{ vmtools_mac_vmware_download_checksum }}'
 
-- name: Install VMware tools from the pkg archive
-  command: installer -pkg '{{ download_path }}' -target /
+- name: Mount vmware tools iso file
   become: true
-  register: reg_vmtools_result
-  ignore_errors: true
+  command: hdiutil attach '{{ download_path }}' -mountpoint /tmp/vmware_tools
 
-- name: MacOS 11 will not allow to simple install kext even with disabled SIP
-  when: reg_vmtools_result.rc != 0
-  block:
-    - name: Execute vncdo in case installation failed to allow kernel extensions
-      include_role:
-        name: vncdo
-      vars:
-        vncdo_template: mac/system_preferences_security_vendor_allow.vdo
+# Unfortunately there is no way to install tools from PKG with enabled SIP - it not shows
+# the "Allow" button in the security, so installing the supported way through iso app
+- name: Install VMware tools from the mounted iso
+  include_role:
+    name: vncdo
+  vars:
+    vncdo_template: mac/vmtools_install.vdo
 
-    # Rerun the download and installation
-    - name: Download VMWare tools package to the environment
-      include_role:
-        name: download
-      vars:
-        download_url: '{{ vmtools_mac_vmware_download_url }}'
-        download_checksum: '{{ vmtools_mac_vmware_download_checksum }}'
-
-    - name: Install VMware tools from the pkg archive
-      command: installer -pkg '{{ download_path }}' -target /
-      become: true
+- name: Verify vmware kernel extensions was installed properly
+  command: kextstat -k -l -b "com.vmware.kext.{{ item }}"
+  register: reg_kextstat
+  failed_when: reg_kextstat.stdout_lines | length == 0
+  with_items:
+    - VMwareGfx
+    - vmhgfs

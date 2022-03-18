@@ -46,7 +46,3 @@ provisioners:
       - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.1.dmg
       - -e
       - xcode_cmd_download_checksum=sha256:9a64702299c0fce068c729fbeb316705afd810c5812f83a180a9cccfc5ae4e00
-
-post-processors:
-  - type: shell-local # Execute a number of steps to complete the image
-    command: ./run_packer_post-process.sh "{{ user `out_full_path` }}" "{{ user `vm_name` }}"

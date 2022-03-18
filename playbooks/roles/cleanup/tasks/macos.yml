@@ -38,7 +38,7 @@
       with_items: "{{ reg_caches.files }}"
       # Caches cleaning on MacOS 11.6 is harder with SIP activated so some folders can't be
       # accessible, so ignoring them in case they producing an error
-      ignore_errors: "{{ item.path.endswith('/com.apple.HomeKit') or item.path.endswith('/CloudKit') }}"
+      ignore_errors: true
       become: true
 
 - name: Fill free space with zeroes

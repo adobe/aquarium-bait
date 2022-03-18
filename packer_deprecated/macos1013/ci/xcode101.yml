@@ -1,0 +1,48 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_* script based on the path
+  vm_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  vmx_full_path: "{{ user `out_full_path` }}/parent_image/parent_image.vmx"
+  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `vm_name` }}"
+    display_name: "{{ user `vm_name` }}"
+    source_path: "{{ user `vmx_full_path` }}"
+    linked: true # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
+    headless: true
+    boot_wait: 30s
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+
+provisioners:
+  - type: ansible
+    command: ./run_ansible.sh
+    user: "{{ user `username` }}"
+    playbook_file: playbooks/xcode_image.yml
+    extra_arguments:
+      - --extra-vars
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - xcode_download_url=https://artifact-storage/aquarium/files/mac/Xcode_10.1.xip
+      - -e
+      - xcode_download_checksum=sha256:5e607884488c165acc57d1b9beed35fa35534013a7373f9f41a8954609da7cbc
+      - -e
+      - xcode_extraction_timeout=2000
+      - -e
+      - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_macOS_10.13_for_Xcode_10.1.dmg
+      - -e
+      - xcode_cmd_download_checksum=sha256:cc21c9ec4388ef8a7318fc55d86a6645e9f05bfa585263c21da9bc78c07807b2

@@ -15,21 +15,19 @@
     - displaysleep
     - harddisksleep
 
-- name: Disable automatic update check
+- name: Disable automatic download and install of the updates
   become: true
   osx_defaults:
     domain: /Library/Preferences/com.apple.SoftwareUpdate
-    key: AutomaticCheckEnabled
-    type: int
-    value: 0
-
-- name: Disable automatic download of the updates
-  become: true
-  osx_defaults:
-    domain: /Library/Preferences/com.apple.SoftwareUpdate
-    key: AutomaticDownload
+    key: "{{ item }}"
     type: bool
     value: false
+  with_items:
+    - AutomaticCheckEnabled
+    - AutomaticDownload
+    - AutomaticallyInstallMacOSUpdates
+    - ConfigDataInstall
+    - CriticalUpdateInstall
 
 - name: Disable Spotlight indexing for root
   become: true
@@ -58,5 +56,13 @@
     host: currentHost
     domain: com.apple.screensaver
     key: idleTime
+    type: int
+    value: 0
+
+- name: Disable save session on logout and restore on login for admin user
+  osx_defaults:
+    host: currentHost
+    domain: com.apple.loginwindow
+    key: TALLogoutSavesState
     type: int
     value: 0

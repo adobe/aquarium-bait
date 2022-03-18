@@ -103,11 +103,11 @@ provisioners:
     playbook_file: playbooks/base_image.yml
     use_proxy: false # For proper connection with VMWare
     extra_arguments:
-      #- --extra-vars # To work with winrm https
+      #- -e # To work with winrm https
       #- ansible_winrm_server_cert_validation=ignore
-      - --extra-vars
+      - -e
       - ansible_password={{ user `password` }}
-
-post-processors:
-  - type: shell-local # Execute a number of steps to complete the image
-    command: ./run_packer_post-process.sh "{{ user `out_full_path` }}" "{{ user `vm_name` }}"
+      - -e
+      - vmtools_vm_type=vmware
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx

@@ -18,7 +18,7 @@ builders:
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `vm_name` }}"
     headless: true
-    boot_wait: 30s
+    boot_wait: 2m
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
@@ -32,21 +32,11 @@ provisioners:
   - type: ansible
     command: ./run_ansible.sh
     user: "{{ user `username` }}"
-    playbook_file: playbooks/xcode_image.yml
+    playbook_file: playbooks/ci_image.yml
     extra_arguments:
-      - --extra-vars
+      - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - xcode_download_url=https://artifact-storage/aquarium/files/mac/Xcode_10.1.xip
+      - jre_extract_path=/opt/srv/jre8
       - -e
-      - xcode_download_checksum=sha256:5e607884488c165acc57d1b9beed35fa35534013a7373f9f41a8954609da7cbc
-      - -e
-      - xcode_extraction_timeout=2000
-      - -e
-      - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_macOS_10.13_for_Xcode_10.1.dmg
-      - -e
-      - xcode_cmd_download_checksum=sha256:cc21c9ec4388ef8a7318fc55d86a6645e9f05bfa585263c21da9bc78c07807b2
-
-post-processors:
-  - type: shell-local # Execute a number of steps to complete the image
-    command: ./run_packer_post-process.sh "{{ user `out_full_path` }}" "{{ user `vm_name` }}"
+      - jenkins_agent_ui=true # MacOS needs UI to work properly

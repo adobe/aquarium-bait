@@ -6,7 +6,8 @@ extendedConfigFile = "macos1015.vmxf"
 displayName = "macos-1015-init"
 
 tools.syncTime = "TRUE"
-tools.upgrade.policy = "upgradeAtPowerCycle"
+tools.remindInstall = "FALSE"
+tools.upgrade.policy = "manual"
 
 powerType.powerOff = "soft"
 powerType.powerOn = "soft"
@@ -22,7 +23,7 @@ memsize = "8192"
 
 # System
 virtualHW.productCompatibility = "hosted"
-virtualHW.version = "19"
+virtualHW.version = "18"
 firmware = "efi"
 guestOS = "darwin19-64"
 keyboardAndMouseProfile = "macProfile"

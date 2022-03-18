@@ -1,7 +1,7 @@
 ---
 - name: Get System Integrity Protection status
-  command: csrutil status
   become: true
+  command: csrutil status
   register: reg_csrstatus
 
 - name: Print csrstatus configuration
@@ -9,6 +9,6 @@
     var: reg_csrstatus.stdout_lines
 
 - name: Validate System Integrity Protection status
-  when: "reg_csrstatus.stdout.endswith('status: enabled.')"
+  when: "not reg_csrstatus.stdout.endswith('status: enabled.')"
   fail:
-    msg: "The System Integrity Protection is enabled."
+    msg: The System Integrity Protection is disabled which is bad

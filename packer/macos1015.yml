@@ -39,6 +39,7 @@ builders:
 
       - <wait25m> # Wait while the installer unpacks files to the disk and reboots (~17mins)
 
+      - <up><wait5s> # Wake up the screen in case it gets dark
       - United States<tab><tab><spacebar><wait> # Select country and next button
       - <tab><tab><tab><spacebar><wait> # Select keyboard locale and next button
       - <down><tab><tab><spacebar><wait><tab><spacebar><wait10s> # Select no internet and continue and confirm
@@ -86,9 +87,9 @@ provisioners:
     user: "{{ user `username` }}"
     playbook_file: playbooks/base_image.yml
     extra_arguments:
-      - --extra-vars
+      - -e
       - ansible_sudo_pass={{ user `password` }}
-
-post-processors:
-  - type: shell-local # Execute a number of steps to complete the image
-    command: ./run_packer_post-process.sh "{{ user `out_full_path` }}" "{{ user `vm_name` }}"
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `vm_name` }}/{{ user `vm_name` }}.vmx
+      - -e
+      - vmtools_vm_type=vmware

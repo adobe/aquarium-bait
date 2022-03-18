@@ -77,9 +77,17 @@ while true; do
         image=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f2- | tr / -)
         echo "INFO: Building image for '${image}'..."
 
-        if [ "$(find ./out -name "${image}*")" ]; then
+        if [ "$(find ./out -maxdepth 1 -type d -name "${image}*")" ]; then
             echo "INFO:  skip: the output path 'out/${image}*' already exists"
             continue
+        fi
+
+        # Check the spec have headless mode enabled in release mode
+        if [ "x${DEBUG}" = 'x' ]; then
+            if [ "x$(grep -s 'headless:' "${yml}" | tr -d ' ')" != 'xheadless:true' ]; then
+                echo "ERROR: The spec doesn't contain the headless mode enabled: ${yml}"
+                continue
+            fi
         fi
 
         # Collecting packer params to build the image
@@ -122,14 +130,16 @@ while true; do
         if [ "x${DEBUG}" = 'x' ]; then
             PACKER_LOG=1 PACKER_LOG_PATH=/tmp/packer.log packer build $packer_params "${yml}.json"
             # /tmp/packer.log is copied in the post processing script to the image dir
+            ./run_image_postprocess.sh "${root_dir}/out/${image}"
         else
-            echo "WARNING:  running DEBUG image build - do not upload it"
+            echo "WARNING:  running DEBUG image build - you will not be able to upload it"
             touch /tmp/packer.log
             tail -f /tmp/packer.log &
             PACKER_LOG=1 packer build -on-error=ask $packer_params "${yml}.json" > /tmp/packer.log 2>&1
         fi
 
         clean_bg
+
         IFS="|"
     done
     stage=$(($stage+1))

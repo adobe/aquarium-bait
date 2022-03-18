@@ -89,7 +89,3 @@ provisioners:
     extra_arguments:
       - --extra-vars
       - ansible_sudo_pass={{ user `password` }}
-
-post-processors:
-  - type: shell-local # Execute a number of steps to complete the image
-    command: ./run_packer_post-process.sh "{{ user `out_full_path` }}" "{{ user `vm_name` }}"

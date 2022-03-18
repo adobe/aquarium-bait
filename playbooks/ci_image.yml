@@ -4,8 +4,6 @@
   roles:
     - role: init_ci
 
-    - role: vmtools
-
     - role: jre
 
     - role: jenkins_agent
