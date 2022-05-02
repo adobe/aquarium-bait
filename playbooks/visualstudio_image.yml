@@ -1,6 +1,6 @@
 ---
 - name: VisualStudio image provision
-  hosts: default
+  hosts: all
   roles:
     - role: visualstudio
     - role: cleanup

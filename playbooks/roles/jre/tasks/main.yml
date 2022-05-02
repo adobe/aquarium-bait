@@ -5,6 +5,10 @@
   fail:
     msg: Variable '{{ item }}' is not defined
 
+- name: Execute on Linux
+  include_tasks: linux.yml
+  when: ansible_system == 'Linux'
+
 - name: Execute on MacOS
   include_tasks: macos.yml
   when: ansible_system == 'Darwin'

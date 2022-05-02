@@ -1,6 +1,6 @@
 ---
 - name: Xcode image provision
-  hosts: default
+  hosts: all
   roles:
     - role: xcode
     - role: cleanup

@@ -16,14 +16,14 @@ receiveMetadata() {
     out=$1
     rm -f "$out"
     # Get the list of the gateways, usually like "127.0.0 172.16.1"
-    ifs=$(ifconfig | grep 'inet ' | awk '{print $2}' | cut -d '.' -f -3)
+    ifs=$(ifconfig | grep 'inet ' | awk '{print $2}' | cut -d '.' -f -3 | awk '{print $0".1"}')
     for proto in https http; do
         for interface in ${ifs}; do
-            fish_api_url="${proto}://${interface}.1:8001"
+            fish_api_url="${proto}://${interface}:8001"
             echo "Checking ${fish_api_url} META API..."
 
-            # TODO: not sure how to properly solve the insecure issue,
-            # probably in the future when we will use some corporate CA
+            # Here is used insecure flag and it's an appropriate solution
+            # because just allows to connect the controlled host services
             curl -sSLo "$out" --insecure "${fish_api_url}/meta/v1/data/?format=env&prefix=data" 2>/dev/null || true
             if grep -s '^data_JENKINS_URL' "$out"; then
                 echo "Found required metadata in ${fish_api_url}"
@@ -47,6 +47,7 @@ until [ "$NO_CONFIG_WAIT" ]; do
         [ "${JENKINS_AGENT_SECRET}" ]    || JENKINS_AGENT_SECRET=${data_JENKINS_AGENT_SECRET}
         [ "${JENKINS_AGENT_NAME}" ]      || JENKINS_AGENT_NAME=${data_JENKINS_AGENT_NAME}
         [ "${JENKINS_AGENT_WORKSPACE}" ] || JENKINS_AGENT_WORKSPACE="${data_JENKINS_AGENT_WORKSPACE}"
+        [ "${JENKINS_HTTPS_INSECURE}" ]  || JENKINS_HTTPS_INSECURE="${data_JENKINS_HTTPS_INSECURE}"
     fi
 
     if [ "${JENKINS_URL}" -a "${JENKINS_AGENT_SECRET}" -a "${JENKINS_AGENT_NAME}" -a "${JENKINS_AGENT_WORKSPACE}" ]; then
@@ -58,8 +59,15 @@ until [ "$NO_CONFIG_WAIT" ]; do
     fi
 done
 
+# Set the flags to use in case the jenkins server https is not trusted (local env for example)
+# Just passing the jenkins server cert will often not work because the SAN/CN will not match
+if [ "x${JENKINS_HTTPS_INSECURE}" = "xtrue" ]; then
+    curl_insecure="--insecure"
+    jenkins_insecure="-disableHttpsCertValidation"
+fi
+
 # Wait for jenkins response
-until curl -s -o /dev/null -w '%{http_code}' --insecure "${JENKINS_URL}" | grep -s '403\|200' > /dev/null; do
+until curl -s -o /dev/null -w '%{http_code}' ${curl_insecure} "${JENKINS_URL}" | grep -s '403\|200' > /dev/null; do
     echo "Wait for '${JENKINS_URL}' jenkins response..."
     sleep 5
 done
@@ -74,9 +82,15 @@ until cd "${JENKINS_AGENT_WORKSPACE}" 2>/dev/null; do
 done
 
 # Download the agent jar and connect to jenkins
-curl -sSLo agent.jar --insecure "${JENKINS_URL}/jnlpJars/agent.jar"
+curl -sSLo agent.jar ${curl_insecure} "${JENKINS_URL}/jnlpJars/agent.jar"
 
 # Run the agent once - we don't need it to restart due to dynamic nature of the agent
 echo "Running the Jenkins agent '${JENKINS_AGENT_NAME}'..."
-"${JAVA_HOME}/bin/java" -cp agent.jar hudson.remoting.jnlp.Main -headless \
-    -url "${JENKINS_URL}" "${JENKINS_AGENT_SECRET}" "${JENKINS_AGENT_NAME}"
+
+# Prevent the agent configs affect on the build environment (by `docker --env-file`
+# for example) by removing the export flag for known ones and at the same way making
+# a way to pass the required build variables if required by the environment
+env -u JENKINS_URL -u JENKINS_AGENT_SECRET -u JENKINS_AGENT_NAME -u JENKINS_AGENT_WORKSPACE \
+    -u JENKINS_HTTPS_INSECURE -u JAVA_HOME -u JAVA_OPTS -u CONFIG_FILE -u NO_CONFIG_WAIT \
+    "${JAVA_HOME}/bin/java" ${JAVA_OPTS} -cp agent.jar hudson.remoting.jnlp.Main -headless \
+    ${jenkins_insecure} -url "${JENKINS_URL}" "${JENKINS_AGENT_SECRET}" "${JENKINS_AGENT_NAME}"

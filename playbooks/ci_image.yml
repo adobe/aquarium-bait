@@ -1,6 +1,6 @@
 ---
 - name: CI image provision
-  hosts: default
+  hosts: all
   roles:
     - role: init_ci
 

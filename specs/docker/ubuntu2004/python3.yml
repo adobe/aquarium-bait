@@ -1,0 +1,31 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  parent_name: parent_image
+  parent_version: parent_version
+
+builders:
+  - type: docker
+    image: "aquarium/{{ user `parent_name` }}:{{ user `parent_version` }}"
+    pull: false
+    commit: true
+
+provisioners:
+  - type: shell
+    inline:
+      - apt update
+      - apt install -y python3 python3-pip
+
+  # Cleaning after using apt
+  - type: shell
+    inline:
+      - apt -qq clean
+      - rm -rf /var/lib/apt/lists/*
+
+post-processors:
+  - type: docker-tag
+    repository: "aquarium/{{ user `image_name` }}"
+    tags: original

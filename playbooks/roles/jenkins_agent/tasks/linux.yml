@@ -1,0 +1,40 @@
+---
+- name: Add jenkins group
+  become: true
+  group:
+    name: jenkins
+    gid: 5001
+
+- name: Add user jenkins with group jenkins
+  become: true
+  user:
+    name: jenkins
+    group: jenkins
+    uid: 5001
+    comment: Jenkins
+
+- name: Install tools required by jenkins_agent.sh script
+  become: true
+  package:
+    name: "{{ item }}"
+  with_items:
+    - iproute2
+    - curl
+
+- name: Create extract directory
+  become: true
+  file:
+    path: /srv/jenkins_agent
+    state: directory
+
+- name: Store jenkins agent executable scripts
+  become: true
+  copy:
+    src: lin/jenkins_agent.sh
+    dest: /srv/jenkins_agent/jenkins_agent.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+# TODO: Add logic for systemd service when VM will be here
+# For now it's only docker so we're good with what we have

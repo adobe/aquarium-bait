@@ -1,6 +1,6 @@
 ---
 - name: Example project image provision
-  hosts: default
+  hosts: all
 
   roles:
     - role: xcode  # 12.4

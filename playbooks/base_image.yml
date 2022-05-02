@@ -1,6 +1,6 @@
 ---
 - name: Base image provision
-  hosts: default
+  hosts: all
   roles:
     - role: init
     - role: vmtools  # It's critical for appleGPU to install tools in the first OS boot

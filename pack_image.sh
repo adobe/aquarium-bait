@@ -11,25 +11,32 @@
 
 # Pack the images in out directory
 # Usage:
-#   ./pack_image.sh <out/image_dir> [...]
+#   ./pack_image.sh <out/type/image_dir> [...]
 
 curr_dir="$PWD"
 
 for path in "$@"; do
-    # Skipping non-dir target
-    [ -d "${path}" ] || continue
-
     cd "${curr_dir}"
+
+    # Skipping non-dir target
+    if [ ! -d "${path}" ]; then
+        echo "ERROR: Unable to find image directory ${path}"
+        exit 1
+    fi
+
     cd "$(dirname "${path}")"
 
     image=$(basename "${path}")
+    type="$(basename "$(dirname "${path}")")"
     # Strip version to get name of the image
     name=$(echo "$image" | rev | cut -d- -f2- | rev)
 
-    # Check the lock files are not present
-    if [ "$(find "${image}" -name '*.lck')" ]; then
-        echo "ERROR: Image '${path}' contains lock files, please stop the vmware vms and the application."
-        exit 1
+    if [ "x${type}" = 'xvmx' ]; then
+        # Check the lock files are not present
+        if [ "$(find "${image}" -name '*.lck')" ]; then
+            echo "ERROR: Image '${path}' contains lock files, please stop the vmware vms and the application."
+            exit 1
+        fi
     fi
 
     # Make sure the image was build in release mode
@@ -43,7 +50,9 @@ for path in "$@"; do
     find_noneed_pattern=''
     to_pack_list=''
     # The files will be packed in this order - manifest files first to stream-process them first
-    for filename in "$image.yml" "$image.sha256" 'packer.log' "$name.vmx" "$name.vmsd" "$name.nvram" "$name-Snapshot*.vmsn" "$name.vmxf" 'MainDisk-*.vmdk'; do
+    [ "x${type}" != 'xdocker' ] || add_files="$name.tar"
+    [ "x${type}" != 'xvmx' ] || add_files="$name.vmx $name.vmsd $name.nvram $name-Snapshot*.vmsn $name.vmxf MainDisk-*.vmdk"
+    for filename in "$image.yml" "$image.sha256" 'packer.log' ${add_files}; do
         found_files=$(sh -c "find '${image}' -name '$filename'" | sort)
         to_pack_list="$to_pack_list $(echo "$found_files" | tr '\n' ' ')"
         if [ "x${found_files}" = 'x' ]; then
@@ -71,12 +80,14 @@ for path in "$@"; do
         continue
     fi
 
-    vmsd_file="${image}/${name}.vmsd"
-    if [ -f "${vmsd_file}" ]; then
-        # Cleaning the snapshot clones which is created by the child linked VMs
-        mv "${vmsd_file}" "${vmsd_file}.bak"
-        grep -F -v -e 'snapshot0.clone' -e 'snapshot0.numClones' "${vmsd_file}.bak" > "${vmsd_file}"
-        rm -f "${vmsd_file}.bak"
+    if [ "x${type}" = 'xvmx' ]; then
+        vmsd_file="${image}/${name}.vmsd"
+        if [ -f "${vmsd_file}" ]; then
+            # Cleaning the snapshot clones which is created by the child linked VMs
+            mv "${vmsd_file}" "${vmsd_file}.bak"
+            grep -F -v -e 'snapshot0.clone' -e 'snapshot0.numClones' "${vmsd_file}.bak" > "${vmsd_file}"
+            rm -f "${vmsd_file}.bak"
+        fi
     fi
 
     # Print out the image size

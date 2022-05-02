@@ -1,0 +1,51 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  parent_name: parent_image
+  parent_version: parent_version
+
+  # Used to mount ansible playbooks and requirements to the container
+  aquarium_path: "{{ env `PWD` }}"
+
+builders:
+  - type: docker
+    image: "aquarium/{{ user `parent_name` }}:{{ user `parent_version` }}"
+    pull: false
+    commit: true
+    volumes:
+      "{{ user `aquarium_path` }}/playbooks": /bait-playbooks:ro
+      "{{ user `aquarium_path` }}/playbooks/files/lin": /bait-playbooks/files/lin:rw # Needed rw to store the downloaded files
+      "{{ user `aquarium_path` }}/playbooks/files/lin": /tmp/lin:ro # Optimization to not copy the downloaded files
+      "{{ user `aquarium_path` }}/requirements.txt": /bait-requirements.txt:ro
+    changes:
+      - ENV JAVA_HOME /srv/jre
+      - USER jenkins
+      - WORKDIR /home/jenkins
+      - ENTRYPOINT /srv/jenkins_agent/jenkins_agent.sh
+
+provisioners:
+  # Install ansible to run locally
+  - type: shell
+    inline:
+      - pip3 install --no-cache-dir $(awk '{if($0 != "# END LOCAL DEPS")print;else exit}' /bait-requirements.txt)
+
+  - type: shell # No good way to run ansible-local, so using regular shell
+    inline:
+      - >
+        ansible-playbook -c local -i localhost,
+        --skip-tags vm_only
+        -e jre_extract_path=/srv/jre
+        /bait-playbooks/ci_image.yml
+
+  # Cleaning after using pip
+  - type: shell
+    inline:
+      - pip3 freeze | xargs pip3 uninstall -y
+
+post-processors:
+  - type: docker-tag
+    repository: "aquarium/{{ user `image_name` }}"
+    tags: original

@@ -1,0 +1,16 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+
+builders:
+  - type: docker
+    image: ubuntu:20.04
+    commit: true
+
+post-processors:
+  - type: docker-tag
+    repository: "aquarium/{{ user `image_name` }}"
+    tags: original

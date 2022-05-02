@@ -3,10 +3,12 @@
 /records
 /packer_cache
 
-/packer/*.json
-/packer/**/*.json
+/specs/*.json
+/specs/**/*.json
+/specs_deprecated/*.json
+/specs_deprecated/**/*.json
 
-# We don't need any modifications in init until it's necessary (use -f)
+# We don't need any modifications in init until it's necessary (use -f if really needed)
 /init
 
 /iso/*
@@ -15,6 +17,6 @@
 /playbooks/files/*
 !/playbooks/files/*.md
 
-/screenshot-packer/screenshot-packer
+/records
 
 .DS_Store

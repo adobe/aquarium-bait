@@ -1,6 +1,6 @@
 ---
 - name: Example project tools and ci image provision
-  hosts: default
+  hosts: all
 
   pre_tasks:
     - name: Make local bin directory

@@ -16,7 +16,7 @@ if( -not "$CONFIG_FILE" ) {
 }
 
 # Skip the cert validation for Aquarium Fish META api in powershell 5.1
-# Not sure how to solve this issue, maybe in the future when we will have the corporate CA
+# It's an appropriate solution because just allows to connect the controlled host services
 Add-Type @'
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
@@ -78,6 +78,7 @@ While( -not "$NO_CONFIG_WAIT" ) {
         if( -not "${JENKINS_AGENT_SECRET}" )    { $JENKINS_AGENT_SECRET = "${data_JENKINS_AGENT_SECRET}" }
         if( -not "${JENKINS_AGENT_NAME}" )      { $JENKINS_AGENT_NAME = "${data_JENKINS_AGENT_NAME}" }
         if( -not "${JENKINS_AGENT_WORKSPACE}" ) { $JENKINS_AGENT_WORKSPACE = "${data_JENKINS_AGENT_WORKSPACE}" }
+        if( -not "${JENKINS_HTTPS_INSECURE}" )  { $JENKINS_AGENT_WORKSPACE = "${data_JENKINS_HTTPS_INSECURE}" }
     }
 
     if( "${JENKINS_URL}" -and "${JENKINS_AGENT_SECRET}" -and "${JENKINS_AGENT_NAME}" -and "${JENKINS_AGENT_WORKSPACE}" ) {
@@ -88,6 +89,11 @@ While( -not "$NO_CONFIG_WAIT" ) {
     sleep 5
 }
 
+# Set the flags to use in case the jenkins server https is not trusted (local env for example)
+# Just passing the jenkins server cert will often not work because the SAN/CN will not match
+if( "x${JENKINS_HTTPS_INSECURE}" = "xtrue" ) {
+    $jenkins_insecure = "-disableHttpsCertValidation"
+}
 
 # Wait for jenkins response
 While( $true ) {
@@ -111,9 +117,11 @@ While( $true ) {
 }
 
 # Download the agent jar and connect to jenkins
+# TODO: The cert validation skip above is also affecting this call and make it
+# less secure in case JENKINS_HTTPS_INSECURE is not set, need to fix that somehow...
 Invoke-WebRequest "${JENKINS_URL}/jnlpJars/agent.jar" -OutFile agent.jar
 
 # Run the agent once - we don't need it to restart due to dynamic nature of the agent
 echo "Running the Jenkins agent '${JENKINS_AGENT_NAME}'..."
-& "${env:JAVA_HOME}\bin\java.exe" -cp agent.jar hudson.remoting.jnlp.Main -headless `
-    -url "${JENKINS_URL}" "${JENKINS_AGENT_SECRET}" "${JENKINS_AGENT_NAME}"
+& "${env:JAVA_HOME}\bin\java.exe" ${env:JAVA_OPTS} -cp agent.jar hudson.remoting.jnlp.Main -headless `
+    ${jenkins_insecure} -url "${JENKINS_URL}" "${JENKINS_AGENT_SECRET}" "${JENKINS_AGENT_NAME}"

@@ -1,0 +1,121 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+  iso_full_path: "{{ env `PWD` }}/init/iso/MacOS-Monterey-12.03.iso"
+  init_vmx_full_path: "{{ env `PWD` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
+
+builders:
+  - type: vmware-vmx # vmware-iso is useless for macos installation
+    vm_name: "{{ user `image_name` }}"
+    display_name: "{{ user `image_name` }}"
+    source_path: "{{ user `init_vmx_full_path` }}"
+    linked: false # Create full copy to unlink from init template
+    output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
+    headless: true
+    boot_wait: 160s # Till the first screen
+    boot_command:
+      - <tab><spacebar><wait5s> # Selecting "English" language and next
+
+      # Newly created disk requires formatting, so format it with disk utility
+      - <leftSuperOn><f5><leftSuperOff><wait5s> # Enable VoiceOver to select disk utility https://discussions.apple.com/thread/7024975?answerId=31115644022#31115644022
+      - <leftCtrlOn><leftAltOn><down><down><down><spacebar><leftAltOff><leftCtrlOff><wait> # Select disk utility via VoiceOver
+      - <leftSuperOn><f5><leftSuperOff><wait5s> # Disable VoiceOver
+      - <tab><spacebar><wait10s> # Select Disk Utility to format the disk and continue
+      - <up><up><up><tab><tab><tab><spacebar>Macintosh HD<tab><tab><tab><tab><spacebar><wait10s> # Select the new disk space and erase it
+      - <tab><spacebar><LeftSuperOn>w<leftSuperOff> # Exit disk utility after erace
+
+      - <leftSuperOn><f5><leftSuperOff><wait5s> # Enable VoiceOver to select install utility
+      - <leftCtrlOn><leftAltOn><left><left><left><up><up><spacebar><leftAltOff><leftCtrlOff><wait> # Select install utility via VoiceOver
+      - <leftSuperOn><f5><leftSuperOff><wait10s> # Disable VoiceOver
+      - <tab><spacebar><wait10s> # Continue
+      - <tab><spacebar><wait5s> # Welcome screen next
+      - <spacebar><wait5s><tab><spacebar><wait5s> # Accept license and approve
+
+      - <leftSuperOn><f5><leftSuperOff><wait5s> # Enable VoiceOver to select disk
+      - <leftCtrlOn><leftAltOn><down><leftAltOff><leftCtrlOff><wait> # Select disk via VoiceOver (not working as "all in one")
+      - <leftCtrlOn><leftAltOn><down><leftAltOff><leftCtrlOff><wait> # ...
+      - <leftCtrlOn><leftAltOn><leftShiftOn><down><leftShiftOff><leftAltOff><leftCtrlOff><wait> # ...
+      - <leftCtrlOn><leftAltOn><leftShiftOn><up><leftShiftOff><down><right><spacebar><leftAltOff><leftCtrlOff><wait> # Go to Install button and press it via VoiceOver
+      - <leftSuperOn><f5><leftSuperOff> # Disable VoiceOver
+
+      - <wait35m> # Wait while the installer unpacks files to the disk and reboots (~30mins)
+
+      # Continue installation to create user and get to the desktop
+      - <up><wait5s> # Wake up the screen in case it gets dark
+      - United States<leftShiftOn><tab><leftShiftOff><spacebar><wait2s> # Select country and next button
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2s> # Select keyboard locale and next button
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2s> # Skip accessibility
+      - <down><leftShiftOn><tab><leftShiftOff><spacebar><wait5s><tab><spacebar><wait20s> # Select no internet, continue and confirm
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait5s> # Data privacy info and continue
+      - <tab><tab><tab><spacebar><wait5s> # Migration Assistant -> not now and continue
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2s><tab><wait><spacebar><wait10s> # License agreement next and Agree
+      - "{{ user `username` }}<tab>" # Enter username
+      - <wait5s><tab><wait5s> # Skip account name as the same as username
+      - "{{ user `password` }}<tab><wait5s>{{ user `password` }}<tab>" # Set user password and verify
+      - <tab><tab><spacebar><wait60s> # Click continue to create user account
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait5s><enter><wait5s> # Skip enabling of location service and confirm in popup
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait5s> # Use default time zone
+      - <tab><spacebar><leftShiftOn><wait1s><tab><leftShiftOff><spacebar><wait5s> # Do not share analytics with Apple and continue
+      - <tab><spacebar><wait5s> # Setup Screen Time later
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2m> # Leave default look and go to the desktop
+
+      # Enable remote access (SSH) with full disk access
+      - <leftSuperOn><spacebar><leftSuperOff><wait>system preferences<enter><wait20s> # Run system preferences through spotlight
+      - sharing<enter><wait10s> # Go to Sharing
+      - <tab><tab>remote login<wait10s> # Select Remote login
+      - <leftSuperOn><f5><leftSuperOff><wait5s><enter><wait10s> # Enable VoiceOver
+      - <tab><wait2s><spacebar><wait5s> # Select Remote login checkbox and check it
+      - <tab><tab><spacebar><wait5s> # Switch to "Enable full disk access for remote users" and select it
+      - <leftSuperOn><f5><leftSuperOff><wait2s> # Disable VoiceOver
+      - <LeftSuperOn>w<leftSuperOff> # Exit the system preferences
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+    tools_upload_flavor: darwin
+    # Dynamically create the main disk
+    disk_additional_size: [204800] # 200GB
+    disk_adapter_type: sata
+    vmdk_name: MainDisk
+    disk_type_id: 1 # Sparse disk to replace .vmdk `parentFileNameHint` absolute path in the linked clones
+    http_directory: playbooks/files
+    vmx_data:
+      sata0:1.fileName: "{{ user `iso_full_path` }}"
+      sata0:0.present: "TRUE" # Enable the main disk
+
+provisioners:
+  # MacOS >=12.3 get rid of python2 - so we need to install python3 to run ansible
+  - type: shell
+    inline:
+      - curl -o /tmp/python.pkg "$PACKER_HTTP_ADDR/mac/python-3.9.11-macos11.pkg"
+      - echo '{{ user `password` }}' | sudo -S installer -pkg /tmp/python.pkg -target /
+
+  - type: ansible
+    command: ./scripts/run_ansible.sh
+    user: "{{ user `username` }}"
+    playbook_file: playbooks/base_image.yml
+    # Use python3 installed before instead of the default not working one (/usr/bin/python3)
+    # due to not installed developer tools and absent of any built-in python.
+    # Using inventory here because extra_arguments are working for localhost (vncdo) too.
+    inventory_file_template: >
+      {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
+      ansible_python_interpreter=/usr/local/bin/python3
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+      # Using vncdo to install vmware tools which needs GUI installation
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `image_name` }}/{{ user `image_name` }}.vmx
+      - -e
+      - vmtools_vm_type=vmware

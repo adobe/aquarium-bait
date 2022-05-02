@@ -11,7 +11,7 @@
 
 # Upload the image
 # Usage:
-#   ./upload_image.sh [login:token] <out/image.tar.xz> [...]
+#   ./upload_image.sh [login:token] <out/type/image.tar.xz> [...]
 
 [ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH=$1
 [ "$ARTIFACR_STORAGE_URL" ] || ARTIFACT_STORAGE_URL=https://artofact-storage/aquarium/image
@@ -21,6 +21,7 @@ for path in "$@"; do
     [ -f "${path}" ] || continue
 
     name=$(basename "$path" | rev | cut -d- -f2- | rev)
+    type=$(basename "$(dirname "$path")")
     echo "INFO: Processing $name"
 
     echo "INFO:  validating image ..."
@@ -33,7 +34,7 @@ for path in "$@"; do
     echo "INFO:  calcuating checksum ..."
     checksum=$(sha256sum "$path" | cut -d' ' -f1)
 
-    url="$ARTIFACT_STORAGE_URL/$name/$(basename $path)"
+    url="$ARTIFACT_STORAGE_URL/$type/$name/$(basename $path)"
     echo "INFO:  uploading to $url ..."
     curl --progress-bar -u "$ARTIFACT_STORAGE_AUTH" -X PUT -H "X-Checksum-Sha256: $checksum" -T "$path" "$url" | tee /dev/null
 

@@ -11,7 +11,7 @@
 
 # Build packer images
 # Usage:
-#   ./build_image.sh <packer/path/to.yml> [...]
+#   ./build_image.sh <specs/path/to.yml> [...]
 #
 # Debug mode:
 #   DEBUG=true ./build_image.sh ...
@@ -26,31 +26,24 @@ export PACKER_NO_COLOR=1
 # Set root dir to use in packer configs
 export PACKER_ROOT="${root_dir}"
 
-# Make sure no VM is running currently to provide the clean environment for the build
-if which vmrun > /dev/null 2>&1; then
-    if [ "x$(vmrun list | head -1 | rev | cut -d" " -f 1)" != "x0" ]; then
-        echo "ERROR: Found running VMware VM's, please shutdown them before running the build:\n$(vmrun list)"
-        exit 1
-    fi
-fi
-
-# Clean of the running background apps on exit
-function clean_bg {
-    find "${root_dir}/packer" -name '*.json' -delete
-    pkill -SIGINT -f './scripts/vncrecord.py' || true
-    pkill -SIGINT -f 'tail -f' || true
-}
-
-trap "clean_bg ; pkill -f './scripts/proxy.py' || true" EXIT
-
 ##
 # Running the local proxy process to workaround the VPN tunnel routing
 ##
 # Get the available port to listen on localhost
 proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.0.0.1", 0)); print(sock.getsockname()[1]); sock.close()')
-./run_proxy.sh $proxy_port &
+./scripts/run_proxy.sh $proxy_port &
 # Exporting proxy for the Ansible WinRM transport
 export http_proxy="socks5://127.0.0.1:$proxy_port"
+
+# Clean of the running background apps on exit
+function clean_bg {
+    find "${root_dir}/specs" -name '*.json' -delete
+    pkill -SIGINT -f './scripts/vncrecord.py' || true
+    pkill -SIGTERM -f 'tail -f /tmp/packer.log' || true
+    # TODO: Remove the docker images
+}
+
+trap "clean_bg ; pkill -f './scripts/proxy.py' || true" EXIT
 
 # This is needed to properly work with the spaces in the path
 spec_list=''
@@ -69,7 +62,7 @@ while true; do
         # Need to make sure we will build the provided specs by stage
         to_process=''
         for yml in $spec_list; do
-            if [ $(echo "$yml" | tr / '\n' | wc -l) -eq $(($stage+1)) ]; then
+            if [ $(echo "$yml" | tr / '\n' | wc -l) -eq $(($stage+2)) ]; then
                 to_process="$to_process$yml|"
             else
                 spec_list_tmp="$spec_list_tmp$yml|"
@@ -89,66 +82,108 @@ while true; do
     echo "INFO: Stage: ${stage}"
     echo "INFO: ---------------"
 
-    # TODO: build stage in parallel (check max cpu/max mem)
+    # We building single-threaded because build of the images in parallel
+    # will lead to resource conflicts and the timeouts (for VNC scripts)
+    # will not be met.
     for yml in $to_process; do
         IFS="$_IFS"
-        image=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f2- | tr / -)
-        echo "INFO: Building image for '${image}'..."
 
-        if [ "$(find ./out -maxdepth 1 -type d -name "${image}-[0-9]*")" ]; then
-            echo "INFO:  skip: the output path 'out/${image}-[0-9]*' already exists"
-            continue
+        image_type=$(echo "$yml" | cut -d/ -f2)
+        image_outdir="${root_dir}/out/${image_type}"
+        mkdir -p "${image_outdir}"
+        image=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f3- | tr / -)
+        echo "INFO: Building image for ${image_type} '${image}'..."
+
+        if [ "$image_type" = 'vmx' ]; then
+            # Make sure no VM is running currently to provide the clean environment for the build
+            if which vmrun > /dev/null 2>&1; then
+                if [ "x$(vmrun list | head -1 | rev | cut -d" " -f 1)" != "x0" ]; then
+                    echo "ERROR: Found running VMware VM's, please shutdown them before running the build:\n$(vmrun list)"
+                    exit 1
+                fi
+            fi
+
+            # Check the spec have headless mode enabled in release mode
+            if [ "x${DEBUG}" = 'x' ]; then
+                if [ "x$(grep -s 'headless:' "${yml}" | tr -d ' ')" != 'xheadless:true' ]; then
+                    echo "ERROR: The spec doesn't contain the headless mode enabled: ${yml}"
+                    continue
+                fi
+            fi
         fi
 
-        # Check the spec have headless mode enabled in release mode
-        if [ "x${DEBUG}" = 'x' ]; then
-            if [ "x$(grep -s 'headless:' "${yml}" | tr -d ' ')" != 'xheadless:true' ]; then
-                echo "ERROR: The spec doesn't contain the headless mode enabled: ${yml}"
-                continue
-            fi
+        if [ "$(find "${image_outdir}" -maxdepth 1 -type d -name "${image}-[0-9]*")" ]; then
+            echo "INFO:  skip: the output path '${image_outdir}/${image}-[0-9]*' already exists"
+            continue
         fi
 
         # Collecting packer params to build the image
         packer_params="-var aquarium_bait_proxy_port=${proxy_port}"
         packer_params="$packer_params -var username=packer -var password=packer"
-        packer_params="$packer_params -var vm_name=${image}"
-        packer_params="$packer_params -var out_full_path=${root_dir}/out"
+        packer_params="$packer_params -var image_name=${image}"
+        packer_params="$packer_params -var out_full_path=${image_outdir}"
         if [ $stage -gt 1 ]; then
-            parent_name=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f2- | rev | cut -d/ -f2- | rev | tr / -)
+            parent_name=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f3- | rev | cut -d/ -f2- | rev | tr / -)
             # Filter the dirs in addition with grep due to the childrens could be found too
-            parent_image=$(find "${root_dir}/out" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$")
+            parent_image=$(find "${image_outdir}" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$" || printf '')
+            parent_version=$(basename "${parent_image}" | rev | cut -d- -f1 | rev)
             if [ $(echo "$parent_image" | wc -l) -gt 1 ]; then
                 echo "ERROR:  there is more than one parent image '${parent_name}'."
                 echo "        Please move the unnecessary one aside of out directory:\n$parent_image"
                 continue
-            elif [ $(echo "$parent_image" | wc -l) -eq 0 ]; then
-                echo "ERROR:  there is no required parent images with prefix '${parent_name}'."
+            elif [ "x$parent_image" = 'x' ]; then
+                echo "ERROR:  there is no required parent image with name '${parent_name}'."
                 echo "        Please download the prebuilt one (preferrable) or build it yourself."
                 continue
             fi
             echo "INFO:  using parent image: ${parent_image}"
-            packer_params="$packer_params -var vmx_full_path=${parent_image}/${parent_name}.vmx"
-        fi
+            packer_params="$packer_params -var parent_full_path=${parent_image}"
+            packer_params="$packer_params -var parent_name=${parent_name}"
+            packer_params="$packer_params -var parent_version=${parent_version}"
 
-        # Cleaning the non-tracked files from the init directory
-        git clean -fX ./init/ || true
+            if [ "$image_type" = 'docker' ]; then
+                echo "INFO: Loading Docker parent images"
+                parent_manifest="${parent_image}/${parent_name}-${parent_version}.yml"
+                if [ ! -f "${parent_manifest}" ]; then
+                    echo "ERROR: Unable to find parent image manifest: ${parent_manifest}"
+                    exit 1
+                fi
+                # Getting the list of the other dependencies and load them in reverse order
+                image_deps=$(grep -A100 -m 1 '^parents:' "${parent_manifest}" | tail -n +2 | awk '{if(/^ /)print;else exit}' | cut -d- -f2- | tac)
+                for dep_name in ${image_deps}; do
+                    dep_image="$(dirname "${parent_image}")/${dep_name}"
+                    dep_tar="${dep_image}/$(echo "${dep_name}" | rev | cut -d- -f2- | rev).tar"
+                    echo "INFO:   loading ${dep_tar}..."
+                    docker image load -i "${dep_tar}"
+                done
+
+                # When all the deps images are loaded - load the closest parent image
+                echo "INFO:   loading ${parent_image}/${parent_name}.tar..."
+                docker image load -i "${parent_image}/${parent_name}.tar"
+            fi
+        fi
 
         clean_bg
 
         echo "INFO:  generating packer json for '${yml}'..."
-        ruby -ryaml -rjson -e "puts YAML.load_file('${yml}').to_json" > "${yml}.json"
+        cat "${yml}" | ./scripts/run_yaml2json.sh > "${yml}.json"
 
-        # Running the vncrecord script to capture VNC screen during the build
-        rm -rf "./records/${image}.mp4"
-        mkdir -p ./records
-        rm -f /tmp/packer.log
-        ./run_vncrecord.sh /tmp/packer.log "./records/${image}.mp4" &
+        if [ "$image_type" = 'vmx' ]; then
+            # Cleaning the non-tracked files from the init directory
+            git clean -fX ./init/vmx/ || true
+
+            # Running the vncrecord script to capture VNC screen during the build
+            rm -rf "./records/${image}.mp4"
+            mkdir -p ./records
+            rm -f /tmp/packer.log
+            ./scripts/run_vncrecord.sh /tmp/packer.log "./records/${image}.mp4" &
+        fi
 
         echo 'INFO:  running packer build'
         if [ "x${DEBUG}" = 'x' ]; then
             PACKER_LOG=1 PACKER_LOG_PATH=/tmp/packer.log packer build $packer_params "${yml}.json"
             # /tmp/packer.log is copied in the post processing script to the image dir
-            ./run_image_postprocess.sh "${root_dir}/out/${image}"
+            "./scripts/run_postprocess_${image_type}.sh" "${image_outdir}/${image}"
         else
             echo "WARNING:  running DEBUG image build - you will not be able to upload it"
             touch /tmp/packer.log
