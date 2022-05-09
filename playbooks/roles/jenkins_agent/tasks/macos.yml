@@ -44,8 +44,8 @@
     - name: Put kcpassword generator script to the system
       become: true
       copy:
-        src: mac/autologin_kcpassword.py
-        dest: /tmp/autologin_kcpassword.py
+        src: mac/autologin_kcpassword.sh
+        dest: /tmp/autologin_kcpassword.sh
         owner: root
         group: wheel
         mode: "0750"
@@ -53,7 +53,7 @@
     # The password is needed for autologin, so generating and set it
     - name: Create kcpassword file for autologin
       become: true
-      command: python3 /tmp/autologin_kcpassword.py
+      command: /tmp/autologin_kcpassword.sh
       args:
         stdin: jenkins  # Jenkins password is "jenkins"
 

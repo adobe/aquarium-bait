@@ -78,7 +78,7 @@ While( -not "$NO_CONFIG_WAIT" ) {
         if( -not "${JENKINS_AGENT_SECRET}" )    { $JENKINS_AGENT_SECRET = "${data_JENKINS_AGENT_SECRET}" }
         if( -not "${JENKINS_AGENT_NAME}" )      { $JENKINS_AGENT_NAME = "${data_JENKINS_AGENT_NAME}" }
         if( -not "${JENKINS_AGENT_WORKSPACE}" ) { $JENKINS_AGENT_WORKSPACE = "${data_JENKINS_AGENT_WORKSPACE}" }
-        if( -not "${JENKINS_HTTPS_INSECURE}" )  { $JENKINS_AGENT_WORKSPACE = "${data_JENKINS_HTTPS_INSECURE}" }
+        if( -not "${JENKINS_HTTPS_INSECURE}" )  { $JENKINS_HTTPS_INSECURE = "${data_JENKINS_HTTPS_INSECURE}" }
     }
 
     if( "${JENKINS_URL}" -and "${JENKINS_AGENT_SECRET}" -and "${JENKINS_AGENT_NAME}" -and "${JENKINS_AGENT_WORKSPACE}" ) {
@@ -91,7 +91,7 @@ While( -not "$NO_CONFIG_WAIT" ) {
 
 # Set the flags to use in case the jenkins server https is not trusted (local env for example)
 # Just passing the jenkins server cert will often not work because the SAN/CN will not match
-if( "x${JENKINS_HTTPS_INSECURE}" = "xtrue" ) {
+if( "$JENKINS_HTTPS_INSECURE" -eq "true" ) {
     $jenkins_insecure = "-disableHttpsCertValidation"
 }
 
@@ -109,7 +109,7 @@ While( $true ) {
 While( $true ) {
     New-Item -path "${JENKINS_AGENT_WORKSPACE}" -type directory -ea SilentlyContinue
     cd "${JENKINS_AGENT_WORKSPACE}" -ea SilentlyContinue
-    if( $pwd = "${JENKINS_AGENT_WORKSPACE}" ) {
+    if( "$pwd" -eq "$JENKINS_AGENT_WORKSPACE" ) {
         break
     }
     echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."

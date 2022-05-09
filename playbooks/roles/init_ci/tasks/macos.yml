@@ -14,9 +14,19 @@
 
 - name: Disable mitigations (Spectre, Meltdown) to increase performance
   become: true
+  # MacOS Monterey have this option read only, so no luck
+  ignore_errors: '{{ ansible_distribution_major_version | int >= 12  }}'
   sysctl:
     name: kern.hv.vmx_mitigations
     value: '0'
     state: present
     reload: false  # Not working on macos
     sysctl_set: true  # To set the value on macos
+
+# Tools uses /usr/local/bin to place the executables
+- name: Set /usr/local/bin directory in PATH for the entire system
+  become: true
+  command: launchctl config "{{ item }}" path "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+  with_items:
+    - system  # Will work for shh and system LaunchDaemons
+    - user  # Will work for user LaunchAgents too

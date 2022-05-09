@@ -8,4 +8,6 @@
 
     - role: jenkins_agent
 
+    - role: git
+
     - role: cleanup

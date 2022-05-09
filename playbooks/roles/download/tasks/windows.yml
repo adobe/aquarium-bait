@@ -21,7 +21,7 @@
   block:
     - name: Download {{ download_url }} binary and verify checksum
       delegate_to: localhost
-      win_get_url:
+      get_url:
         url: '{{ download_url }}'
         dest: '{{ playbook_dir }}/files/{{ download_local_path }}'
         mode: '0440'

@@ -1,0 +1,27 @@
+---
+- name: Download git DMG to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ git_mac_download_url }}'
+    download_checksum: '{{ git_mac_download_checksum }}'
+
+- name: Mount DMG file
+  command: hdiutil attach '{{ download_path }}' -nobrowse -mountpoint /tmp/git_dist
+  become: true
+
+- name: Find pkg files in the mounted directory
+  find:
+    file_type: file
+    paths: /tmp/git_dist
+    patterns: "*.pkg"
+  register: reg_pkgs
+
+- name: Install git from found pkgs
+  command: installer -pkg '{{ item.path }}' -target /
+  with_items: "{{ reg_pkgs.files }}"
+  become: true
+
+- name: Umount DMG file
+  become: true
+  command: hdiutil detach /tmp/git_dist

@@ -1,0 +1,8 @@
+---
+- name: Install tools required by jenkins_agent.sh script
+  become: true
+  package:
+    name: git-core
+
+- name: Verify git binary was installed properly
+  command: git --version
