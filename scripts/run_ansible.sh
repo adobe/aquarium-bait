@@ -21,9 +21,16 @@ root_dir=$(dirname "$(dirname "$0")")
 pip -q install --upgrade pip wheel
 pip -q install -r "${root_dir}/requirements.txt"
 
+override_yml="${root_dir}/override.yml"
+if [ -f "${override_yml}" ]; then
+    override_yml="-e @${override_yml}"
+else
+    unset override_yml
+fi
+
 # Run the playbook
 if [ "x$DEBUG" != "x" ]; then
-    "${root_dir}/.venv/bin/ansible-playbook" -vvv "$@"
+    "${root_dir}/.venv/bin/ansible-playbook" -vvv $override_yml "$@"
 else
-    "${root_dir}/.venv/bin/ansible-playbook" "$@" 2>/dev/null
+    "${root_dir}/.venv/bin/ansible-playbook" $override_yml "$@" 2>/dev/null
 fi

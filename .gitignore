@@ -3,6 +3,8 @@
 /records
 /packer_cache
 
+/override.yml
+
 /specs/*.json
 /specs/**/*.json
 /specs_deprecated/*.json

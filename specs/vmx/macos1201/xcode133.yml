@@ -38,12 +38,10 @@ provisioners:
       - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - xcode_download_url=https://artifact-storage/aquarium/files/mac/Xcode_13.3.xip
+      - xcode_download_url={{ xcode_version_133_download_url }}
       - -e
-      - xcode_download_checksum=sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
+      - xcode_download_checksum={{ xcode_version_133_download_checksum }}
       - -e
-      - xcode_extraction_timeout=2000
+      - xcode_cmd_download_url={{ xcode_version_133_cmd_download_url }}
       - -e
-      - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
-      - -e
-      - xcode_cmd_download_checksum=sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3
+      - xcode_cmd_download_checksum={{ xcode_version_133_cmd_download_checksum }}
