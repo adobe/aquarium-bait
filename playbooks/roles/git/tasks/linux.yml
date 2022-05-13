@@ -5,4 +5,4 @@
     name: git-core
 
 - name: Verify git binary was installed properly
-  command: git --version
+  command: git --version  # noqa 303
