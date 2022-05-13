@@ -116,6 +116,24 @@ can't use VPN for some reason) - you can place the files locally: Ansible playbo
 binary packages you can find on artifact-storage, check the [playbooks/files/README.md](playbooks/files/README.md)
 for additional information.
 
+Another file will help you to override the URL's to your own org storage - `override.yml`, it's
+placed in the repo root directory and readed by the `run_ansible.sh` script. It can contain the
+variables from the roles. For example:
+```yaml
+---
+vmtools_lin_vmware_download_url: https://my-own-artifact-storage/archive-ubuntu-remote/pool/universe/o/open-vm-tools/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
+
+xcode_version_133_download_url: https://my-own-artifact-storage/aquarium/files/mac/Xcode_13.3.xip
+xcode_version_133_download_checksum: sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
+xcode_version_133_cmd_download_url: https://my-own-artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
+xcode_version_133_cmd_download_checksum: sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3
+...
+```
+
+You can grep all the variables that ends by `_download_url:` and put them in the file and override
+one-by-one. Some specs are overriding the main download variable by the template (as in example for
+xcode) and you can specify the version for each one to build the different images properly.
+
 ### 3. Run build
 
 **NOTICE:** the Aquarium Bait supports local image building with corporate VPN connected through a

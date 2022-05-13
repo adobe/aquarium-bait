@@ -1,9 +1,9 @@
 ---
-xcode_download_url: https://artifact-storage/aquarium/app/mac/Xcode_12.2.xip
-xcode_download_checksum: sha256:28d352f8c14a43d9b8a082ac6338dc173cb153f964c6e8fb6ba389e5be528bd0
+xcode_download_url: '{{ xcode_version_122_download_url }}'
+xcode_download_checksum: '{{ xcode_version_122_checksum }}'
 
-xcode_extraction_timeout: 1200  # Right now ~941sec
+xcode_extraction_timeout: 3000  # Right now ~941sec
 xcode_install_path: /Applications
 
-xcode_cmd_download_url: https://artifact-storage/aquarium/app/mac/Command_Line_Tools_for_Xcode_12.2.dmg
-xcode_cmd_download_checksum: sha256:3911b66247e030c7210940cde4230319058bc5c55a81627b8853dab644092c40
+xcode_cmd_download_url: '{{ xcode_version_cmd_122_download_url }}'
+xcode_cmd_download_checksum: '{{ xcode_version_cmd_122_download_checksum }}'

@@ -71,7 +71,6 @@ builders:
     ssh_timeout: 10s
     ssh_read_write_timeout: 10s
     ssh_wait_timeout: 2m
-    tools_upload_flavor: darwin
     # Dynamically create the main disk
     disk_additional_size: [204800] # 200GB
     disk_adapter_type: sata
