@@ -1,0 +1,49 @@
+---
+- name: Set GMT timezone
+  become: true
+  timezone:
+    name: GMT
+
+- name: Remove system autoupdate
+  become: true
+  apt:
+    name: unattended-upgrades
+    state: absent
+
+- name: Remove unnecessary packages
+  become: true
+  apt:
+    name: '{{ item }}'
+    state: absent
+  with_items:
+    - popularity-contest  # Pings external servers
+    - apport  # Pings external servers
+    - ubuntu-report  # Pings external servers
+    - whoopsie  # Pings external servers
+    - cloud-init  # Watching on the configs and altering on boot
+
+- name: Disable motd news since it's fetching spam
+  become: true
+  lineinfile:
+    dest: /etc/default/motd-news
+    state: present
+    regexp: ^ENABLED=
+    line: ENABLED=0
+
+- name: Make sure the periodic apt tasks are disabled
+  become: true
+  copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "0";
+      APT::Periodic::Download-Upgradeable-Packages "0";
+      APT::Periodic::AutocleanInterval "0";
+      APT::Periodic::Unattended-Upgrade "0";
+
+- name: Replace sources.list URLs for security
+  become: true
+  command: sed -i 's| http[^ ]\+ \(.\+-security\) | {{ init_lin_ubuntu_apt_sec_url }} \1 |' /etc/apt/sources.list
+
+- name: Replace sources.list URLs for non-secure purposes
+  become: true
+  command: sed -i '/-security /!s| http[^ ]\+ | {{ init_lin_ubuntu_apt_url }} |' /etc/apt/sources.list

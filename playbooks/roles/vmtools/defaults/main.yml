@@ -5,5 +5,8 @@ vmtools_mac_vmware_download_checksum: sha256:99118ab2831d8e98d4b1d2fa439f2c99f56
 vmtools_win_vmware_download_url: https://artifact-storage/aquarium/files/win/VMware-tools-11.3.5-18557794-x86_64.exe
 vmtools_win_vmware_download_checksum: sha256:22bf2f91e78e13e4964ae3d2c52db8c341e21518aa78996696474b1dd905e8ca
 
+vmtools_lin_vmware_download_url: https://artifact-storage/aquarium/files/lin/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
+vmtools_lin_vmware_download_checksum: sha256:793e99ee0fba95bcbcb0a5865e6b18339fa61433b509c47b5e4a61e37f640754
+
 required_vars:
   - vmtools_vm_type  # Which tool to install

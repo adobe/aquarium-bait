@@ -7,3 +7,6 @@ init_sdelete_download_checksum: sha256:49cfc704a431d0f4557d06561310ade7ba78b84c3
 
 init_osot_download_url: https://artifact-storage/aquarium/files/win/VMwareHorizonOSOptimizationTool-x86_64-2107.exe
 init_osot_download_checksum: sha256:c6db0f134296853755bd6cb083b1fcbbe177b52059b4434e81e24b013978fb12
+
+init_lin_ubuntu_apt_sec_url: https://artifact-storage/cache-proxy/security-ubuntu-remote/
+init_lin_ubuntu_apt_url: https://artifact-storage/cache-proxy/archive-ubuntu-remote/

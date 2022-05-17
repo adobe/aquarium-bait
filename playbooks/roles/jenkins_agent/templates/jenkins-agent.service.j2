@@ -1,0 +1,16 @@
+[Unit]
+Description=Jenkins Agent worker
+After=syslog.target network.target
+
+[Service]
+Type=notify
+User=jenkins
+Group=jenkins
+WorkingDirectory=/home/jenkins
+Restart=always
+RestartSec=10
+Environment="JAVA_HOME={{ java_home }}"
+ExecStart={{ script_path }}
+
+[Install]
+WantedBy=multi-user.target
