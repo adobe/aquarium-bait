@@ -1,0 +1,9 @@
+---
+- name: Install build-essential through proxy remote
+  become: true
+  environment:
+    http_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
+    https_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
+  apt:
+    name: build-essential
+    update_cache: true

@@ -40,10 +40,10 @@
       APT::Periodic::AutocleanInterval "0";
       APT::Periodic::Unattended-Upgrade "0";
 
-- name: Replace sources.list URLs for security
+- name: Replace sources.list URLs for security  # noqa 303
   become: true
   command: sed -i 's| http[^ ]\+ \(.\+-security\) | {{ init_lin_ubuntu_apt_sec_url }} \1 |' /etc/apt/sources.list
 
-- name: Replace sources.list URLs for non-secure purposes
+- name: Replace sources.list URLs for non-secure purposes  # noqa 303
   become: true
   command: sed -i '/-security /!s| http[^ ]\+ | {{ init_lin_ubuntu_apt_url }} |' /etc/apt/sources.list

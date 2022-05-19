@@ -15,4 +15,4 @@
 
 root_dir=$(dirname "$(dirname "$0")")
 
-"${root_dir}/scripts/proxy.py" "$@"
+"${root_dir}/scripts/proxy_local.py" "$@"

@@ -21,6 +21,7 @@ root_dir=$(dirname "$(dirname "$0")")
 pip -q install --upgrade pip wheel
 pip -q install -r "${root_dir}/requirements.txt"
 
+# Loads the override configuration for ansible
 override_yml="${root_dir}/override.yml"
 if [ -f "${override_yml}" ]; then
     override_yml="-e @${override_yml}"
@@ -28,9 +29,18 @@ else
     unset override_yml
 fi
 
+# Run the proxy_remote on the provided address and random free port
+if [ "x$PROXY_REMOTE_LISTEN" != "x" ]; then
+    proxy_remote_port=$(python3 -c "import socket, sys; sock = socket.socket(); sock.bind((sys.argv[1], 0)); print(sock.getsockname()[1]); sock.close()" "${PROXY_REMOTE_LISTEN}")
+    proxy_remote_args="-e proxy_remote_host=${PROXY_REMOTE_LISTEN} -e proxy_remote_port=${proxy_remote_port}"
+    echo "Running Proxy Remote on ${PROXY_REMOTE_LISTEN}:${proxy_remote_port}..."
+    python3 "${root_dir}/scripts/proxy_remote.py" "${PROXY_REMOTE_LISTEN}" "${proxy_remote_port}" &
+fi
+trap "pkill -f '${root_dir}/scripts/proxy_remote.py' || true" EXIT
+
 # Run the playbook
 if [ "x$DEBUG" != "x" ]; then
-    "${root_dir}/.venv/bin/ansible-playbook" -vvv $override_yml "$@"
+    "${root_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
 else
-    "${root_dir}/.venv/bin/ansible-playbook" $override_yml "$@" 2>/dev/null
+    "${root_dir}/.venv/bin/ansible-playbook" $proxy_remote_args $override_yml "$@" 2>/dev/null
 fi

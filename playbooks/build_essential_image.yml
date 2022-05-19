@@ -1,0 +1,6 @@
+---
+- name: Build essential ubuntu image
+  hosts: all
+  roles:
+    - role: build_essential
+    - role: cleanup

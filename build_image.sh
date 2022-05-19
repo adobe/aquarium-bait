@@ -31,7 +31,7 @@ export PACKER_ROOT="${root_dir}"
 ##
 # Get the available port to listen on localhost
 proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.0.0.1", 0)); print(sock.getsockname()[1]); sock.close()')
-./scripts/run_proxy.sh $proxy_port &
+./scripts/run_proxy_local.sh $proxy_port &
 # Exporting proxy for the Ansible WinRM transport
 export http_proxy="socks5://127.0.0.1:$proxy_port"
 
@@ -43,7 +43,7 @@ function clean_bg {
     # TODO: Remove the docker images
 }
 
-trap "clean_bg ; pkill -f './scripts/proxy.py' || true" EXIT
+trap "clean_bg ; pkill -f './scripts/proxy_local.py' || true" EXIT
 
 # This is needed to properly work with the spaces in the path
 spec_list=''
