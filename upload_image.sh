@@ -14,7 +14,7 @@
 #   ./upload_image.sh [login:token] <out/type/image.tar.xz> [...]
 
 [ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH=$1
-[ "$ARTIFACR_STORAGE_URL" ] || ARTIFACT_STORAGE_URL=https://artofact-storage/aquarium/image
+[ "$ARTIFACT_STORAGE_URL" ] || ARTIFACT_STORAGE_URL=https://artifact-storage/aquarium/image
 
 for path in "$@"; do
     # Skipping non-file target
