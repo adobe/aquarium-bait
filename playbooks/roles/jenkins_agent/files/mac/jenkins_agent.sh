@@ -37,12 +37,12 @@ receiveMetadata() {
 # Looking for the disk/api configurations
 until [ "$NO_CONFIG_WAIT" ]; do
     # Read config env file from config path
-    [ ! -f "${CONFIG_FILE}" ] || source "${CONFIG_FILE}"
+    [ ! -f "${CONFIG_FILE}" ] || . "${CONFIG_FILE}"
 
     # Looking the available network gateways for Aquarium Fish meta API
     receiveMetadata METADATA.env
     if [ -f METADATA.env ]; then
-        source METADATA.env
+        . ./METADATA.env
         [ "${JENKINS_URL}" ]             || JENKINS_URL=${data_JENKINS_URL}
         [ "${JENKINS_AGENT_SECRET}" ]    || JENKINS_AGENT_SECRET=${data_JENKINS_AGENT_SECRET}
         [ "${JENKINS_AGENT_NAME}" ]      || JENKINS_AGENT_NAME=${data_JENKINS_AGENT_NAME}

@@ -3,7 +3,7 @@ Description=Jenkins Agent worker
 After=syslog.target network.target
 
 [Service]
-Type=notify
+Type=simple
 User=jenkins
 Group=jenkins
 WorkingDirectory=/home/jenkins
