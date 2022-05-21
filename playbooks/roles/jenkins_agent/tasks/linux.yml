@@ -36,5 +36,50 @@
     group: root
     mode: "0755"
 
-# TODO: Add logic for systemd service when VM will be here
-# For now it's only docker so we're good with what we have
+- when: ansible_service_mgr == 'systemd'
+  block:
+    - name: Add jenkins-agent systemd service
+      become: true
+      template:
+        src: jenkins-agent.service.j2
+        dest: /etc/systemd/system/jenkins-agent.service
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        java_home: "{{ jenkins_agent_java_home }}"
+        script_path: /srv/jenkins_agent/jenkins_agent.sh
+
+    - name: Enable service to start the jenkins agent on boot
+      become: true
+      service:
+        name: jenkins-agent
+        enabled: true
+        state: stopped
+
+    - name: Store mountall executable script
+      become: true
+      copy:
+        src: lin/mountall.sh
+        dest: /srv/jenkins_agent/mountall.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Store service plist file for mountall autorun
+      become: true
+      template:
+        src: mountall.service.j2
+        dest: /etc/systemd/system/mountall.service
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        script_path: /srv/jenkins_agent/mountall.sh
+
+    - name: Enable service to start the mountall script on boot
+      become: true
+      service:
+        name: mountall
+        enabled: true
+        state: stopped

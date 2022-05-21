@@ -1,0 +1,12 @@
+---
+- name: Download package to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ vmtools_lin_vmware_download_url }}'
+    download_checksum: '{{ vmtools_lin_vmware_download_checksum }}'
+
+- name: Install the package
+  become: true
+  apt:
+    deb: "{{ download_path }}"

@@ -2,8 +2,7 @@
 # Mounts all the available volumes on external disks
 # It takes some time for MacOS to fill the disks list, so repeating it
 #
-# Works well only if System Integrity Protection (SIP) is disabled, otherwise the jenkins user
-# will not be able to access the mounted workspace disk.
+# The headless users will have access to disks only if SIP is disabled
 
 # 210 sec to mount the external disks
 for i in $(seq 1 20); do

@@ -136,12 +136,21 @@ xcode) and you can specify the version for each one to build the different image
 
 ### 3. Run build
 
-**NOTICE:** the Aquarium Bait supports local image building with corporate VPN connected through a
+**NOTICE:** The Aquarium Bait supports local image building with corporate VPN connected through a
 special local proxy which ignores the routing rules and always uses the local interfaces. For
-additional info please look into [./build_image.sh](build_image.sh), [./scripts/proxy.py](scripts/proxy.py)
+additional info please look into [./build_image.sh](build_image.sh), [proxy_local.py](scripts/proxy_local.py)
 and [./specs/vmx/.yml](specs/vmx/) specifications.
 
-**NOTICE:** during the VM build the script records the VM screen through VNC and places it into
+**NOTICE:** By default Aquarium Bait designed to build the images in sandbox with access from VM
+only to the host. But in case it's strictly necessary you can run the http proxy during ansible
+execution on the host system by setting the env variable in packer spec for ansible provisioner:
+```
+environment:
+  - PROXY_REMOTE_LISTEN={{ build \`PackerHTTPIP\`}}
+```
+The ansible variables to access this proxy passed as `proxy_remote_host` and `proxy_remote_port`.
+
+**NOTICE:** During the VM build the script records the VM screen through VNC and places it into
 `./records/<image_name>.mp4` - so you can always check what's happened if your build accedentally
 crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
 and [./scripts/vncrecorder.py](scripts/vncrecorder.py).

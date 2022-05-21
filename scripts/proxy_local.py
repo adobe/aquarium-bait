@@ -12,7 +12,7 @@
 # Simple python socks proxy to skip routing to the local resources.
 #
 # Usage:
-#   $ ./proxy.py [port]
+#   $ ./proxy_local.py [port]
 #
 # The magic behind it - is using socket.SO_DONTROUTE which skipping
 # the route table and allow to connect to the local resources even if
@@ -32,7 +32,7 @@ class ThreadingTCPServer(ThreadingMixIn, TCPServer):
 
 class SocksProxy(StreamRequestHandler):
     def handle(self):
-        print('PROXY: Accepting connection from:', self.client_address)
+        print('PROXYL: Accepting connection from:', self.client_address)
 
         # greeting header
         # read and unpack 2 bytes from a client
@@ -63,13 +63,13 @@ class SocksProxy(StreamRequestHandler):
 
         # reply
         try:
-            print('PROXY: Connecting to:', address, port)
+            print('PROXYL: Connecting to:', address, port)
             if cmd == 1:  # CONNECT
                 remote = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 remote.setsockopt(socket.SOL_SOCKET, socket.SO_DONTROUTE, 1)
                 remote.connect((address, port))
                 bind_address = remote.getsockname()
-                print('PROXY: Connected to:', address, port)
+                print('PROXYL: Connected to:', address, port)
             else:
                 self.server.close_request(self.request)
 
@@ -78,7 +78,7 @@ class SocksProxy(StreamRequestHandler):
             reply = struct.pack("!BBBBIH", SOCKS_VERSION, 0, 0, 1, addr, port)
 
         except Exception as err:
-            print("PROXY: Error:", err)
+            print("PROXYL: Error:", err)
             # return connection refused error
             reply = self.generate_failed_reply(address_type, 5)
 
@@ -110,7 +110,7 @@ class SocksProxy(StreamRequestHandler):
                     if remote.send(data) <= 0:
                         break
                 except ConnectionResetError:
-                    print("PROXY: Connection was reset by client")
+                    print("PROXYL: Connection was reset by client")
                     break
 
             if remote in r:
@@ -119,7 +119,7 @@ class SocksProxy(StreamRequestHandler):
                     if client.send(data) <= 0:
                         break
                 except ConnectionResetError:
-                    print("PROXY: Connection was reset by remote")
+                    print("PROXYL: Connection was reset by remote")
                     break
 
 if __name__ == '__main__':
@@ -127,9 +127,9 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     with ThreadingTCPServer(('127.0.0.1', port), SocksProxy) as server:
-        print("PROXY: Started Aquarium Bait noroute proxy on %s %s" % server.server_address)
+        print("PROXYL: Started Aquarium Bait noroute proxy on %s %s" % server.server_address)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
-            print("PROXY: Stopping the proxy process...")
+            print("PROXYL: Stopping the proxy process...")
             server._running = False

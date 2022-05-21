@@ -1,0 +1,12 @@
+[Unit]
+Description=MountAll script
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/tmp
+Restart=no
+ExecStart={{ script_path }}
+
+[Install]
+WantedBy=multi-user.target
