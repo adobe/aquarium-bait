@@ -33,10 +33,12 @@ export PACKER_ROOT="${root_dir}"
 proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.0.0.1", 0)); print(sock.getsockname()[1]); sock.close()')
 ./scripts/run_proxy_local.sh $proxy_port &
 # Exporting proxy for the Ansible WinRM transport
+# TODO: it's not perfect if you want to use http transport to get
+# your artifacts but it's a simpliest solution I found for now
 export http_proxy="socks5://127.0.0.1:$proxy_port"
 
 # Clean of the running background apps on exit
-function clean_bg {
+clean_bg() {
     find "${root_dir}/specs" -name '*.json' -delete
     pkill -SIGINT -f './scripts/vncrecord.py' || true
     pkill -SIGTERM -f 'tail -f /tmp/packer.log' || true

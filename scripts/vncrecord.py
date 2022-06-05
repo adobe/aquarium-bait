@@ -136,8 +136,10 @@ class VNCRecord:
 
     def _encodeFramesProcess(self):
         '''Processes the queue and generates the record file'''
-        # mp4v messing up the video if it has too low framerate (<10FPS)
-        fourcc = cv2.VideoWriter_fourcc('a','v','c','1')
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        if sys.platform == 'darwin':
+            # mp4v messing up the video if it has too low framerate on MacOS (<10FPS)
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')
         out = cv2.VideoWriter(self._rec_path, fourcc, self._fps, self._resolution, isColor=True)
 
         counter = 0

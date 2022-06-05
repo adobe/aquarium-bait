@@ -43,7 +43,7 @@ builders:
 
       - <wait3m> # Install process started and will need just a reboot
 
-      - <tab><tab><enter><wait5s> # Select reboot now and press on it
+      - <tab><tab><enter><wait10s> # Select reboot now and press on it
       - <enter> # Don't remove CDRom and just reboot
 
       - <wait1m> # Wait for reboot

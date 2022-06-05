@@ -40,9 +40,11 @@ bandwidth) to distribute the images.
    * Linux
 * Python 3 + venv
 * [Packer v1.7.9](https://www.packer.io/downloads)
-* For MacOS image: the installer timeouts are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core
-i9 (connected to power outlet). Make sure you have at least 200GB of disk space to build an image.
-   * Can only be running on MacOS host (license restrictions)
+* Make sure you have at least 200GB of disk space to build an image.
+* For MacOS images:
+   * The installer timeouts are tuned for MacBook Pro '19 2.3 GHz 8-Core Intel Core i9 (connected
+   to power adapter).
+   * Can only be running on MacOS host (Apple license restrictions)
    * VMWare Fusion 12.2.0
 
 ## Image structure
@@ -130,9 +132,12 @@ xcode_version_133_cmd_download_checksum: sha256:7eff583b5ce266cde5c1c8858e779fcb
 ...
 ```
 
-You can grep all the variables that ends by `_download_url:` and put them in the file and override
+You can grep all the variables that have `_url: http` and put them in the file and override
 one-by-one. Some specs are overriding the main download variable by the template (as in example for
 xcode) and you can specify the version for each one to build the different images properly.
+
+**WARNING**: Make sure you using http as your artifact transport, otherwise it could interfere with
+the local proxy and won't allow you to download the artifacts from the role.
 
 ### 3. Run build
 
@@ -153,7 +158,7 @@ The ansible variables to access this proxy passed as `proxy_remote_host` and `pr
 **NOTICE:** During the VM build the script records the VM screen through VNC and places it into
 `./records/<image_name>.mp4` - so you can always check what's happened if your build accedentally
 crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
-and [./scripts/vncrecorder.py](scripts/vncrecorder.py).
+and [./scripts/vncrecord.py](scripts/vncrecord.py).
 
 Now when all the required things are ready - you can run the image builder:
 ```
@@ -245,6 +250,10 @@ Of course you can mount volumes, limit the amount of resources for each containe
 check the docker capabilities.
 
 ### VMWare VMX
+
+Aquarium Bait can work with VMware Fusion (on MacOS) and with VMware Workstation (on Linux). Player
+is not tested, but in theory could work too with some additional tuning. 30 day trial period is
+offered when you run the vmware gui application.
 
 #### Using manually
 
