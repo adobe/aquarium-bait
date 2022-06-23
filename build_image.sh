@@ -109,8 +109,14 @@ while true; do
             if [ "x${DEBUG}" = 'x' ]; then
                 if [ "x$(grep -s 'headless:' "${yml}" | tr -d ' ')" != 'xheadless:true' ]; then
                     echo "ERROR: The spec doesn't contain the headless mode enabled: ${yml}"
-                    continue
+                    exit 1
                 fi
+            fi
+
+            # Check the minimum disk space (200GB) is available for proper VM disk cleanup
+            if [ "$(df -m "${image_outdir}" | tail -1 | awk '{print $4}')" -lt 201000 ]; then
+                echo "ERROR: Available disk space is lower than required 200GB for VM"
+                exit 1
             fi
         fi
 
