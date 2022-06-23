@@ -1,9 +1,8 @@
 ---
-- name: Install build-essential through proxy remote
+- name: Install build-essential and m4 packages
   become: true
-  environment:
-    http_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
-    https_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
   apt:
-    name: build-essential
+    name:
+      - build-essential
+      - m4
     update_cache: true

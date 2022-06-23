@@ -1,0 +1,25 @@
+---
+# List is based headers and works for MacOSX10.15.sdk and MacOSX11.0.sdk
+macsdklibs_lin_version_110_list:
+  - libbz2-dev
+  - libcups2-dev
+  - libcurl4-openssl-dev
+  - libexpat1-dev
+  - libffi-dev
+  - libkrb5-dev
+  - libldap2-dev
+  - libobjc-9-dev
+  - libpam0g-dev
+  - libreadline-dev
+  - libsasl2-dev
+  - libsnmp-dev
+  - libsqlite3-dev
+  - libssl-dev
+  - libtidy-dev
+  - libxml2-dev
+  - libxslt1-dev
+  - slapi-dev
+  - tcl-dev
+  - tk-dev  # Have a good portion of additional dependencies
+  - uuid-dev
+  - zlib1g-dev
