@@ -26,5 +26,14 @@
 - name: Clean event log
   win_shell: Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log }
 
+- name: Accept sdelete eula
+  win_regedit:
+    path: HKCU:\Software\Sysinternals\SDelete
+    name: EulaAccepted
+    data: 1
+    type: dword
+
 - name: Compact the disk
-  win_command: 'C:\util\sdelete\sdelete.exe /accepteula -z C:'
+  win_command: 'C:\util\sdelete\sdelete.exe -q -z C:'
+  async: 1800  # Prevent connections timing out waiting for compact
+  poll: 30
