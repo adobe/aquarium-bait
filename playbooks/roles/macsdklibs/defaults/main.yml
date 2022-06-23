@@ -1,0 +1,3 @@
+---
+# List of packages to install on linux platform
+macsdklibs_lin_list: '{{ macsdklibs_lin_version_110_list }}'

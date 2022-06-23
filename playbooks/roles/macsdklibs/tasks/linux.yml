@@ -1,0 +1,7 @@
+---
+- name: Install MacOS SDK libs to match build env on MacOS
+  become: true
+  apt:
+    name: '{{ macsdklibs_lin_list }}'
+    update_cache: true
+    install_recommends: false  # since they are dev libs we don't need recommends to decrease footprint

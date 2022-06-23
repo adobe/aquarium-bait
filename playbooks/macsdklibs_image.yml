@@ -1,9 +1,9 @@
 ---
-- name: Build essential ubuntu image
+- name: Install quite the same libs from MacOS SDK
   hosts: all
   environment:
     http_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
     https_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
   roles:
-    - role: build_essential
+    - role: macsdklibs
     - role: cleanup
