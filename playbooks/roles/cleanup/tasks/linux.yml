@@ -31,3 +31,9 @@
   poll: 30
   tags:
     - vm_only
+
+- name: Reset the machine-id which is used for DHCP IP assign
+  become: true
+  copy:
+    content: ''
+    dest: /etc/machine-id
