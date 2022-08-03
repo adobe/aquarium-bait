@@ -91,12 +91,22 @@ while true; do
         IFS="$_IFS"
 
         image_type=$(echo "$yml" | cut -d/ -f2)
+        image_driver="${image_type}"
+        if [ "${image_type}" = "native" ]; then
+            # Use VMX driver to build the native images
+            image_driver=vmx
+        fi
         image_outdir="${root_dir}/out/${image_type}"
+        parent_image_dir="${image_outdir}"
+        if [ "${image_type}" = "native" ]; then
+            # Use VMX image as parent for native image
+            parent_image_dir="${root_dir}/out/vmx"
+        fi
         mkdir -p "${image_outdir}"
         image=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f3- | tr / -)
         echo "INFO: Building image for ${image_type} '${image}'..."
 
-        if [ "$image_type" = 'vmx' ]; then
+        if [ "$image_driver" = 'vmx' ]; then
             # Make sure no VM is running currently to provide the clean environment for the build
             if which vmrun > /dev/null 2>&1; then
                 if [ "x$(vmrun list | head -1 | rev | cut -d" " -f 1)" != "x0" ]; then
@@ -133,7 +143,7 @@ while true; do
         if [ $stage -gt 1 ]; then
             parent_name=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f3- | rev | cut -d/ -f2- | rev | tr / -)
             # Filter the dirs in addition with grep due to the childrens could be found too
-            parent_image=$(find "${image_outdir}" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$" || printf '')
+            parent_image=$(find "${parent_image_dir}" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$" || printf '')
             parent_version=$(basename "${parent_image}" | rev | cut -d- -f1 | rev)
             if [ $(echo "$parent_image" | wc -l) -gt 1 ]; then
                 echo "ERROR:  there is more than one parent image '${parent_name}'."
@@ -149,7 +159,7 @@ while true; do
             packer_params="$packer_params -var parent_name=${parent_name}"
             packer_params="$packer_params -var parent_version=${parent_version}"
 
-            if [ "$image_type" = 'docker' ]; then
+            if [ "$image_driver" = 'docker' ]; then
                 echo "INFO: Loading Docker parent images"
                 parent_manifest="${parent_image}/${parent_name}-${parent_version}.yml"
                 if [ ! -f "${parent_manifest}" ]; then
@@ -176,7 +186,7 @@ while true; do
         echo "INFO:  generating packer json for '${yml}'..."
         cat "${yml}" | ./scripts/run_yaml2json.sh > "${yml}.json"
 
-        if [ "$image_type" = 'vmx' ]; then
+        if [ "$image_driver" = 'vmx' ]; then
             # Cleaning the non-tracked files from the init directory
             git clean -fX ./init/vmx/ || true
 
