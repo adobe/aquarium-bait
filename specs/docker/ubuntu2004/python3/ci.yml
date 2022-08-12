@@ -36,7 +36,7 @@ provisioners:
     inline:
       - >
         ansible-playbook -c local -i localhost,
-        --skip-tags vm_only
+        --skip-tags wipe_disk_zeroes
         -e jre_extract_path=/srv/jre
         /bait-playbooks/ci_image.yml
 

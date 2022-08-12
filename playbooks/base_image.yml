@@ -1,7 +1,13 @@
 ---
 - name: Base image provision
   hosts: all
-  roles:
-    - role: init
-    - role: vmtools  # It's critical for appleGPU to install tools in the first OS boot
-    - role: cleanup
+  tasks:
+    - include_role:
+        name: init
+
+    - when: vmtools_vm_type is defined
+      include_role:
+        name: vmtools  # It's critical for appleGPU to install tools in the first OS boot
+
+    - include_role:
+        name: cleanup
