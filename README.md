@@ -198,8 +198,45 @@ XZ for it's best compacting abilities to reduce the required bandwidth.
 
 Aquarium Bait supports a number of drivers and can be relatively easily extended with the ones you
 need. When you are navigating to `specs` directory you see the driver directory (like "vmx",
-"docker"), it's just for convenience and output images separation (this dir will be used in `out`
-to place the images). This way the images for drivers can be built with no conflicts.
+"docker", "aws"), it's just for convenience and output images separation (this dir will be used in
+`out` to place the images). This way the images for drivers can be built with no conflicts.
+
+### Amazon Web Services (AWS)
+
+First cloud provider integration to the images build system. It needs some knowledge of the AWS
+and pre-setup of the AWS project. Cloud driver also quite different from the local drivers like vmx
+or docker - it will still use the specs in packer yml format, but will store the image directly in
+AWS project.
+
+#### Usage
+
+##### 1. Setup the AWS project
+
+Your AWS project should contain the created VPC with subnets, which are tagged as `Class:
+image-build`. You need to create security groups which will allow the ssh and winrm connections
+tagged as `Class:image-build-ssh` and `Class:image-build-winrm`. You will need to create the IAM
+role with admin access to AWS EC2 permissions and receive the `key_id` and `secret_key` for it.
+Also to build child images you need to obtain the Account ID - it's easy to find in AWS console top
+right user account menu.
+
+The enterprise networks could be quite restricted - so please make sure you have a connection to
+the instances with those security groups from internal network (prefferable) or from public
+internet. To ensure you can run some instances and try to connect to them. Sometimes you will need
+to talk to your network and security teams to establish a proper connection to your AWS project.
+
+##### 2. Setup the packer env
+
+Specs are using 2 important environment variables, so prior to running the build script you need to
+set them. The values you've got in the first step during creating the IAM role:
+```
+$ export AWS_KEY_ID=<YOUR_IAM_KEY_ID>
+$ export AWS_SECRET_KEY=<YOUR_IAM_SECRET_KEY>
+$ export AWS_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
+```
+
+##### 3. Run the image build
+
+Now you're ready to run the actual build by following the common steps above.
 
 ### Docker
 

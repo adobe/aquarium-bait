@@ -3,9 +3,11 @@ min_packer_version: 1.7.9
 variables:
   # Variables are set by the build_image.sh script based on the spec path
   image_name: image
+  parent_name: parent_image
   username: ubuntu
 
   aws_region: us-west-2
+  aws_account_id: "{{ env `AWS_ACCOUNT_ID` }}"
   aws_key_id: "{{ env `AWS_KEY_ID` }}"
   aws_secret_key: "{{ env `AWS_SECRET_KEY` }}"
 
@@ -20,8 +22,11 @@ builders:
     access_key: "{{ user `aws_key_id` }}"
     secret_key: "{{ user `aws_secret_key` }}"
 
-    # https://cloud-images.ubuntu.com/locator/ec2/
-    source_ami: ami-00bb3d0b5b36e89b8 # Release 20220810
+    source_ami_filter:
+      most_recent: true
+      owners: ["{{ user `aws_account_id` }}"] # Required by packer for security reasons
+      filters:
+        tag:Name: "aquarium/{{ user `parent_name` }}"
 
     # Disk
     launch_block_device_mappings:
@@ -46,7 +51,9 @@ provisioners:
   - type: ansible
     command: ./scripts/run_ansible.sh
     user: ubuntu
-    playbook_file: playbooks/base_image.yml
+    playbook_file: playbooks/ci_image.yml
     extra_arguments:
       - --skip-tags
-      - wipe_disk_zeroes,remove_cloudinit
+      - wipe_disk_zeroes
+      - -e
+      - jre_extract_path=/srv/jre8

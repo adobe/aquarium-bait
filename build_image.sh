@@ -132,22 +132,24 @@ while true; do
         packer_params="$packer_params -var out_full_path=${image_outdir}"
         if [ $stage -gt 1 ]; then
             parent_name=$(echo "${yml}" | cut -d. -f1 | cut -d/ -f3- | rev | cut -d/ -f2- | rev | tr / -)
-            # Filter the dirs in addition with grep due to the childrens could be found too
-            parent_image=$(find "${image_outdir}" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$" || printf '')
-            parent_version=$(basename "${parent_image}" | rev | cut -d- -f1 | rev)
-            if [ $(echo "$parent_image" | wc -l) -gt 1 ]; then
-                echo "ERROR:  there is more than one parent image '${parent_name}'."
-                echo "        Please move the unnecessary one aside of out directory:\n$parent_image"
-                continue
-            elif [ "x$parent_image" = 'x' ]; then
-                echo "ERROR:  there is no required parent image with name '${parent_name}'."
-                echo "        Please download the prebuilt one (preferrable) or build it yourself."
-                continue
+            if [ $image_type != "aws" ]; then
+                # Filter the dirs in addition with grep due to the childrens could be found too
+                parent_image=$(find "${image_outdir}" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$" || printf '')
+                parent_version=$(basename "${parent_image}" | rev | cut -d- -f1 | rev)
+                if [ $(echo "$parent_image" | wc -l) -gt 1 ]; then
+                    echo "ERROR:  there is more than one parent image '${parent_name}'."
+                    echo "        Please move the unnecessary one aside of out directory:\n$parent_image"
+                    continue
+                elif [ "x$parent_image" = 'x' ]; then
+                    echo "ERROR:  there is no required parent image with name '${parent_name}'."
+                    echo "        Please download the prebuilt one (preferrable) or build it yourself."
+                    continue
+                fi
+                echo "INFO:  using parent image: ${parent_image}"
+                packer_params="$packer_params -var parent_full_path=${parent_image}"
+                packer_params="$packer_params -var parent_version=${parent_version}"
             fi
-            echo "INFO:  using parent image: ${parent_image}"
-            packer_params="$packer_params -var parent_full_path=${parent_image}"
             packer_params="$packer_params -var parent_name=${parent_name}"
-            packer_params="$packer_params -var parent_version=${parent_version}"
 
             if [ "$image_type" = 'docker' ]; then
                 echo "INFO: Loading Docker parent images"
