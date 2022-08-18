@@ -17,6 +17,15 @@
     groups:
       - jenkins-group
 
+- name: Set jenkins user permissions
+  win_user_right:
+    name: '{{ item }}'
+    users:
+      - jenkins
+  loop:
+    - SeDenyRemoteInteractiveLogonRight
+    - SeServiceLogonRight
+
 - name: Create extract directory
   win_file:
     path: C:\srv\jenkins_agent

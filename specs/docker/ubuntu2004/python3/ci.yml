@@ -22,6 +22,7 @@ builders:
       "{{ user `aquarium_path` }}/requirements.txt": /bait-requirements.txt:ro
     changes:
       - ENV JAVA_HOME /srv/jre
+      - ENV CONFIG_URL https://host.docker.internal:8001/meta/v1/data/?format=env&prefix=data
       - USER jenkins
       - WORKDIR /home/jenkins
       - ENTRYPOINT /srv/jenkins_agent/jenkins_agent.sh

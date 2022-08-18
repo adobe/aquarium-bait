@@ -4,7 +4,19 @@
 #
 # Usage 1:
 #   ps> $CONFIG_FILE="D:\jenkins_agent.config.ps1" ; ./jenkins_agent.ps1
-# Usage 2:
+# Where content of file is like:
+#   $JENKINS_URL="https://..."
+#   $JENKINS_AGENT_NAME="test-node"
+#   $JENKINS_AGENT_SECRET="abcdef..."
+#
+# Usage 2 (cloud AWS):
+#   ps> $CONFIG_URL="http://169.254.169.254/latest/user-data" ; ./jenkins_agent.ps1
+# Where content of the http page is:
+#   $data_JENKINS_URL="https://..."
+#   $data_JENKINS_AGENT_NAME="test-node"
+#   $data_JENKINS_AGENT_SECRET="abcdef..."
+#
+# Usage 3:
 #   ps> $NO_CONFIG_WAIT="1" ; $JENKINS_URL="<url>" ; $JENKINS_AGENT_SECRET="<secret>" ; $JENKINS_AGENT_NAME="<name>" ; ./jenkins_agent.ps1
 
 # Check if CONFIG_FILE var is not set - use the "workspace" labeled disk to read the configuration
@@ -14,6 +26,9 @@ if( -not "$CONFIG_FILE" ) {
         $CONFIG_FILE = "${workspace_disk}:\config\jenkins_agent.ps1"
     }
 }
+
+# Will increase the Invoke-WebRequest downloading dramatically
+$ProgressPreference = 'SilentlyContinue'
 
 # Skip the cert validation for Aquarium Fish META api in powershell 5.1
 # It's an appropriate solution because just allows to connect the controlled host services
@@ -29,7 +44,29 @@ public class TrustAllCertsPolicy : ICertificatePolicy {
     }
 }
 '@
+$default_cp = [System.Net.ServicePointManager]::CertificatePolicy;
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy;
+
+function getConfigUrls {
+    # Prepare a list of the gateway endpoints to locate Fish API host
+
+    # In case CONFIG_URL is set - use only it
+    if( "$CONFIG_URL" ) {
+        echo "$CONFIG_URL"
+        return
+    }
+
+    # If CONFIG_URL is empty then we list the available gateways to eventually get Fish API response
+    # Get the list of the gateways, usually like "127.0.0 172.16.1"
+    # Get the list of gateways to test
+    $ifs = Get-NetIPConfiguration | ForEach-Object {
+        # Will return first 3 octets of the IP address
+        ($_.IPv4Address.IPAddress.split('.')[0,1,2]) -Join '.'
+    }
+    ForEach( $interface in $ifs ) {
+        echo "https://${interface}.1:8001/meta/v1/data/?format=ps1&prefix=data"
+    }
+}
 
 function receiveMetadata {
     param (
@@ -41,25 +78,26 @@ function receiveMetadata {
         # Will return first 3 octets of the IP address
         ($_.IPv4Address.IPAddress.split('.')[0,1,2]) -Join '.'
     }
-    ForEach( $proto in ('https','http') ) {
-        ForEach( $interface in $ifs ) {
-            $fish_api_url = "${proto}://${interface}.1:8001"
-            echo "Checking ${fish_api_url} META API..."
+    getConfigUrls | ForEach-Object -Process {
+        $url = $_
+        echo "Checking ${url} META API..."
 
-            try {
-                Invoke-WebRequest "${fish_api_url}/meta/v1/data/?format=ps1&prefix=data" -OutFile "$out" -ea SilentlyContinue
-            } catch [System.Net.WebException] {
-                echo "  ... failed: $($_.Exception.Message)"
+        try {
+            Invoke-WebRequest "${url}" -OutFile "$out" -ea SilentlyContinue
+        } catch [System.Net.WebException] {
+            echo "  ... failed: $($_.Exception.Message)"
+        }
+        if( Test-Path -Path "$out" -PathType Leaf ) {
+            if( Select-String -Path "$out" -Pattern '^\$data_JENKINS_URL' ) {
+                echo "  ... found jenkins agent config"
+                return
             }
-            if( Test-Path -Path "$out" -PathType Leaf ) {
-                if( Select-String -Path "$out" -Pattern '^\$data_JENKINS_URL' ) {
-                    echo "  ... found the required JENKINS_URL metadata"
-                    return
-                } else {
-                    echo "  ... not found the required JENKINS_URL metadata"
-                    rm "$out"
-                }
+            if( Select-String -Path "$out" -Pattern '^\$data_CONFIG_URL' ) {
+                echo "  ... found new config url"
+                return
             }
+            echo "  ... no useful configs found"
+            rm "$out"
         }
     }
 }
@@ -74,14 +112,24 @@ While( -not "$NO_CONFIG_WAIT" ) {
     receiveMetadata METADATA.ps1
     if( Test-Path -Path METADATA.ps1 -PathType Leaf ) {
         . .\METADATA.ps1
+
+        # Reset the config url every time we found it
+        if( "${data_CONFIG_URL}" ) {
+            $CONFIG_URL = "${data_CONFIG_URL}"
+            Clear-Variable -Name "data_CONFIG_URL"
+            echo "Changed CONFIG_URL to '$CONFIG_URL'"
+        }
+
+        # Set the jenkins configs if they are empty
         if( -not "${JENKINS_URL}" )             { $JENKINS_URL = "${data_JENKINS_URL}" }
         if( -not "${JENKINS_AGENT_SECRET}" )    { $JENKINS_AGENT_SECRET = "${data_JENKINS_AGENT_SECRET}" }
         if( -not "${JENKINS_AGENT_NAME}" )      { $JENKINS_AGENT_NAME = "${data_JENKINS_AGENT_NAME}" }
+        # Optional params
         if( -not "${JENKINS_AGENT_WORKSPACE}" ) { $JENKINS_AGENT_WORKSPACE = "${data_JENKINS_AGENT_WORKSPACE}" }
         if( -not "${JENKINS_HTTPS_INSECURE}" )  { $JENKINS_HTTPS_INSECURE = "${data_JENKINS_HTTPS_INSECURE}" }
     }
 
-    if( "${JENKINS_URL}" -and "${JENKINS_AGENT_SECRET}" -and "${JENKINS_AGENT_NAME}" -and "${JENKINS_AGENT_WORKSPACE}" ) {
+    if( "${JENKINS_URL}" -and "${JENKINS_AGENT_SECRET}" -and "${JENKINS_AGENT_NAME}" ) {
         echo "Received all the required variables."
         break
     }
@@ -93,6 +141,8 @@ While( -not "$NO_CONFIG_WAIT" ) {
 # Just passing the jenkins server cert will often not work because the SAN/CN will not match
 if( "$JENKINS_HTTPS_INSECURE" -eq "true" ) {
     $jenkins_insecure = "-disableHttpsCertValidation"
+    # Use the saved certificate policy to restore the validation
+    [System.Net.ServicePointManager]::CertificatePolicy = $default_cp;
 }
 
 # Wait for jenkins response
@@ -105,20 +155,20 @@ While( $true ) {
     sleep 5
 }
 
-# Go into workspace directory
-While( $true ) {
-    New-Item -path "${JENKINS_AGENT_WORKSPACE}" -type directory -ea SilentlyContinue
-    cd "${JENKINS_AGENT_WORKSPACE}" -ea SilentlyContinue
-    if( "$pwd" -eq "$JENKINS_AGENT_WORKSPACE" ) {
-        break
+# Go into custom workspace directory if it's set
+if( "${JENKINS_AGENT_WORKSPACE}" ) {
+    While( $true ) {
+        New-Item -path "${JENKINS_AGENT_WORKSPACE}" -type directory -ea SilentlyContinue
+        cd "${JENKINS_AGENT_WORKSPACE}" -ea SilentlyContinue
+        if( "$pwd" -eq "$JENKINS_AGENT_WORKSPACE" ) {
+            break
+        }
+        echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."
+        sleep 5
     }
-    echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."
-    sleep 5
 }
 
 # Download the agent jar and connect to jenkins
-# TODO: The cert validation skip above is also affecting this call and make it
-# less secure in case JENKINS_HTTPS_INSECURE is not set, need to fix that somehow...
 Invoke-WebRequest "${JENKINS_URL}/jnlpJars/agent.jar" -OutFile agent.jar
 
 # Run the agent once - we don't need it to restart due to dynamic nature of the agent

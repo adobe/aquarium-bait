@@ -10,6 +10,7 @@ WorkingDirectory=/home/jenkins
 Restart=always
 RestartSec=10
 Environment="JAVA_HOME={{ java_home }}"
+Environment="CONFIG_URL={{ config_url }}"
 ExecStart={{ script_path }}
 
 [Install]

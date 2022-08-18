@@ -57,3 +57,5 @@ provisioners:
       - wipe_disk_zeroes
       - -e
       - jre_extract_path=/srv/jre8
+      - -e
+      - jenkins_agent_config_url=http://169.254.169.254/latest/user-data
