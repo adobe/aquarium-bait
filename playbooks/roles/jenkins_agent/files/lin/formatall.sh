@@ -16,7 +16,7 @@ for disk in $disks; do
     to_format="$disk $to_format"
 done
 
-# Process format of the disks, first one will have workkspace label
+# Process format of the disks, first one will have workspace label
 for disk in $to_format; do
     echo "Formatting disk '$disk'..."
 
@@ -32,7 +32,7 @@ for disk in $to_format; do
     ) | fdisk "$disk"
 
     # Creating the filesystem
-    mkfs -t ext4 -L "workspace$counter" "${disk}p1"
+    mkfs -t ext4 -L "workspace$counter" "${disk}p1" || mkfs -t ext4 -L "workspace$counter" "${disk}1"
 
     counter=$(($counter+1))
 done

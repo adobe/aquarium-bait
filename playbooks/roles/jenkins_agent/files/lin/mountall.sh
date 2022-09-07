@@ -8,6 +8,12 @@ for i in $(seq 1 20); do
     echo "Located disk labels: $labels"
     for label in $labels; do
         disk="$(readlink -f "$label")"
+        # Make sure we're not mounting already mounted disk
+        if mount | grep -qF "$disk "; then
+            echo "Skipping already mounted disk: $label ($disk)"
+            continue
+        fi
+
         point="/mnt/$(basename "$label")"
         echo "Mounting: $label ($disk) to $point..."
         mkdir "$point"
