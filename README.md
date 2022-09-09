@@ -123,6 +123,9 @@ placed in the repo root directory and readed by the `run_ansible.sh` script. It 
 variables from the roles. For example:
 ```yaml
 ---
+# Allow to use local env creds during downloading of the artifacts from storage
+download_headers: X-JFrog-Art-Api:{{ lookup('env', 'ARTIFACTORY_API_KEY') }}
+
 vmtools_lin_vmware_download_url: https://my-own-artifact-storage/archive-ubuntu-remote/pool/universe/o/open-vm-tools/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
 
 xcode_version_133_download_url: https://my-own-artifact-storage/aquarium/files/mac/Xcode_13.3.xip
