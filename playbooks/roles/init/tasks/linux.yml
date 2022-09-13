@@ -22,6 +22,14 @@
     - whoopsie  # Pings external servers
     - cloud-init  # Watching on the configs and altering on boot
 
+- name: Remove unnecessary packages for local VMs
+  become: true
+  apt:
+    name: cloud-init
+    state: absent
+  tags:
+    - remove_cloudinit
+
 - name: Disable motd news since it's fetching spam
   become: true
   lineinfile:

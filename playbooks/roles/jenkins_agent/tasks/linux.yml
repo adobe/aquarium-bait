@@ -48,6 +48,7 @@
         mode: "0644"
       vars:
         java_home: "{{ jenkins_agent_java_home }}"
+        config_url: "{{ jenkins_agent_config_url }}"
         script_path: /srv/jenkins_agent/jenkins_agent.sh
 
     - name: Enable service to start the jenkins agent on boot
@@ -57,29 +58,39 @@
         enabled: true
         state: stopped
 
-    - name: Store mountall executable script
+    - name: Store disk scripts
       become: true
       copy:
-        src: lin/mountall.sh
-        dest: /srv/jenkins_agent/mountall.sh
+        src: lin/{{ item }}.sh
+        dest: /srv/jenkins_agent/{{ item }}.sh
         owner: root
         group: root
         mode: "0755"
+      loop:
+        - mountall
+        - formatall
 
-    - name: Store service plist file for mountall autorun
+    - name: Store service unit file for disk scripts autorun
       become: true
       template:
-        src: mountall.service.j2
-        dest: /etc/systemd/system/mountall.service
+        src: script.service.j2
+        dest: /etc/systemd/system/{{ item }}.service
         owner: root
         group: root
         mode: "0644"
       vars:
-        script_path: /srv/jenkins_agent/mountall.sh
+        script_name: "{{ item }}"
+        script_path: /srv/jenkins_agent/{{ item }}.sh
+      loop:
+        - mountall
+        - formatall
 
-    - name: Enable service to start the mountall script on boot
+    - name: Enable service to start the disk scripts on boot
       become: true
       service:
-        name: mountall
+        name: "{{ item }}"
         enabled: true
         state: stopped
+      loop:
+        - mountall
+        - formatall

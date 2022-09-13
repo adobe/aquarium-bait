@@ -17,6 +17,15 @@
     groups:
       - jenkins-group
 
+- name: Set jenkins user permissions
+  win_user_right:
+    name: '{{ item }}'
+    users:
+      - jenkins
+  loop:
+    - SeDenyRemoteInteractiveLogonRight
+    - SeServiceLogonRight
+
 - name: Create extract directory
   win_file:
     path: C:\srv\jenkins_agent
@@ -33,6 +42,26 @@
     user: jenkins
     rights: FullControl
     type: allow
+
+- name: Store disk formatall script
+  win_copy:
+    src: win/formatall.ps1
+    dest: C:\srv\jenkins_agent\formatall.ps1
+
+- name: Create service to run formatall
+  win_nssm:
+    executable: C:\util\nssm\nssm.exe
+    name: formatall
+    working_directory: C:\
+    application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+    stdout_file: C:\Users\jenkins\formatall.log
+    stderr_file: C:\Users\jenkins\formatall.log
+    arguments:
+      - -ExecutionPolicy
+      - Bypass
+      - -NoProfile
+      - -f
+      - C:\srv\jenkins_agent\formatall.ps1
 
 - name: Store jenkins agent executable scripts
   win_copy:
@@ -54,8 +83,11 @@
       - -f
       - C:\srv\jenkins_agent\jenkins_agent.ps1
 
-- name: Set environment variable for jenkins_agent nssm service
-  win_command: C:\util\nssm\nssm.exe set jenkins_agent AppEnvironmentExtra "JAVA_HOME={{ jenkins_agent_java_home }}"
+- name: Set environment variables for jenkins_agent nssm service
+  win_command: >
+    C:\util\nssm\nssm.exe set jenkins_agent AppEnvironmentExtra
+    "JAVA_HOME={{ jenkins_agent_java_home }}"
+    "CONFIG_URL={{ jenkins_agent_config_url }}"
 
 - name: Configure the jenkins_agent service
   win_service:

@@ -104,6 +104,7 @@
         mode: "0644"
       vars:
         java_home: "{{ jenkins_agent_java_home }}"
+        config_url: "{{ jenkins_agent_config_url }}"
         script_path: /opt/srv/jenkins_agent/jenkins_agent.sh
 
     - name: Disable jenkins user screensaver

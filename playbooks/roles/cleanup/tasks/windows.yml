@@ -32,8 +32,12 @@
     name: EulaAccepted
     data: 1
     type: dword
+  tags:
+    - wipe_disk_zeroes
 
 - name: Compact the disk
   win_command: 'C:\util\sdelete\sdelete.exe -q -z C:'
   async: 1800  # Prevent connections timing out waiting for compact
   poll: 30
+  tags:
+    - wipe_disk_zeroes

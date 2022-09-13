@@ -4,7 +4,19 @@
 #
 # Usage 1:
 #   $ CONFIG_FILE=/some/path.env ./jenkins_agent.sh
-# Usage 2:
+# Where content of /some/path.env is like:
+#   JENKINS_URL=https://...
+#   JENKINS_AGENT_NAME=test-node
+#   JENKINS_AGENT_SECRET=abcdef...
+#
+# Usage 2 (cloud AWS):
+#   $ CONFIG_URL=http://169.254.169.254/latest/user-data ./jenkins_agent.sh
+# Where content of the http page is:
+#   data_JENKINS_URL=https://...
+#   data_JENKINS_AGENT_NAME=test-node
+#   data_JENKINS_AGENT_SECRET=abcdef...
+#
+# Usage 3:
 #   $ NO_CONFIG_WAIT=1 JENKINS_URL=<url> JENKINS_AGENT_SECRET=<secret> JENKINS_AGENT_NAME=<name> ./jenkins_agent.sh
 
 # If the CONFIG_FILE var is not set then use workspace volume config env file path
@@ -12,25 +24,40 @@
 # will not be able to access the mounted workspace disk.
 [ "$CONFIG_FILE" ] || CONFIG_FILE=/mnt/workspace/config/jenkins_agent.env
 
+getConfigUrls() {
+    # Prepare a list of the gateway endpoints to locate Fish API host
+
+    # In case CONFIG_URL is set - use only it
+    if [ "x$CONFIG_URL" != "x" ]; then
+        echo "$CONFIG_URL"
+        return
+    fi
+
+    # If CONFIG_URL is empty then we list the available gateways to eventually get Fish API response
+    # Get the list of the gateways, usually like "127.0.0 172.16.1"
+    ifs=$(ip a | grep 'inet ' | awk '{print $2}' | cut -d '.' -f -3 | awk '{print $0".1"}')
+    for interface in $ifs; do
+        echo "https://$interface:8001/meta/v1/data/?format=env&prefix=data"
+    done
+}
+
 receiveMetadata() {
     out=$1
     rm -f "$out"
-    # Get the list of the gateways, usually like "127.0.0 172.16.1"
-    ifs=$(ip a | grep 'inet ' | awk '{print $2}' | cut -d '.' -f -3 | awk '{print $0".1"}')
-    for proto in https http; do
-        for interface in ${ifs} 'host.docker.internal'; do
-            fish_api_url="${proto}://${interface}:8001"
-            echo "Checking ${fish_api_url} META API..."
+    getConfigUrls | while read url; do
+        echo "Checking ${url} for configs..."
 
-            # Here is used insecure flag and it's an appropriate solution
-            # because just allows to connect the controlled host services
-            curl -sSLo "$out" --insecure "${fish_api_url}/meta/v1/data/?format=env&prefix=data" 2>/dev/null || true
-            if grep -s '^data_JENKINS_URL' "$out"; then
-                echo "Found required metadata in ${fish_api_url}"
-                return
-            fi
-            rm -f "$out"
-        done
+        # The images can't use the secured connection because the certs are tends to become outdated
+        curl -sSLo "$out" --insecure "$url" 2>/dev/null || true
+        if grep -s '^data_JENKINS_URL' "$out"; then
+            echo "Found jenkins agent config"
+            return
+        fi
+        if grep -s '^data_CONFIG_URL' "$out"; then
+            echo "Found new config url"
+            return
+        fi
+        rm -f "$out"
     done
 }
 
@@ -43,14 +70,24 @@ until [ "$NO_CONFIG_WAIT" ]; do
     receiveMetadata METADATA.env
     if [ -f METADATA.env ]; then
         . ./METADATA.env
+
+        # Reset the config url every time we found it
+        if [ "${data_CONFIG_URL}" ]; then
+            CONFIG_URL=${data_CONFIG_URL}
+            unset data_CONFIG_URL
+            echo "Changed CONFIG_URL to '$CONFIG_URL'"
+        fi
+
+        # Set the jenkins configs if they are empty
         [ "${JENKINS_URL}" ]             || JENKINS_URL=${data_JENKINS_URL}
         [ "${JENKINS_AGENT_SECRET}" ]    || JENKINS_AGENT_SECRET=${data_JENKINS_AGENT_SECRET}
         [ "${JENKINS_AGENT_NAME}" ]      || JENKINS_AGENT_NAME=${data_JENKINS_AGENT_NAME}
+        # Optional params
         [ "${JENKINS_AGENT_WORKSPACE}" ] || JENKINS_AGENT_WORKSPACE="${data_JENKINS_AGENT_WORKSPACE}"
         [ "${JENKINS_HTTPS_INSECURE}" ]  || JENKINS_HTTPS_INSECURE="${data_JENKINS_HTTPS_INSECURE}"
     fi
 
-    if [ "${JENKINS_URL}" -a "${JENKINS_AGENT_SECRET}" -a "${JENKINS_AGENT_NAME}" -a "${JENKINS_AGENT_WORKSPACE}" ]; then
+    if [ "${JENKINS_URL}" -a "${JENKINS_AGENT_SECRET}" -a "${JENKINS_AGENT_NAME}" ]; then
         echo "Received all the required variables."
         break
     else
@@ -72,14 +109,16 @@ until curl -s -o /dev/null -w '%{http_code}' ${curl_insecure} "${JENKINS_URL}" |
     sleep 5
 done
 
-# Go into workspace directory
-mkdir -p "${JENKINS_AGENT_WORKSPACE}" || true
-until cd "${JENKINS_AGENT_WORKSPACE}" 2>/dev/null; do
-    # Try to create the required directory
-    echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."
-    sleep 5
+# Go into custom workspace directory if it's set
+if [ "${JENKINS_AGENT_WORKSPACE}" ]; then
     mkdir -p "${JENKINS_AGENT_WORKSPACE}" || true
-done
+    until cd "${JENKINS_AGENT_WORKSPACE}" 2>/dev/null; do
+        # Try to create the required directory
+        echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."
+        sleep 5
+        mkdir -p "${JENKINS_AGENT_WORKSPACE}" || true
+    done
+fi
 
 # Download the agent jar and connect to jenkins
 curl -sSLo agent.jar ${curl_insecure} "${JENKINS_URL}/jnlpJars/agent.jar"
@@ -91,6 +130,6 @@ echo "Running the Jenkins agent '${JENKINS_AGENT_NAME}'..."
 # for example) by removing the export flag for known ones and at the same way making
 # a way to pass the required build variables if required by the environment
 env -u JENKINS_URL -u JENKINS_AGENT_SECRET -u JENKINS_AGENT_NAME -u JENKINS_AGENT_WORKSPACE \
-    -u JENKINS_HTTPS_INSECURE -u JAVA_HOME -u JAVA_OPTS -u CONFIG_FILE -u NO_CONFIG_WAIT \
+    -u JENKINS_HTTPS_INSECURE -u JAVA_HOME -u JAVA_OPTS -u CONFIG_FILE -u CONFIG_URL -u NO_CONFIG_WAIT \
     "${JAVA_HOME}/bin/java" ${JAVA_OPTS} -cp agent.jar hudson.remoting.jnlp.Main -headless \
     ${jenkins_insecure} -url "${JENKINS_URL}" "${JENKINS_AGENT_SECRET}" "${JENKINS_AGENT_NAME}"

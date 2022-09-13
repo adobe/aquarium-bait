@@ -11,6 +11,8 @@ download_win_tmp: C:\tmp\win
 download_win_dir: win
 download_result_var: download_path  # The output variable name contains downloaded file
 
+download_headers: null  # In case some spcific headers needed (like auth for example)
+
 required_vars:
   - download_url  # https://artifact-storage/...
   - download_checksum  # sha256:1234567890abcdef...

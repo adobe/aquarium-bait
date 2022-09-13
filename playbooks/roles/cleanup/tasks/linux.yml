@@ -30,7 +30,7 @@
   async: 1800  # Prevent SSH connections timing out waiting for cleanup
   poll: 30
   tags:
-    - vm_only
+    - wipe_disk_zeroes
 
 - name: Reset the machine-id which is used for DHCP IP assign
   become: true
