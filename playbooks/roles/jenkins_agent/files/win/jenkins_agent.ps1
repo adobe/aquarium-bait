@@ -19,6 +19,16 @@
 # Usage 3:
 #   ps> $NO_CONFIG_WAIT="1" ; $JENKINS_URL="<url>" ; $JENKINS_AGENT_SECRET="<secret>" ; $JENKINS_AGENT_NAME="<name>" ; ./jenkins_agent.ps1
 
+if( "${env:CONFIG_URL}" ) {
+    $CONFIG_URL = $env:CONFIG_URL
+    $env:CONFIG_URL = ''
+}
+
+if( "${env:CONFIG_FILE}" ) {
+    $CONFIG_FILE = $env:CONFIG_FILE
+    $env:CONFIG_FILE = ''
+}
+
 # Check if CONFIG_FILE var is not set - use the "workspace" labeled disk to read the configuration
 if( -not "$CONFIG_FILE" ) {
     $workspace_disk = (Get-Volume -FileSystemLabel "workspace" -ea SilentlyContinue).DriveLetter

@@ -7,6 +7,10 @@
 
 - name: Run optimizations
   import_tasks: windows_osot.yml
+  tags:
+    - win_init_osot
 
 - name: Disable Administrator local user account
   win_shell: Disable-LocalUser Administrator
+  tags:
+    - win_init_disable_admin

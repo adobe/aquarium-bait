@@ -3,7 +3,6 @@ min_packer_version: 1.7.9
 variables:
   # Variables are set by the build_image.sh script based on the spec path
   image_name: image
-  username: ubuntu
 
   aws_region: us-west-2
   aws_key_id: "{{ env `AWS_KEY_ID` }}"
@@ -32,9 +31,9 @@ builders:
 
     # Network
     subnet_filter:
+      most_free: true
       filters:
         tag:Class: image-build
-      most_free: true
 
     security_group_filter:
       filters:
