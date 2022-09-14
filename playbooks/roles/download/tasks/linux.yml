@@ -1,7 +1,7 @@
 ---
 - name: Set fact with downloaded file for use from caller role
   set_fact:
-    '{{ download_result_var }}': '{{ download_lin_tmp }}/{{ download_url | basename }}'
+    '{{ download_result_var }}': '{% if inventory_hostname == "localhost" %}{{ playbook_dir }}/files/{{ download_mac_dir }}{% else %}{{ download_lin_tmp }}{% endif %}/{{ download_url | basename }}'
     download_local_path: '{{ download_lin_dir }}/{{ download_url | basename }}'
 
 - name: Create download directory

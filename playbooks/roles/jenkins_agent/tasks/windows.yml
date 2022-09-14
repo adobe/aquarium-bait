@@ -28,7 +28,7 @@
 
 - name: Create extract directory
   win_file:
-    path: C:\srv\jenkins_agent
+    path: "{{ jenkins_agent_path }}"
     state: directory
 
 - name: Create log directory
@@ -46,7 +46,7 @@
 - name: Store disk formatall script
   win_copy:
     src: win/formatall.ps1
-    dest: C:\srv\jenkins_agent\formatall.ps1
+    dest: '{{ jenkins_agent_path }}\formatall.ps1'
 
 - name: Create service to run formatall
   win_nssm:
@@ -61,12 +61,12 @@
       - Bypass
       - -NoProfile
       - -f
-      - C:\srv\jenkins_agent\formatall.ps1
+      - '{{ jenkins_agent_path }}\formatall.ps1'
 
 - name: Store jenkins agent executable scripts
   win_copy:
     src: win/jenkins_agent.ps1
-    dest: C:\srv\jenkins_agent\jenkins_agent.ps1
+    dest: '{{ jenkins_agent_path }}\jenkins_agent.ps1'
 
 - name: Create service to run jenkins agent
   win_nssm:
@@ -81,7 +81,7 @@
       - Bypass
       - -NoProfile
       - -f
-      - C:\srv\jenkins_agent\jenkins_agent.ps1
+      - '{{ jenkins_agent_path }}\jenkins_agent.ps1'
 
 - name: Set environment variables for jenkins_agent nssm service
   win_command: >

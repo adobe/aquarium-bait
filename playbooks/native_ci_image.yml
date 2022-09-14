@@ -1,0 +1,10 @@
+---
+- name: Native CI image provision
+  hosts: all
+  tasks:
+    - include_role:
+        name: jre
+
+    - include_role:
+        name: jenkins_agent
+        tasks_from: native

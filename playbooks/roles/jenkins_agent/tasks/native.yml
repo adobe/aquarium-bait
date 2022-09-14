@@ -1,0 +1,15 @@
+---
+# This task just places the agent script to required directory
+
+- name: Create extract directory
+  become: true
+  file:
+    path: "{{ jenkins_agent_path }}"
+    state: directory
+
+- name: Store jenkins agent executable scripts
+  become: true
+  copy:
+    src: "{{ native_platform }}/jenkins_agent.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    dest: "{{ jenkins_agent_path }}/jenkins_agent.sh"
+    mode: "0755"
