@@ -1,0 +1,6 @@
+---
+visualstudio_version_1693_download_url: https://artifact-storage/aquarium/files/win/VS2019-16.9.3-ARM.zip
+visualstudio_version_1693_download_checksum: sha256:b1250c78a0b6a29bef1a864eedc559dbcafe5a7da6490406f318a678dfc34940
+
+visualstudio_version_1705_download_url: https://artifact-storage/aquarium/files/win/VS2022_17_0_5_offline.zip
+visualstudio_version_1705_download_checksum: sha256:956fdf5f7ddd9f963adcdc7661ec36ac19cdeedc38f490d155b31967261793d2

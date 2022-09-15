@@ -1,10 +1,12 @@
 ---
 min_packer_version: 1.7.9
 variables:
-  # Variables are set by the build_image.sh script based on the spec path
+  # All the variables are set by the build_image.sh script based on the path
   image_name: image
+  parent_name: parent_image
 
   aws_region: us-west-2
+  aws_account_id: "{{ env `AWS_ACCOUNT_ID` }}"
   aws_key_id: "{{ env `AWS_KEY_ID` }}"
   aws_secret_key: "{{ env `AWS_SECRET_KEY` }}"
 
@@ -19,8 +21,11 @@ builders:
     access_key: "{{ user `aws_key_id` }}"
     secret_key: "{{ user `aws_secret_key` }}"
 
-    # https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LaunchInstances:
-    source_ami: ami-0e6bf13e3eb85d0ba # Release Windows_Server-2019-English-Full-Base-2022.08.10
+    source_ami_filter:
+      most_recent: true
+      owners: ["{{ user `aws_account_id` }}"] # Required by packer for security reasons
+      filters:
+        tag:Name: "aquarium/{{ user `parent_name` }}"
 
     # Disk
     launch_block_device_mappings:
@@ -39,8 +44,6 @@ builders:
       filters:
         tag:Class: image-build-winrm
 
-    user_data_file: ./init/aws/winserver2019_init_userdata.txt
-
     communicator: winrm
     winrm_username: Administrator
     winrm_use_ssl: true
@@ -50,12 +53,16 @@ provisioners:
   - type: ansible
     command: ./scripts/run_ansible.sh
     user: Administrator
-    playbook_file: playbooks/base_image.yml
+    playbook_file: playbooks/visualstudio_image.yml
     use_proxy: false
     extra_arguments:
       - --skip-tags
-      - wipe_disk_zeroes,win_init_osot,win_init_disable_admin
+      - wipe_disk_zeroes
       - -e
       - ansible_password={{ build `Password` }}
       - -e
       - ansible_winrm_server_cert_validation=ignore
+      - -e
+      - visualstudio_download_url={% print visualstudio_version_1705_download_url %}
+      - -e
+      - visualstudio_download_checksum={% print visualstudio_version_1705_download_checksum %}
