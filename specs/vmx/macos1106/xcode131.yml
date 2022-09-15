@@ -38,10 +38,10 @@ provisioners:
       - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - xcode_download_url={{ xcode_version_131_download_url }}
+      - xcode_download_url={% print xcode_version_131_download_url %}
       - -e
-      - xcode_download_checksum={{ xcode_version_131_download_checksum }}
+      - xcode_download_checksum={% print xcode_version_131_download_checksum %}
       - -e
-      - xcode_cmd_download_url={{ xcode_version_131_cmd_download_url }}
+      - xcode_cmd_download_url={% print xcode_version_131_cmd_download_url %}
       - -e
-      - xcode_cmd_download_checksum={{ xcode_version_131_cmd_download_checksum }}
+      - xcode_cmd_download_checksum={% print xcode_version_131_cmd_download_checksum %}
