@@ -35,8 +35,8 @@ if [ "x$PROXY_REMOTE_LISTEN" != "x" ]; then
     proxy_remote_args="-e proxy_remote_host=${PROXY_REMOTE_LISTEN} -e proxy_remote_port=${proxy_remote_port}"
     echo "Running Proxy Remote on ${PROXY_REMOTE_LISTEN}:${proxy_remote_port}..."
     python3 "${root_dir}/scripts/proxy_remote.py" "${PROXY_REMOTE_LISTEN}" "${proxy_remote_port}" &
+    trap "pkill -f '${root_dir}/scripts/proxy_remote.py' || true" EXIT
 fi
-trap "pkill -f '${root_dir}/scripts/proxy_remote.py' || true" EXIT
 
 # Run the playbook
 if [ "x$DEBUG" != "x" ]; then
