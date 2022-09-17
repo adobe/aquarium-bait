@@ -1,0 +1,9 @@
+---
+- name: Create init and setup directories
+  file:
+    path: "{{ native_init_path }}/{{ item }}"
+    state: directory
+  loop:
+    - init.d
+    - preinit.d
+    - postinit.d

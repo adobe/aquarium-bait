@@ -19,6 +19,7 @@ provisioners:
         ./scripts/run_ansible.sh -c local -i localhost,
         -e ansible_become=false
         -e native_platform=mac
+        -e native_init_path={{ user `out_full_path` }}/{{ user `image_name` }}
         -e jre_extract_path={{ user `out_full_path` }}/{{ user `image_name` }}/srv/jre8
         -e jenkins_agent_path={{ user `out_full_path` }}/{{ user `image_name` }}/srv/jenkins_agent
         ./playbooks/native_ci_image.yml

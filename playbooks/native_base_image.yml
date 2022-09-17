@@ -1,0 +1,5 @@
+---
+- name: Native base image provision
+  hosts: all
+  roles:
+    - role: native_init
