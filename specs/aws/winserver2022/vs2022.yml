@@ -44,24 +44,19 @@ builders:
       filters:
         tag:Class: image-build-winrm
 
-    communicator: winrm
-    winrm_username: Administrator
-    winrm_use_ssl: true
-    winrm_insecure: true
+    # In the base image we're using OpenSSH for Windows
+    ssh_username: Administrator
+    ssh_port: 80
 
 provisioners:
   - type: ansible
     command: ./scripts/run_ansible.sh
-    user: Administrator
     playbook_file: playbooks/visualstudio_image.yml
-    use_proxy: false
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes
       - -e
-      - ansible_password={{ build `Password` }}
-      - -e
-      - ansible_winrm_server_cert_validation=ignore
+      - ansible_shell_type=powershell
       - -e
       - visualstudio_download_url={% print visualstudio_version_1705_download_url %}
       - -e

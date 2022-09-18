@@ -1,0 +1,17 @@
+---
+# This file is from Windows 10 FUD: en_windows_10_features_on_demand_part_1_version_1903_x64_dvd_1076e85a.iso
+openssh_server_win2019_download_url: https://artifact-storage/aquarium/files/win/OpenSSH-Server-Package~31bf3856ad364e35~amd64~~win2019.cab
+openssh_server_win2019_download_checksum: sha256:be99d5641c90dfe4db60b38365e519f35b5315abb2bdb9e0f2e668b444ebaf2e
+# This file is from Windows 2022 FUD: 20348.1.210507-1500.fe_release_amd64fre_SERVER_LOF_PACKAGES_OEM.iso
+openssh_server_win2022_download_url: https://artifact-storage/aquarium/files/win/OpenSSH-Server-Package~31bf3856ad364e35~amd64~~win2022.cab
+openssh_server_win2022_download_checksum: sha256:00db110df420dc4571954703ba8e5a9b00ff86e957026bd62c0a78ca901e769a
+openssh_server_win_download_url: "{{ lookup('vars', 'openssh_server_win'+ansible_os_name.split()[3]+'_download_url', default=openssh_server_win2022_download_url) }}"
+openssh_server_win_download_checksum: sha256:{{ lookup('vars', 'openssh_server_win'+ansible_os_name.split()[3]+'_download_checksum', default=openssh_server_win2022_download_checksum) }}
+
+# Needed for Win Server 2019 to install OpenSSH
+openssh_server_fod_win_download_url: https://artifact-storage/aquarium/files/win/17763.1.180914-1434.rs5_release_amd64fre_SERVER-FOD-PACKAGES_OEM_amd64fre_MULTI.iso
+openssh_server_fod_win_download_checksum: sha256:691a57879da249170400574a4919150c9b11f64f97f92f405dd36dcefcf33701
+
+# Defines port to use by OpenSSH. If set to 5986 - will replace WinRM service
+openssh_server_ports:
+  - 22

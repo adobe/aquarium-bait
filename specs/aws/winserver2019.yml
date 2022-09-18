@@ -59,3 +59,5 @@ provisioners:
       - ansible_password={{ build `Password` }}
       - -e
       - ansible_winrm_server_cert_validation=ignore
+      - -e
+      - '{"openssh_server_ports":[22,80]}'  # Use 80 port as backup for SSH in case 22 is blocked

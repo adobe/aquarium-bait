@@ -1,0 +1,18 @@
+---
+# Installs Features on Demand needed by Windows 2019 to install OpenSSH
+
+- name: Download FOD iso to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ openssh_server_fod_win_download_url }}'
+    download_checksum: '{{ openssh_server_fod_win_download_checksum }}'
+
+- name: Mount the FOD iso as a disk
+  win_shell: Mount-DiskImage -ImagePath "{{ download_path }}"
+
+- name: Copy FOD files to fod directory
+  win_shell: 'Copy-Item D: C:\tmp\fod -Recurse'
+
+- name: Umount the FOD iso disk
+  win_shell: Dismount-DiskImage -ImagePath "{{ download_path }}"

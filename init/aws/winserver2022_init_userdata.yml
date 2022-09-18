@@ -4,6 +4,38 @@
 
 version: 1.0
 tasks:
+  # Create the OpenSSH download public key script
+  - task: writeFile
+    inputs:
+      - frequency: once
+        destination: C:\ProgramData\ssh\download_ec2_pubkey.ps1
+        content: |-
+          #!powershell
+          # Script downloads the OpenSSH pubkey from AWS EC2 instance metadata and set it
+          $openSSHAuthorizedKeys = 'C:\ProgramData\ssh\administrators_authorized_keys'
+
+          # Download the pubkey from ec2 metadata to key file
+          $keyUrl = "http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key"
+          $keyRespStream = [System.Net.WebRequest]::Create($keyUrl).GetResponse().GetResponseStream()
+          $streamReader = New-Object System.IO.StreamReader $keyRespStream
+          $streamReader.ReadToEnd() | Out-File -FilePath $openSSHAuthorizedKeys -Encoding ASCII
+
+          # Ensure access control on authorized_keys meets the requirements
+          $acl = Get-ACL -Path $openSSHAuthorizedKeys
+          $acl.SetAccessRuleProtection($True, $True)
+          Set-Acl -Path $openSSHAuthorizedKeys -AclObject $acl
+          $acl = Get-ACL -Path $openSSHAuthorizedKeys
+          $ar = New-Object System.Security.AccessControl.FileSystemAccessRule( `
+              "NT Authority\Authenticated Users", "ReadAndExecute", "Allow")
+          $acl.RemoveAccessRule($ar)
+          $ar = New-Object System.Security.AccessControl.FileSystemAccessRule( `
+              "BUILTIN\Administrators", "FullControl", "Allow")
+          $acl.RemoveAccessRule($ar)
+          $ar = New-Object System.Security.AccessControl.FileSystemAccessRule( `
+              "BUILTIN\Users", "FullControl", "Allow")
+          $acl.RemoveAccessRule($ar)
+          Set-Acl -Path $openSSHAuthorizedKeys -AclObject $acl
+
   - task: executeScript
     inputs:
       - frequency: once
@@ -67,6 +99,21 @@ tasks:
               </Select></Query></QueryList>
           "@
 
+          $principal = New-ScheduledTaskPrincipal -UserId System -LogonType S4U
+          $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries 
+
+          Register-ScheduledTask -TaskName $name -Trigger $trigger -Action $action -Description $desc -Principal $principal -Settings $settings
+
+      # Add SSH public key receiver from AWS EC2 MetaData upon instance startup
+      - frequency: once
+        type: powershell
+        runAs: localSystem
+        content: |-
+          $name = "Download AWS EC2 OpenSSH public key"
+          $desc = "Automatically downloads the AWS EC2 instance public key to allow the Administrator access"
+
+          $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -File C:\ProgramData\ssh\download_ec2_pubkey.ps1'
+          $trigger = New-ScheduledTaskTrigger -AtStartup
           $principal = New-ScheduledTaskPrincipal -UserId System -LogonType S4U
           $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries 
 

@@ -1,0 +1,59 @@
+---
+# Windows Server 2019 needs FOD dir & metadata to properly install openssh
+- when: '"Windows Server 2019" in ansible_os_name'
+  include_tasks: windows_fod.yml
+
+- name: Download OpenSSH-Server cab archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ openssh_server_win2022_download_url }}'
+    download_checksum: '{{ openssh_server_win2022_download_checksum }}'
+
+- name: Create fod directory
+  win_file:
+    path: C:\tmp\fod
+    state: directory
+
+- name: Copy the OpenSSH server archive to fod directory
+  win_copy:
+    src: "{{ download_path }}"
+    dest: C:\tmp\fod\OpenSSH-Server-Package~31bf3856ad364e35~amd64~~.cab
+    remote_src: true
+
+- name: Install OpenSSH with feature installer
+  win_shell: Add-WindowsCapability -Online -LimitAccess -Name "OpenSSH.Server~~~~0.0.1.0" -Source C:\tmp\fod
+
+- name: Create the firewall rule to allow OpenSSH ports
+  win_shell: >
+    New-NetFirewallRule -Name "OpenSSH" -DisplayName "OpenSSH" -Description "Allow SSH ports"
+    -Profile Any -Direction Inbound -Action Allow -Protocol TCP -Program Any -LocalAddress Any
+    -RemoteAddress Any -LocalPort {{ openssh_server_ports | join(',') }} -RemotePort Any
+
+- name: Run OpenSSH first time to generate the default configs
+  win_service:
+    name: sshd
+    start_mode: auto
+    state: started
+
+- name: Set the default OpenSSH shell to PowerShell
+  win_regedit:
+    path: HKLM:\SOFTWARE\OpenSSH
+    name: DefaultShell
+    data: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+    type: string
+    state: present
+
+- name: Set OpenSSH ports to listen
+  win_lineinfile:
+    path: C:\ProgramData\ssh\sshd_config
+    regex: '^Port {{ item }}'
+    insertafter: '^#Port '
+    line: 'Port {{ item }}'
+  loop: '{{ openssh_server_ports }}'
+
+- name: Do not run WinRM on next boot if it's port is used by OpenSSH
+  when: 5986 in openssh_server_ports
+  win_service:
+    name: WinRM
+    start_mode: manual
