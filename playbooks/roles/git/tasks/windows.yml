@@ -14,4 +14,4 @@
     elements: C:\util\git\bin
 
 - name: Check git binary was installed properly
-  win_command: git --version
+  win_command: C:\util\git\bin\git --version

@@ -14,7 +14,7 @@
   ignore_errors: true  # don't fail in case those services are not here
   win_shell: Stop-Process -Name vmtoolsd -Force
 
-- name: Clean caches & tmp dirs
+- name: Clean caches & tmp dirs and ssh host keys/auth
   win_shell: Remove-Item '{{ item }}' -force -recurse
   with_items:
     - C:\tmp\*
@@ -22,6 +22,8 @@
     - C:\Windows\Prefetch\*
     - C:\Documents and Settings\*\Local Settings\temp\*
     - C:\Users\*\Appdata\Local\Temp\*
+    - C:\ProgramData\ssh\ssh_host*
+    - C:\ProgramData\ssh\*authorized_keys
 
 - name: Clean event log
   win_shell: Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log }

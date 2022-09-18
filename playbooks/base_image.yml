@@ -10,4 +10,7 @@
         name: vmtools  # It's critical for appleGPU to install tools in the first OS boot
 
     - include_role:
+        name: openssh_server  # ~2x faster than winrm transport on windows
+
+    - include_role:
         name: cleanup
