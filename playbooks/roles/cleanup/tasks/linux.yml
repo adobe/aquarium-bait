@@ -23,8 +23,6 @@
 
     - name: Clean found items
       when: reg_caches.matched > 0
-      # The /tmp/lin directory could be mounted as RO, so ignoring it in case of error
-      ignore_errors: "{{ item.path == '/tmp/lin' }}"
       with_items: "{{ reg_caches.files + reg_ssh_host_keys.files }}"
       file:
         path: "{{ item.path }}"
