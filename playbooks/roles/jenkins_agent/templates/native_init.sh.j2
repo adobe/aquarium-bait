@@ -1,0 +1,7 @@
+#!/bin/sh -e
+# Script runs jenkins agent in native environment
+
+export JAVA_HOME="{{ java_home }}"
+export CONFIG_URL="{{ config_url }}"
+
+"{{ script_dir }}/jenkins_agent.sh"

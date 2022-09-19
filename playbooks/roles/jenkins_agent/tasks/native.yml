@@ -11,3 +11,18 @@
     src: "{{ native_platform }}/jenkins_agent.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
     dest: "{{ jenkins_agent_path }}/jenkins_agent.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
     mode: "0755"
+
+- name: Create native init dirs
+  include_role:
+    name: native_init
+    tasks_from: dirs
+
+- name: Store jenkins agent native init script
+  template:
+    src: native_init.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}.j2
+    dest: "{{ native_init_path }}/init.d/jenkins_agent.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    mode: "0755"
+  vars:
+    java_home: "{{ jenkins_agent_java_home }}"
+    config_url: "{{ jenkins_agent_config_url }}"
+    script_dir: "{{ jenkins_agent_path }}"
