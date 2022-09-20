@@ -17,11 +17,18 @@ if( -not "$INIT_PATH" ) {
 
 echo "Init scripts in $INIT_PATH..."
 
+# Stop the jobs started by this process on termination
+trap {
+    Get-Job | Stop-Job
+    Get-Job | Remove-Job
+}
+
 Get-ChildItem -Path "$INIT_PATH" -Recurse | ForEach-Object {
-    switch( $_.Extension ) {
+    $f = $_
+    switch( $f.Extension ) {
         '.ps1' {
             echo "Starting $f"
-            Start-Job -FilePath $_.FullName
+            Start-Job -FilePath $f.FullName
         }
         default {
             echo "Ignoring $f"
@@ -30,6 +37,6 @@ Get-ChildItem -Path "$INIT_PATH" -Recurse | ForEach-Object {
 }
 
 # Wait for all the jobs to complete
-Wait-Job
+Get-Job | Wait-Job
 
 echo "Init scripts completed"

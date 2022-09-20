@@ -23,6 +23,6 @@
     dest: "{{ native_init_path }}/init.d/jenkins_agent.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
     mode: "0755"
   vars:
-    java_home: "{{ jenkins_agent_java_home }}"
+    java_home: "{{ jenkins_agent_java_home | replace(native_init_path, '', 1) }}"
     config_url: "{{ jenkins_agent_config_url }}"
-    script_dir: "{{ jenkins_agent_path }}"
+    script_dir: "{{ jenkins_agent_path | replace(native_init_path, '', 1) }}"

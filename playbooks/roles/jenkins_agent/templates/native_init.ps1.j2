@@ -1,7 +1,7 @@
 #!powershell
 # Script runs jenkins agent in native environment
 
-$env:JAVA_HOME="{{ java_home }}"
+$env:JAVA_HOME="${env:ENV_PATH}{{ java_home | replace('/', '\\') }}"
 $env:CONFIG_URL="{{ config_url }}"
 
-& "{{ script_dir }}\jenkins_agent.ps1"
+& "${env:ENV_PATH}{{ script_dir | replace('/', '\\') }}\jenkins_agent.ps1"

@@ -10,7 +10,11 @@ export ENV_PATH=$(dirname "$0")
 
 echo "$0: Init scripts in $INIT_PATH..."
 
-find "$INIT_PATH" -follow -type f -print | sort -V | while read -r f; do
+# Kill the processes group of this process on termination
+trap "exit" INT TERM ERR
+trap 'kill 0' EXIT
+
+for f in "$INIT_PATH"/*; do
     case "$f" in
         *.sh)
             if [ -x "$f" ]; then
