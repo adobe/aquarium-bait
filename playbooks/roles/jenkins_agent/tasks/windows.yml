@@ -8,9 +8,14 @@
     description: Jenkins group
     state: present
 
+- name: Generate random jenkins user password to use in service
+  set_fact:
+    jenkins_user_pwd: "{{ lookup('password', '/dev/null length=32') }}"
+
 - name: Add user jenkins with group jenkins
   win_user:
     name: jenkins
+    password: '{{ jenkins_user_pwd }}'
     fullname: jenkins
     password_never_expires: true
     account_disabled: false
@@ -63,6 +68,9 @@
       - -f
       - C:\srv\jenkins_agent\formatall.ps1
 
+- name: Do not restart formatall on exit
+  win_command: C:\util\nssm\nssm.exe set formatall AppExit Default Exit
+
 - name: Store jenkins agent executable scripts
   win_copy:
     src: win/jenkins_agent.ps1
@@ -92,8 +100,9 @@
 - name: Configure the jenkins_agent service
   win_service:
     name: jenkins_agent
+    username: jenkins
+    password: '{{ jenkins_user_pwd }}'
     dependencies:
       - tcpip
-    user: jenkins
     start_mode: auto
     state: stopped

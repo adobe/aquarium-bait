@@ -47,16 +47,17 @@ builders:
     # In the base image we're using OpenSSH for Windows
     ssh_username: Administrator
     ssh_port: 80
+    ssh_timeout: 10m
 
 provisioners:
   - type: ansible
     command: ./scripts/run_ansible.sh
     playbook_file: playbooks/ci_image.yml
+    # Place ansible_shell_type to the inventory to not disturb the local delegated commands
+    inventory_file_template: "{{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }} ansible_shell_type=powershell\n"
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes
-      - -e
-      - ansible_shell_type=powershell
       - -e
       - jre_extract_path=C:\util\jre8
       - -e

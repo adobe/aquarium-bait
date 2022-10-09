@@ -219,8 +219,8 @@ Your AWS project should contain the created VPC with subnets, which are tagged a
 image-build`. You need to create security groups which will allow the ssh and winrm connections
 tagged as `Class:image-build-ssh` and `Class:image-build-winrm`. You will need to create the IAM
 role with admin access to AWS EC2 permissions and receive the `key_id` and `secret_key` for it.
-Also to build child images you need to obtain the Account ID - it's easy to find in AWS console top
-right user account menu.
+Also to build child images you can use "self" or obtain the Account ID to lookup the same account
+for the images - it's easy to find in AWS console top right user account menu.
 
 The enterprise networks could be quite restricted - so please make sure you have a connection to
 the instances with those security groups from internal network (prefferable) or from public
@@ -234,7 +234,7 @@ set them. The values you've got in the first step during creating the IAM role:
 ```
 $ export AWS_KEY_ID=<YOUR_IAM_KEY_ID>
 $ export AWS_SECRET_KEY=<YOUR_IAM_SECRET_KEY>
-$ export AWS_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
+$ export AWS_ACCOUNT_ID=self
 ```
 
 ##### 3. Run the image build

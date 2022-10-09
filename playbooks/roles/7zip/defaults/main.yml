@@ -1,3 +1,8 @@
 ---
-sevenzip_download_url: https://artifact-storage/aquarium/files/mac/7zip_16.02.zip
-sevenzip_download_checksum: sha256:b2bf5b00a9f40b48acc22ad80183c0f7590a62ec4cb4924ef467d947979604c9
+sevenzip_mac_download_url: https://artifact-storage/aquarium/files/mac/7zip_16.02.zip
+sevenzip_mac_download_checksum: sha256:b2bf5b00a9f40b48acc22ad80183c0f7590a62ec4cb4924ef467d947979604c9
+
+sevenzip_win_download_url: https://artifact-storage/aquarium/files/mac/7z2107-x64.msi
+sevenzip_win_download_checksum: sha256:5447c9ac39c48f1bc7c88359b0520396a8c9707b307c107236a93a68e6fd3eb6
+
+sevenzip_install_path: C:\util\7zip

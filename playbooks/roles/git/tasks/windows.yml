@@ -9,6 +9,12 @@
 - name: Install git to util folder
   win_command: '{{ download_path }} /VERYSILENT /NORESTART /SP- /NOCANCEL /SUPPRESSMSGBOXES /DIR=C:\util\git'
 
+- name: Enable OpenSSH agent to run
+  win_service:
+    name: ssh-agent
+    start_mode: auto
+    state: stopped
+
 - name: Add git bin dir to system PATH
   win_path:
     elements: C:\util\git\bin
