@@ -1,0 +1,3 @@
+---
+required_vars:
+  - native_init_path  # Path to the image root directory

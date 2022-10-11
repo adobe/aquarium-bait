@@ -1,0 +1,23 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+
+builders:
+  - type: "null"
+    communicator: none
+
+provisioners:
+  - type: shell-local
+    environment_vars:
+      # Use only system tools
+      - PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+    inline:
+      - >
+        ./scripts/run_ansible.sh -c local -i localhost,
+        -e ansible_become=false
+        -e native_platform=mac
+        -e native_init_path={{ user `out_full_path` }}/{{ user `image_name` }}
+        ./playbooks/native_ci_image.yml

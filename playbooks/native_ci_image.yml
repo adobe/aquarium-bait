@@ -1,0 +1,20 @@
+---
+- name: Native CI image provision
+  hosts: all
+  vars:
+    download_lin_dir: '{{ native_platform }}'
+    download_mac_dir: '{{ native_platform }}'
+    jre_extract_path: '{{ native_init_path }}/srv/jre8'
+  tasks:
+    - include_role:
+        name: jre
+      vars:
+        jre_download_url: "{{ lookup('vars', 'jre_'+native_platform+'_download_url') }}"
+        jre_download_checksum: "{{ lookup('vars', 'jre_'+native_platform+'_download_checksum') }}"
+        jre_tar_suffix: "{{ lookup('vars', 'jre_'+native_platform+'_tar_suffix') }}"
+
+    - include_role:
+        name: jenkins_agent
+        tasks_from: native
+      vars:
+        jenkins_agent_path: '{{ native_init_path }}/srv/jenkins_agent'

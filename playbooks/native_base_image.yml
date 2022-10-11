@@ -1,0 +1,8 @@
+---
+- name: Native base image provision
+  hosts: all
+  vars:
+    download_lin_dir: '{{ native_platform }}'
+    download_mac_dir: '{{ native_platform }}'
+  roles:
+    - role: native_init

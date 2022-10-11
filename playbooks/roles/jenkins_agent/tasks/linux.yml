@@ -24,14 +24,14 @@
 - name: Create extract directory
   become: true
   file:
-    path: /srv/jenkins_agent
+    path: "{{ jenkins_agent_path }}"
     state: directory
 
 - name: Store jenkins agent executable scripts
   become: true
   copy:
     src: lin/jenkins_agent.sh
-    dest: /srv/jenkins_agent/jenkins_agent.sh
+    dest: "{{ jenkins_agent_path }}/jenkins_agent.sh"
     owner: root
     group: root
     mode: "0755"
@@ -49,7 +49,7 @@
       vars:
         java_home: "{{ jenkins_agent_java_home }}"
         config_url: "{{ jenkins_agent_config_url }}"
-        script_path: /srv/jenkins_agent/jenkins_agent.sh
+        script_path: "{{ jenkins_agent_path }}/jenkins_agent.sh"
 
     - name: Enable service to start the jenkins agent on boot
       become: true
@@ -62,7 +62,7 @@
       become: true
       copy:
         src: lin/{{ item }}.sh
-        dest: /srv/jenkins_agent/{{ item }}.sh
+        dest: "{{ jenkins_agent_path }}/{{ item }}.sh"
         owner: root
         group: root
         mode: "0755"
@@ -80,7 +80,7 @@
         mode: "0644"
       vars:
         script_name: "{{ item }}"
-        script_path: /srv/jenkins_agent/{{ item }}.sh
+        script_path: "{{ jenkins_agent_path }}/{{ item }}.sh"
       loop:
         - mountall
         - formatall

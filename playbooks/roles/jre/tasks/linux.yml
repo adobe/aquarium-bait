@@ -3,8 +3,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ jre_lin_download_url }}'
-    download_checksum: '{{ jre_lin_download_checksum }}'
+    download_url: '{{ jre_download_url | default(jre_lin_download_url) }}'
+    download_checksum: '{{ jre_download_checksum | default(jre_lin_download_checksum) }}'
 
 - name: Create extract directory
   become: true
@@ -16,13 +16,12 @@
 - name: Unpack only bin & lib from archive to directory
   become: true
   command: >
-    tar -C "{{ jre_extract_path }}" --wildcards --strip-components=1 -xf "{{ download_path }}"
-    "*/bin" "*/lib"
+    tar -C "{{ jre_extract_path }}" --wildcards -xf "{{ download_path }}" {{ jre_tar_suffix | default(jre_lin_tar_suffix) }}
   args:
     warn: false  # Easier to use tar command instead of Unarchive one
 
 - name: Check java binary was unpacked properly
   stat:
-    path: '{{ jre_extract_path }}/bin/java'
+    path: '{{ jre_extract_path }}/bin/java{{ ".exe" if native_platform is defined and native_platform == "win" }}'
   register: reg_jre_bin_file
   failed_when: not reg_jre_bin_file.stat.exists

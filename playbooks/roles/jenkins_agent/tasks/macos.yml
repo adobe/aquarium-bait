@@ -22,14 +22,14 @@
 - name: Create extract directory
   become: true
   file:
-    path: /opt/srv/jenkins_agent
+    path: "{{ jenkins_agent_path }}"
     state: directory
 
 - name: Store jenkins agent executable scripts
   become: true
   copy:
     src: mac/jenkins_agent.sh
-    dest: /opt/srv/jenkins_agent/jenkins_agent.sh
+    dest: "{{ jenkins_agent_path }}/jenkins_agent.sh"
     owner: root
     group: wheel
     mode: "0755"
@@ -105,7 +105,7 @@
       vars:
         java_home: "{{ jenkins_agent_java_home }}"
         config_url: "{{ jenkins_agent_config_url }}"
-        script_path: /opt/srv/jenkins_agent/jenkins_agent.sh
+        script_path: "{{ jenkins_agent_path }}/jenkins_agent.sh"
 
     - name: Disable jenkins user screensaver
       become: true
@@ -127,13 +127,13 @@
     mode: "0644"
   vars:
     java_home: "{{ jenkins_agent_java_home }}"
-    script_path: /opt/srv/jenkins_agent/jenkins_agent.sh
+    script_path: "{{ jenkins_agent_path }}/jenkins_agent.sh"
 
 - name: Store mountall executable scripts
   become: true
   copy:
     src: mac/mountall.sh
-    dest: /opt/srv/jenkins_agent/mountall.sh
+    dest: "{{ jenkins_agent_path }}/mountall.sh"
     owner: root
     group: wheel
     mode: "0755"
@@ -147,4 +147,4 @@
     group: wheel
     mode: "0644"
   vars:
-    script_path: /opt/srv/jenkins_agent/mountall.sh
+    script_path: "{{ jenkins_agent_path }}/mountall.sh"

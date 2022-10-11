@@ -14,8 +14,7 @@
 # Uses BSD tar, GNU will require --wildcards in addition
 - name: Unpack only bin & lib from archive to directory
   win_shell: >
-    tar -C "{{ jre_extract_path }}" --strip-components=1 -xf '{{ download_path }}'
-    "*/bin" "*/lib"
+    tar -C "{{ jre_extract_path }}" -xf "{{ download_path }}" {{ jre_tar_suffix | default(jre_win_tar_suffix) }}
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on windows by default
 

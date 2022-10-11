@@ -1,0 +1,17 @@
+---
+- name: Validate required variables
+  when: item not in vars or vars[item] | length == 0
+  with_items: "{{ required_vars }}"
+  fail:
+    msg: Variable '{{ item }}' is not defined
+
+- include_tasks: dirs.yml
+
+- name: Store init and setup scripts
+  copy:
+    src: "{{ item }}.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    dest: "{{ native_init_path }}/{{ item }}.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    mode: "0755"
+  loop:
+    - init
+    - setup

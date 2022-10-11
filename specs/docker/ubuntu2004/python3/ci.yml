@@ -18,7 +18,6 @@ builders:
     volumes:
       "{{ user `aquarium_path` }}/playbooks": /bait-playbooks:ro
       "{{ user `aquarium_path` }}/playbooks/files/lin": /bait-playbooks/files/lin:rw # Needed rw to store the downloaded files
-      "{{ user `aquarium_path` }}/playbooks/files/lin": /tmp/lin:ro # Optimization to not copy the downloaded files
       "{{ user `aquarium_path` }}/requirements.txt": /bait-requirements.txt:ro
     changes:
       - ENV JAVA_HOME /srv/jre
