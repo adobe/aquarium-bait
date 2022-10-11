@@ -1,8 +1,4 @@
 ---
-- name: Execute on MacOS
-  when: ansible_system == 'Darwin'
-  import_tasks: macos.yml
-
 - name: Execute on Windows
   include_tasks: windows.yml
   when: ansible_system == 'Win32NT'

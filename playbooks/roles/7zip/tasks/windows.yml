@@ -1,0 +1,20 @@
+---
+- name: Download 7zip installer to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ sevenzip_win_download_url }}'
+    download_checksum: '{{ sevenzip_win_download_checksum }}'
+
+- name: Install 7zip to {{ sevenzip_install_path }}
+  win_package:
+    state: present
+    arguments: /qn /norestart INSTALLDIR={{ sevenzip_install_path }}
+    path: '{{ download_path }}'
+
+- name: Add git bin dir to system PATH
+  win_path:
+    elements: '{{ sevenzip_install_path }}'
+
+- name: Check 7zip binary was installed properly
+  win_command: '{{ sevenzip_install_path }}\7z.exe'

@@ -1,0 +1,13 @@
+---
+- name: Download perl installer to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ perl_win_download_url }}'
+    download_checksum: '{{ perl_win_download_checksum }}'
+
+- name: Install perl to util dir
+  win_command: '{{ download_path }} /qn /quiet /norestart APPDIR=C:\util\perl5 PERL_PATH=Yes'
+
+- name: Check perl binary was installed properly
+  win_command: C:\util\perl5\bin\perl.exe --version

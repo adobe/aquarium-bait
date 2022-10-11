@@ -3,8 +3,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ sevenzip_download_url }}'
-    download_checksum: '{{ sevenzip_download_checksum }}'
+    download_url: '{{ sevenzip_mac_download_url }}'
+    download_checksum: '{{ sevenzip_mac_download_checksum }}'
 
 - name: Unzip 7zip
   become: true
