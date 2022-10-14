@@ -12,9 +12,9 @@
 # Usage 2 (cloud AWS):
 #   $ CONFIG_URL=http://169.254.169.254/latest/user-data ./jenkins_agent.sh
 # Where content of the http page is:
-#   data_JENKINS_URL=https://...
-#   data_JENKINS_AGENT_NAME=test-node
-#   data_JENKINS_AGENT_SECRET=abcdef...
+#   JENKINS_URL=https://...
+#   JENKINS_AGENT_NAME=test-node
+#   JENKINS_AGENT_SECRET=abcdef...
 #
 # Usage 3:
 #   $ NO_CONFIG_WAIT=1 JENKINS_URL=<url> JENKINS_AGENT_SECRET=<secret> JENKINS_AGENT_NAME=<name> ./jenkins_agent.sh
@@ -37,7 +37,7 @@ getConfigUrls() {
     # Get the list of the gateways, usually like "127.0.0 172.16.1"
     ifs=$(ip a | grep 'inet ' | awk '{print $2}' | cut -d '.' -f -3 | awk '{print $0".1"}')
     for interface in $ifs; do
-        echo "https://$interface:8001/meta/v1/data/?format=env&prefix=data"
+        echo "https://$interface:8001/meta/v1/data/?format=env"
     done
 }
 
@@ -49,12 +49,12 @@ receiveMetadata() {
 
         # The images can't use the secured connection because the certs are tends to become outdated
         curl -sSLo "$out" --insecure "$url" 2>/dev/null || true
-        if grep -s '^data_JENKINS_URL' "$out"; then
-            echo "Found jenkins agent config"
+        if grep -s '^JENKINS_URL' "$out"; then
+            echo "Found jenkins agent config for server: $(grep '^JENKINS_URL' "$out")"
             return
         fi
-        if grep -s '^data_CONFIG_URL' "$out"; then
-            echo "Found new config url"
+        if grep -s '^CONFIG_URL' "$out"; then
+            echo "Found new config url: $(grep '^CONFIG_URL' "$out")"
             return
         fi
         rm -f "$out"
@@ -70,21 +70,6 @@ until [ "$NO_CONFIG_WAIT" ]; do
     receiveMetadata METADATA.env
     if [ -f METADATA.env ]; then
         . ./METADATA.env
-
-        # Reset the config url every time we found it
-        if [ "${data_CONFIG_URL}" ]; then
-            CONFIG_URL=${data_CONFIG_URL}
-            unset data_CONFIG_URL
-            echo "Changed CONFIG_URL to '$CONFIG_URL'"
-        fi
-
-        # Set the jenkins configs if they are empty
-        [ "${JENKINS_URL}" ]             || JENKINS_URL=${data_JENKINS_URL}
-        [ "${JENKINS_AGENT_SECRET}" ]    || JENKINS_AGENT_SECRET=${data_JENKINS_AGENT_SECRET}
-        [ "${JENKINS_AGENT_NAME}" ]      || JENKINS_AGENT_NAME=${data_JENKINS_AGENT_NAME}
-        # Optional params
-        [ "${JENKINS_AGENT_WORKSPACE}" ] || JENKINS_AGENT_WORKSPACE="${data_JENKINS_AGENT_WORKSPACE}"
-        [ "${JENKINS_HTTPS_INSECURE}" ]  || JENKINS_HTTPS_INSECURE="${data_JENKINS_HTTPS_INSECURE}"
     fi
 
     if [ "${JENKINS_URL}" -a "${JENKINS_AGENT_SECRET}" -a "${JENKINS_AGENT_NAME}" ]; then
