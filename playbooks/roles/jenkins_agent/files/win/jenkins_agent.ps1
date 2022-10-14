@@ -12,9 +12,9 @@
 # Usage 2 (cloud AWS):
 #   ps> $CONFIG_URL="http://169.254.169.254/latest/user-data" ; ./jenkins_agent.ps1
 # Where content of the http page is:
-#   $data_JENKINS_URL="https://..."
-#   $data_JENKINS_AGENT_NAME="test-node"
-#   $data_JENKINS_AGENT_SECRET="abcdef..."
+#   $JENKINS_URL="https://..."
+#   $JENKINS_AGENT_NAME="test-node"
+#   $JENKINS_AGENT_SECRET="abcdef..."
 #
 # Usage 3:
 #   ps> $NO_CONFIG_WAIT="1" ; $JENKINS_URL="<url>" ; $JENKINS_AGENT_SECRET="<secret>" ; $JENKINS_AGENT_NAME="<name>" ; ./jenkins_agent.ps1
@@ -74,7 +74,7 @@ function getConfigUrls {
         ($_.IPv4Address.IPAddress.split('.')[0,1,2]) -Join '.'
     }
     ForEach( $interface in $ifs ) {
-        echo "https://${interface}.1:8001/meta/v1/data/?format=ps1&prefix=data"
+        echo "https://${interface}.1:8001/meta/v1/data/?format=ps1"
     }
 }
 
@@ -98,12 +98,12 @@ function receiveMetadata {
             echo "  ... failed: $($_.Exception.Message)"
         }
         if( Test-Path -Path "$out" -PathType Leaf ) {
-            if( Select-String -Path "$out" -Pattern '^\$data_JENKINS_URL' ) {
-                echo "  ... found jenkins agent config"
+            if( Select-String -Path "$out" -Pattern '^\$JENKINS_URL' ) {
+                echo ("  ... found jenkins agent config: " + (Select-String -Path "$out" -Pattern '^\$JENKINS_URL'))
                 return
             }
-            if( Select-String -Path "$out" -Pattern '^\$data_CONFIG_URL' ) {
-                echo "  ... found new config url"
+            if( Select-String -Path "$out" -Pattern '^\$CONFIG_URL' ) {
+                echo ("  ... found new config url: " + (Select-String -Path "$out" -Pattern '^\$CONFIG_URL'))
                 return
             }
             echo "  ... no useful configs found"
@@ -122,21 +122,6 @@ While( -not "$NO_CONFIG_WAIT" ) {
     receiveMetadata METADATA.ps1
     if( Test-Path -Path METADATA.ps1 -PathType Leaf ) {
         . .\METADATA.ps1
-
-        # Reset the config url every time we found it
-        if( "${data_CONFIG_URL}" ) {
-            $CONFIG_URL = "${data_CONFIG_URL}"
-            Clear-Variable -Name "data_CONFIG_URL"
-            echo "Changed CONFIG_URL to '$CONFIG_URL'"
-        }
-
-        # Set the jenkins configs if they are empty
-        if( -not "${JENKINS_URL}" )             { $JENKINS_URL = "${data_JENKINS_URL}" }
-        if( -not "${JENKINS_AGENT_SECRET}" )    { $JENKINS_AGENT_SECRET = "${data_JENKINS_AGENT_SECRET}" }
-        if( -not "${JENKINS_AGENT_NAME}" )      { $JENKINS_AGENT_NAME = "${data_JENKINS_AGENT_NAME}" }
-        # Optional params
-        if( -not "${JENKINS_AGENT_WORKSPACE}" ) { $JENKINS_AGENT_WORKSPACE = "${data_JENKINS_AGENT_WORKSPACE}" }
-        if( -not "${JENKINS_HTTPS_INSECURE}" )  { $JENKINS_HTTPS_INSECURE = "${data_JENKINS_HTTPS_INSECURE}" }
     }
 
     if( "${JENKINS_URL}" -and "${JENKINS_AGENT_SECRET}" -and "${JENKINS_AGENT_NAME}" ) {
