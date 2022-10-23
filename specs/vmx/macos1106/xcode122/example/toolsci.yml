@@ -6,7 +6,7 @@ variables:
   out_full_path: "{{ env `PWD` }}/out"
   parent_full_path: "{{ user `out_full_path` }}/parent_image-version"
   parent_name: parent_image
-  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
   username: packer
   password: packer
 
@@ -15,7 +15,7 @@ builders:
     vm_name: "{{ user `image_name` }}"
     display_name: "{{ user `image_name` }}"
     source_path: "{{ user `parent_full_path` }}/{{ user `parent_name` }}.vmx"
-    linked: true # Use base image to simplify the data transfer
+    linked: true  # Use base image to simplify the data transfer
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
     headless: true
@@ -23,7 +23,7 @@ builders:
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
-    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
     ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
     ssh_timeout: 10s
     ssh_read_write_timeout: 10s
@@ -34,7 +34,7 @@ builders:
       appleGPU0.present: "TRUE"
       appleGPU.allowRemovableDevices: "TRUE"
       svga.present: "FALSE"
-      vvtd.enable: "FALSE" # Need to be disabled, otherwise no boot
+      vvtd.enable: "FALSE"  # Need to be disabled, otherwise no boot
 
 provisioners:
   - type: ansible
@@ -45,6 +45,6 @@ provisioners:
       - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - jre_extract_path=/opt/srv/jre8
+      - jre_extract_path=/opt/srv/jre
       - -e
-      - jenkins_agent_ui=true # MacOS needs UI to work properly
+      - jenkins_agent_ui=true  # MacOS needs UI to work properly

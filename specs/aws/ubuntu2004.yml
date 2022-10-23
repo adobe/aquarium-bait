@@ -20,7 +20,7 @@ builders:
     secret_key: "{{ user `aws_secret_key` }}"
 
     # https://cloud-images.ubuntu.com/locator/ec2/
-    source_ami: ami-00bb3d0b5b36e89b8 # Release 20220810
+    source_ami: ami-00bb3d0b5b36e89b8  # Release 20220810
 
     # Disk
     launch_block_device_mappings:

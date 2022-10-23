@@ -4,7 +4,7 @@ variables:
   # All the variables are set by the build_image.sh script based on the path
   image_name: image
   out_full_path: "{{ env `PWD` }}/out"
-  aquarium_bait_proxy_port: null # Local proxy port to bypass VPN routing
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
   username: packer
   password: packer
 
@@ -12,73 +12,73 @@ variables:
   init_vmx_full_path: "{{ env `PWD` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
 
 builders:
-  - type: vmware-vmx # vmware-iso is useless for macos installation
+  - type: vmware-vmx  # vmware-iso is useless for macos installation
     vm_name: "{{ user `image_name` }}"
     display_name: "{{ user `image_name` }}"
     source_path: "{{ user `init_vmx_full_path` }}"
-    linked: false # Create full copy to unlink from init template
+    linked: false  # Create full copy to unlink from init template
     output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
     headless: true
-    boot_wait: 160s # Till the first screen
+    boot_wait: 160s  # Till the first screen
     boot_command:
-      - <enter><wait10> # Selecting "English" language and next
+      - <enter><wait10>  # Selecting "English" language and next
 
       # Newly created disk requires formatting, so format it with disk utility
-      - <down><down><down><down><tab><spacebar><wait10s> # Select Disk Utility to format the disk and continue
-      - <up><up><up><tab><tab><tab><spacebar>Macintosh HD<tab><tab><tab><tab><spacebar><wait10s> # Select the new disk space and erase it
-      - <tab><spacebar><LeftSuperOn>w<leftSuperOff> # Exit disk utility after erace
+      - <down><down><down><down><tab><spacebar><wait10s>  # Select Disk Utility to format the disk and continue
+      - <up><up><up><tab><tab><tab><spacebar>Macintosh HD<tab><tab><tab><tab><spacebar><wait10s>  # Select the new disk space and erase it
+      - <tab><spacebar><LeftSuperOn>w<leftSuperOff>  # Exit disk utility after erace
 
-      - <up><up><tab><spacebar><wait10s> # Select install "Mac OS" and continue
-      - <tab><spacebar><wait> # Welcome screen next
-      - <spacebar><wait><tab><spacebar><wait> # Accept license and approve
+      - <up><up><tab><spacebar><wait10s>  # Select install "Mac OS" and continue
+      - <tab><spacebar><wait>  # Welcome screen next
+      - <spacebar><wait><tab><spacebar><wait>  # Accept license and approve
 
-      - <leftSuperOn><f5><leftSuperOff><wait5s> # Enable VoiceOver to select disk https://discussions.apple.com/thread/7024975?answerId=31115644022#31115644022
-      - <leftCtrlOn><leftAltOn><down><down><down><leftShiftOn><down><leftShiftOff><leftAltOff><leftCtrlOff><wait> # Select disk via VoiceOver
-      - <leftCtrlOn><leftAltOn><leftShiftOn><up><leftShiftOff><down><right><spacebar><leftAltOff><leftCtrlOff><wait> # Go to Install button and press it via VoiceOver
-      - <leftSuperOn><f5><leftSuperOff> # Disable VoiceOver
+      - <leftSuperOn><f5><leftSuperOff><wait5s>  # Enable VoiceOver to select disk https://discussions.apple.com/thread/7024975?answerId=31115644022#31115644022
+      - <leftCtrlOn><leftAltOn><down><down><down><leftShiftOn><down><leftShiftOff><leftAltOff><leftCtrlOff><wait>  # Select disk via VoiceOver
+      - <leftCtrlOn><leftAltOn><leftShiftOn><up><leftShiftOff><down><right><spacebar><leftAltOff><leftCtrlOff><wait>  # Go to Install button and press it via VoiceOver
+      - <leftSuperOn><f5><leftSuperOff>  # Disable VoiceOver
 
-      - <wait25m> # Wait while the installer unpacks files to the disk and reboots (~17mins)
+      - <wait25m>  # Wait while the installer unpacks files to the disk and reboots (~17mins)
 
-      - <up><wait5s> # Wake up the screen in case it gets dark
-      - United States<tab><tab><spacebar><wait> # Select country and next button
-      - <tab><tab><tab><spacebar><wait> # Select keyboard locale and next button
-      - <down><tab><tab><spacebar><wait><tab><spacebar><wait10s> # Select no internet and continue and confirm
-      - <tab><tab><tab><spacebar><wait> # Data privacy info and continue
-      - <tab><tab><tab><spacebar><wait5s> # Do not transfer info and continue
-      - <tab><tab><spacebar><wait><tab><wait><spacebar><wait> # License agreement next and Agree
-      - "{{ user `username` }}<tab>" # Enter username
-      - <tab> # Skip account name as the same as username
-      - "{{ user `password` }}<tab>{{ user `password` }}<tab>" # Set user password and verify
-      - <tab><tab><spacebar><wait20s> # Skip hint and proceed create account
-      - <tab><tab><tab><spacebar><wait> # Skip customize settings and continue
-      - <tab><tab><tab><tab><spacebar><wait10s> # Skip analytics and continue
-      - <tab><spacebar><wait> # Skip sidebar setup
-      - <tab><tab><spacebar><tab><tab><spacebar><wait10s> # Disable Siri and continue
-      - <tab><tab><tab><tab><spacebar><wait30s> # Choose default look and go to the desktop
+      - <up><wait5s>  # Wake up the screen in case it gets dark
+      - United States<tab><tab><spacebar><wait>  # Select country and next button
+      - <tab><tab><tab><spacebar><wait>  # Select keyboard locale and next button
+      - <down><tab><tab><spacebar><wait><tab><spacebar><wait10s>  # Select no internet and continue and confirm
+      - <tab><tab><tab><spacebar><wait>  # Data privacy info and continue
+      - <tab><tab><tab><spacebar><wait5s>  # Do not transfer info and continue
+      - <tab><tab><spacebar><wait><tab><wait><spacebar><wait>  # License agreement next and Agree
+      - "{{ user `username` }}<tab>"  # Enter username
+      - <tab>  # Skip account name as the same as username
+      - "{{ user `password` }}<tab>{{ user `password` }}<tab>"  # Set user password and verify
+      - <tab><tab><spacebar><wait20s>  # Skip hint and proceed create account
+      - <tab><tab><tab><spacebar><wait>  # Skip customize settings and continue
+      - <tab><tab><tab><tab><spacebar><wait10s>  # Skip analytics and continue
+      - <tab><spacebar><wait>  # Skip sidebar setup
+      - <tab><tab><spacebar><tab><tab><spacebar><wait10s>  # Disable Siri and continue
+      - <tab><tab><tab><tab><spacebar><wait30s>  # Choose default look and go to the desktop
 
-      - <leftSuperOn><spacebar><leftSuperOff><wait>system preferences<enter><wait5s> # Run system preferences through spotlight
-      - sharing<enter><wait5s> # Go to Sharing
-      - <tab><tab>remote<wait> # Select Remote login
-      - <leftSuperOn><f5><leftSuperOff><wait5s><right><wait><esc><wait5s> # Enable VoiceOver and skip intro
-      - <leftCtrlOn><leftAltOn><leftShiftOn><down><leftShiftOff><spacebar><leftAltOff><leftCtrlOff><wait> # Select Remote login checkbox and check it
-      - <leftSuperOn><f5><leftSuperOff><wait> # Disable VoiceOver
-      - <LeftSuperOn>w<leftSuperOff> # Exit the system preferences
+      - <leftSuperOn><spacebar><leftSuperOff><wait>system preferences<enter><wait5s>  # Run system preferences through spotlight
+      - sharing<enter><wait5s>  # Go to Sharing
+      - <tab><tab>remote<wait>  # Select Remote login
+      - <leftSuperOn><f5><leftSuperOff><wait5s><right><wait><esc><wait5s>  # Enable VoiceOver and skip intro
+      - <leftCtrlOn><leftAltOn><leftShiftOn><down><leftShiftOff><spacebar><leftAltOff><leftCtrlOff><wait>  # Select Remote login checkbox and check it
+      - <leftSuperOn><f5><leftSuperOff><wait>  # Disable VoiceOver
+      - <LeftSuperOn>w<leftSuperOff>  # Exit the system preferences
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
-    ssh_proxy_host: 127.0.0.1 # Local proxy in order to bypass VPN routing
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
     ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
     ssh_timeout: 10s
     ssh_read_write_timeout: 10s
     ssh_wait_timeout: 2m
     # Dynamically create the main disk
-    disk_additional_size: [204800] # 200GB
+    disk_additional_size: [204800]  # 200GB
     disk_adapter_type: sata
     vmdk_name: MainDisk
-    disk_type_id: 1 # Sparse disk to replace .vmdk `parentFileNameHint` absolute path in the linked clones
+    disk_type_id: 1  # Sparse disk to replace .vmdk `parentFileNameHint` absolute path in the linked clones
     vmx_data:
       sata0:1.fileName: "{{ user `iso_full_path` }}"
-      sata0:0.present: "TRUE" # Enable the main disk
+      sata0:0.present: "TRUE"  # Enable the main disk
 
 provisioners:
   - type: ansible

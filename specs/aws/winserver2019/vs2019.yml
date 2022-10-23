@@ -23,7 +23,7 @@ builders:
 
     source_ami_filter:
       most_recent: true
-      owners: ["{{ user `aws_account_id` }}"] # Required by packer for security reasons
+      owners: ["{{ user `aws_account_id` }}"]  # Required by packer for security reasons
       filters:
         tag:Name: "aquarium/{{ user `parent_name` }}"
 
