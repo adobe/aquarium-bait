@@ -20,7 +20,7 @@ builders:
     secret_key: "{{ user `aws_secret_key` }}"
 
     # https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LaunchInstances:
-    source_ami: ami-0e6bf13e3eb85d0ba # Release Windows_Server-2019-English-Full-Base-2022.08.10
+    source_ami: ami-0e6bf13e3eb85d0ba  # Release Windows_Server-2019-English-Full-Base-2022.08.10
 
     # Disk
     launch_block_device_mappings:

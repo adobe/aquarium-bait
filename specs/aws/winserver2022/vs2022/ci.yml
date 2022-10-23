@@ -23,7 +23,7 @@ builders:
 
     source_ami_filter:
       most_recent: true
-      owners: ["{{ user `aws_account_id` }}"] # Required by packer for security reasons
+      owners: ["{{ user `aws_account_id` }}"]  # Required by packer for security reasons
       filters:
         tag:Name: "aquarium/{{ user `parent_name` }}"
 
@@ -59,6 +59,6 @@ provisioners:
       - --skip-tags
       - wipe_disk_zeroes
       - -e
-      - jre_extract_path=C:\util\jre8
+      - jre_extract_path=C:\util\jre
       - -e
       - jenkins_agent_config_url=http://169.254.169.254/latest/user-data
