@@ -19,6 +19,4 @@
 /playbooks/files/*
 !/playbooks/files/*.md
 
-/records
-
 .DS_Store

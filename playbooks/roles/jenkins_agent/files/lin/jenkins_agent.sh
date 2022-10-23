@@ -61,6 +61,8 @@ receiveMetadata() {
     done
 }
 
+echo "Init jenkins agent script $(date "+%y.%m.%d %H:%M:%S")"
+
 # Looking for the disk/api configurations
 until [ "$NO_CONFIG_WAIT" ]; do
     # Read config env file from config path

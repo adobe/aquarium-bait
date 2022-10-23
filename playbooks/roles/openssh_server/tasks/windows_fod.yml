@@ -9,10 +9,11 @@
     download_checksum: '{{ openssh_server_fod_win_download_checksum }}'
 
 - name: Mount the FOD iso as a disk
-  win_shell: Mount-DiskImage -ImagePath "{{ download_path }}"
+  win_shell: win_shell: (Mount-DiskImage -ImagePath "{{ download_path }}" | Get-Volume).DriveLetter
+  register: reg_fod_drive_letter
 
 - name: Copy FOD files to fod directory
-  win_shell: 'Copy-Item D: C:\tmp\fod -Recurse'
+  win_shell: 'Copy-Item {{ reg_fod_drive_letter.stdout_lines | first }}: C:\tmp\fod -Recurse'
 
 - name: Umount the FOD iso disk
   win_shell: Dismount-DiskImage -ImagePath "{{ download_path }}"
