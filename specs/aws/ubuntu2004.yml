@@ -2,6 +2,7 @@
 min_packer_version: 1.7.9
 variables:
   # Variables are set by the build_image.sh script based on the spec path
+  bait_path: .
   image_name: image
 
   aws_region: us-west-2
@@ -43,9 +44,8 @@ builders:
 
 provisioners:
   - type: ansible
-    command: ./scripts/run_ansible.sh
-    user: ubuntu
-    playbook_file: playbooks/base_image.yml
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes,remove_cloudinit

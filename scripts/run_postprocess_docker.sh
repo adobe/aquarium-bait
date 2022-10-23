@@ -13,7 +13,8 @@
 #
 # No needed to be run manually - executed by the build_image.sh script after the packer build
 
-IMAGE_FULL_PATH="$1"
+BAIT_SESSION="$1"
+IMAGE_FULL_PATH="$2"
 
 OUT_PATH=$(dirname "${IMAGE_FULL_PATH}")
 IMAGE_NAME=$(basename "${IMAGE_FULL_PATH}")
@@ -35,7 +36,7 @@ mkdir "${image_name_completed}"
 docker image save -o "${image_name_completed}/${IMAGE_NAME}.tar" "aquarium/${IMAGE_NAME}:${image_version}"
 
 echo 'INFO: Copy packer log of the build process to the image'
-cp /tmp/packer.log "${image_name_completed}/packer.log"
+cp "/tmp/bait-packer-${BAIT_SESSION}.log" "${image_name_completed}/packer.log"
 
 echo 'INFO: Put the manifest with the unpacked size of the image (in kb, whole dir first)'
 image_manifest="${image_name_completed}/${image_name_completed}.yml"

@@ -1,10 +1,8 @@
-# Default aquarium bait ignore file
+# Ignore file for org repositories
 /.venv
 /out
 /records
 /packer_cache
-
-/override.yml
 
 /specs/*.json
 /specs/**/*.json

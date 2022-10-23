@@ -139,8 +139,10 @@ You can grep all the variables that have `_url: http` and put them in the file a
 one-by-one. Some specs are overriding the main download variable by the template (as in example for
 xcode) and you can specify the version for each one to build the different images properly.
 
-**WARNING**: Make sure you using http as your artifact transport, otherwise it could interfere with
-the local proxy and won't allow you to download the artifacts from the role.
+**WARNING**: Make sure you using https as your artifact transport, otherwise it could interfere
+with the local proxy and won't allow you to download the artifacts from the role.
+
+For the other overrides look 
 
 ### 3. Run build
 
@@ -344,6 +346,54 @@ running the VM as nogui - and you always have a way to run the VMWare UI interfa
 ```
 $ vmrun start worker/worker.vmx nogui
 ```
+
+## Overlay repository
+
+For sure your organization don't want to share the specific overrides, specs, playbooks and roles.
+You can actually make this happen by creating the new repository with the next layout:
+
+* bait/
+   > git submodule with aquarium-bait repo content, you still be able to use `bait/specs` to build images
+* out/
+   > dir where the images will be stored. Better to symlink to `bait/out`
+
+* specs/
+   > specs of your images - they are able to use `bait/specs` images as child/parents
+* playbooks/
+   > your playbooks, roles & files cache
+   * files
+      > symlink to `../bait/playbooks/files`
+
+* .ansible-lint
+   > Symlink to `bait/.ansible-lint`
+* .gitignore
+   > symlink to `bait/.gitignore_prop`
+* .yamllint.yml
+   > Symlink to `bait/.yamllint.yml`
+* ansible.cfg
+   > a bit of overrides to make ansible work well
+   ```ini
+   [defaults]
+   # To use roles from the Bait
+   roles_path=./playbooks/roles:./bait/playbooks/roles
+   ```
+* override.yml
+   > your overrides for url's and other ansible variables. Check **Ansible files** for details
+
+* build_image.sh
+   > shell script to run `bait/build_image.sh`, symlink will not work here
+   ```sh
+   #!/bin/sh -e
+   ./bait/build_image.sh "$@"
+   ```
+* check_style.sh
+   > symlink to `bait/check_style.sh`
+* pack_image.sh
+   > symlink to `bait/pack_image.sh`
+* upload_image.sh
+   > symlink to `bait/upload_image.sh`
+* upload_iso.sh
+   > symlink to `bait/upload_iso.sh`
 
 ## Advices on testing
 
