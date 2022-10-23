@@ -2,14 +2,15 @@
 min_packer_version: 1.7.9
 variables:
   # Variables are set by the build_image.sh script based on the spec path
+  bait_path: .
   image_name: image
   out_full_path: "{{ env `PWD` }}/out"
   aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
   username: packer
   password: packer
 
-  iso_full_path: "{{ env `PWD` }}/init/iso/ubuntu-20.04.4-live-server-amd64.iso"
-  init_vmx_full_path: "{{ env `PWD` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
+  iso_full_path: "{{ user `bait_path` }}/init/iso/ubuntu-20.04.4-live-server-amd64.iso"
+  init_vmx_full_path: "{{ user `bait_path` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
 
 builders:
   - type: vmware-vmx  # Use vmx init to describe the steps and control the VM parameters exactly
@@ -66,9 +67,8 @@ builders:
 
 provisioners:
   - type: ansible
-    command: ./scripts/run_ansible.sh
-    user: "{{ user `username` }}"
-    playbook_file: playbooks/base_image.yml
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}

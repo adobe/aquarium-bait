@@ -3,8 +3,8 @@ min_packer_version: 1.7.9
 variables:
   # All the variables are set by the build_image.sh script based on the path
   image_name: image
-  out_full_path: "{{ env `PWD` }}/out"
   parent_name: parent_image
+  out_full_path: "{{ env `PWD` }}/out"
   parent_version: parent_version
 
 builders:

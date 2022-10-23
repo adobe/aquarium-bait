@@ -2,6 +2,7 @@
 min_packer_version: 1.7.9
 variables:
   # All the variables are set by the build_image.sh script based on the path
+  bait_path: .
   image_name: image
   out_full_path: "{{ env `PWD` }}/out"
 
@@ -16,8 +17,8 @@ provisioners:
       - PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
     inline:
       - >
-        ./scripts/run_ansible.sh -c local -i localhost,
+        {{ user `bait_path` }}/scripts/run_ansible.sh -c local -i localhost,
         -e ansible_become=false
         -e native_platform=win
         -e native_init_path={{ user `out_full_path` }}/{{ user `image_name` }}
-        ./playbooks/native_base_image.yml
+        {{ user `bait_path` }}/playbooks/native_base_image.yml

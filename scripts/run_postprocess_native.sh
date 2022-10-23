@@ -11,7 +11,8 @@
 
 # The Native images needs packing
 
-IMAGE_FULL_PATH="$1"
+BAIT_SESSION="$1"
+IMAGE_FULL_PATH="$2"
 
 OUT_PATH=$(dirname "${IMAGE_FULL_PATH}")
 IMAGE_NAME=$(basename "${IMAGE_FULL_PATH}")
@@ -34,7 +35,7 @@ echo 'INFO: Place the environment into the image directory'
 mv "${IMAGE_FULL_PATH}.tar" "${image_name_completed}/"
 
 echo 'INFO: Copy packer log of the build process to the image dir'
-cp /tmp/packer.log "${image_name_completed}/packer.log"
+cp "/tmp/bait-packer-${BAIT_SESSION}.log" "${image_name_completed}/packer.log"
 
 echo 'INFO: Put the manifest with the unpacked size of the image (in kb, whole dir first)'
 echo "---\n# Aquarium Bait image manifest file\nsize_kb:" > "${image_name_completed}/${image_name_completed}.yml"
