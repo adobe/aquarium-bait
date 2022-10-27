@@ -15,15 +15,16 @@
           - /tmp
       register: reg_caches
 
-    - name: Check ssh host keys
-      find:
-        patterns: ssh_host_*
-        paths: /etc/ssh
-      register: reg_ssh_host_keys
+#    - name: Check ssh host keys
+#      find:
+#        patterns: ssh_host_*
+#        paths: /etc/ssh
+#      register: reg_ssh_host_keys
 
     - name: Clean found items
       when: reg_caches.matched > 0
-      with_items: "{{ reg_caches.files + reg_ssh_host_keys.files }}"
+#      with_items: "{{ reg_caches.files + reg_ssh_host_keys.files }}"
+      with_items: "{{ reg_caches.files }}"
       file:
         path: "{{ item.path }}"
         state: absent
