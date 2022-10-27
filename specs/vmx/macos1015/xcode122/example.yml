@@ -34,6 +34,7 @@ provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
     playbook_file: "{{ user `bait_path` }}/playbooks/project_example_image.yml"
+    user: "{{ user `username` }}"
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}
