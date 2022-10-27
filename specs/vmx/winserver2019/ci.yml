@@ -39,6 +39,4 @@ provisioners:
     inventory_file_template: "{{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }} ansible_shell_type=powershell\n"
     extra_arguments:
       - -e
-      - ansible_password={{ user `password` }}
-      - -e
       - jre_extract_path=C:\util\jre

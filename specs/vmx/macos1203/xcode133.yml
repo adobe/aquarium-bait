@@ -34,6 +34,7 @@ provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
     playbook_file: "{{ user `bait_path` }}/playbooks/xcode_image.yml"
+    user: "{{ user `username` }}"
     # Use python3 installed before instead of the default not working one (/usr/bin/python3)
     # due to not installed developer tools and absent of any built-in python.
     # Using inventory here because extra_arguments are working for localhost (vncdo) too.

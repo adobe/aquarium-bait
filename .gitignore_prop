@@ -1,6 +1,6 @@
 # Ignore file for org repositories
 /.venv
-/out
+/out/*
 /records
 /packer_cache
 

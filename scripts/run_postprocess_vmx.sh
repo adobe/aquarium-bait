@@ -19,6 +19,7 @@ IMAGE_FULL_PATH="$2"
 OUT_PATH=$(dirname "${IMAGE_FULL_PATH}")
 IMAGE_NAME=$(basename "${IMAGE_FULL_PATH}")
 
+root_dir="$PWD"
 cd "${OUT_PATH}"
 
 # Detecting the main disk
@@ -47,7 +48,7 @@ mv "${IMAGE_NAME}" "${image_name_completed}"
 disk_file_cloned=$(find "${image_name_completed}" -name 'MainDisk-1-cl*.vmdk' ! -name 'MainDisk-1-cl*-*.vmdk')
 
 echo 'INFO: Copy packer log of the build process to the image'
-cp "/tmp/bait-packer-${BAIT_SESSION}.log" "${image_name_completed}/packer.log"
+cp "${root_dir}/logs/bait-${IMAGE_NAME}-packer-${BAIT_SESSION}.log" "${image_name_completed}/packer.log"
 
 echo 'INFO: Put the manifest with the unpacked size of the image (in kb, whole dir first)'
 echo "---\n# Aquarium Bait image manifest file\nsize_kb:" > "${image_name_completed}/${image_name_completed}.yml"
