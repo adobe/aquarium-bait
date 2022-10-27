@@ -355,21 +355,21 @@ You can actually make this happen by creating the new repository with the next l
 * bait/
    > git submodule with aquarium-bait repo content, you still be able to use `bait/specs` to build images
 * out/
-   > dir where the images will be stored. Better to symlink to `bait/out`
+   > Symlink to `bait/out`. VMX don't like symlinks, so to store images `bait/out` dir is always used
 
 * specs/
-   > specs of your images - they are able to use `bait/specs` images as child/parents
+   > dir with specs of your images - they are able to use `bait/specs` images as child/parents
 * playbooks/
-   > your playbooks, roles & files cache
+   > dir with your playbooks, roles & files cache
    * files
       > symlink to `../bait/playbooks/files`
 
 * .ansible-lint
-   > Symlink to `bait/.ansible-lint`
+   > Symlink to `bait/.ansible-lint` or your own lint rules for ansible playbooks
 * .gitignore
    > symlink to `bait/.gitignore_prop`
 * .yamllint.yml
-   > Symlink to `bait/.yamllint.yml`
+   > Symlink to `bait/.yamllint.yml` or your own style rules for yaml files
 * ansible.cfg
    > a bit of overrides to make ansible work well
    ```ini
@@ -378,7 +378,7 @@ You can actually make this happen by creating the new repository with the next l
    roles_path=./playbooks/roles:./bait/playbooks/roles
    ```
 * override.yml
-   > your overrides for url's and other ansible variables. Check **Ansible files** for details
+   > your overrides for url's and other ansible variables. Check **Ansible files** section details
 
 * build_image.sh
    > shell script to run `bait/build_image.sh`, symlink will not work here
@@ -394,6 +394,14 @@ You can actually make this happen by creating the new repository with the next l
    > symlink to `bait/upload_image.sh`
 * upload_iso.sh
    > symlink to `bait/upload_iso.sh`
+
+Now, when the repository is prepared you can use it just as bait one:
+```bash
+$ ./build_image.sh specs/type/path/to/image.yml
+$ ./build_image.sh bait/specs/type/path/to/another/image.yml
+$ ./pack_image.sh out/image-version
+$ ./upload_image.sh user:token out/image-version.tar.xz
+```
 
 ## Advices on testing
 

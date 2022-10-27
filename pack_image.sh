@@ -49,6 +49,7 @@ find_noneed_pattern=''
 to_pack_list=''
 # The files will be packed in this order - manifest files first to stream-process them first
 [ "x${type}" != 'xdocker' ] || add_files="$name.tar"
+[ "x${type}" != 'xnative' ] || add_files="$name.tar"
 [ "x${type}" != 'xvmx' ] || add_files="$name.vmx $name.vmsd $name.nvram $name-Snapshot*.vmsn $name.vmxf MainDisk-*.vmdk"
 for filename in "$image.yml" "$image.sha256" 'packer.log' ${add_files}; do
     found_files=$(sh -c "find '${image}' -name '$filename'" | sort)

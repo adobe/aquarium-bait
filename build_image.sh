@@ -52,7 +52,7 @@ fi
 stage=$(( $(echo "$yml_bait" | tr / '\n' | wc -l)-2 ))
 
 image_type=$(echo "$yml_bait" | cut -d/ -f2)
-image_outdir="${root_dir}/out/${image_type}"
+image_outdir="${script_dir}/out/${image_type}"
 mkdir -p "${image_outdir}"
 image=$(echo "${yml_bait}" | cut -d. -f1 | cut -d/ -f3- | tr / -)
 echo "INFO: Building image for ${image_type} '${image}' ${BAIT_SESSION}..."
@@ -100,12 +100,12 @@ export http_proxy="socks5://127.0.0.1:$proxy_port"
 # Clean of the running background apps on exit
 clean_bg() {
     find "${root_dir}/specs" -name '*.json' -delete
-    pkill -SIGINT -f "scripts/vncrecord.py /tmp/bait-packer-${BAIT_SESSION}.log" || true
+    pkill -SIGINT -f "scripts/vncrecord.py logs/bait-${image}-packer-${BAIT_SESSION}.log" || true
     if [ ! -f "./records/${image}.mp4" ]; then
-        pkill -f "scripts/vncrecord.py /tmp/bait-packer-${BAIT_SESSION}.log" || true
+        pkill -f "scripts/vncrecord.py logs/bait-${image}-packer-${BAIT_SESSION}.log" || true
     fi
-    pkill -SIGTERM -f "tail -f /tmp/bait-packer-${BAIT_SESSION}.log" || true
-    # TODO: Remove the docker images
+    pkill -SIGTERM -f "tail -f logs/bait-${image}-packer-${BAIT_SESSION}.log" || true
+    # TODO: Remove the broken docker images
 }
 
 trap "clean_bg ; pkill -f 'scripts/proxy_local.py $proxy_port' || true" EXIT
@@ -173,19 +173,19 @@ if [ "$image_type" = 'vmx' ]; then
     # Running the vncrecord script to capture VNC screen during the build
     rm -rf "./records/${image}.mp4"
     mkdir -p ./records
-    rm -f /tmp/bait-packer-${BAIT_SESSION}.log
-    "${script_dir}/scripts/run_vncrecord.sh" /tmp/bait-packer-${BAIT_SESSION}.log "./records/${image}.mp4" &
+    "${script_dir}/scripts/run_vncrecord.sh" logs/bait-${image}-packer-${BAIT_SESSION}.log "./records/${image}.mp4" &
 fi
 
 echo "INFO:  running packer build ${BAIT_SESSION}"
+mkdir -p ./logs
 if [ "x${DEBUG}" = 'x' ]; then
-    PACKER_LOG=1 PACKER_LOG_PATH=/tmp/bait-packer-${BAIT_SESSION}.log packer build $packer_params "${yml}.json"
+    PACKER_LOG=1 PACKER_LOG_PATH=logs/bait-${image}-packer-${BAIT_SESSION}.log packer build $packer_params "${yml}.json"
     "${script_dir}/scripts/run_postprocess_${image_type}.sh" "${BAIT_SESSION}" "${image_outdir}/${image}"
 else
     echo "WARNING:  running DEBUG image build - you will not be able to upload it"
-    touch /tmp/bait-packer-${BAIT_SESSION}.log
-    tail -f /tmp/bait-packer-${BAIT_SESSION}.log &
-    PACKER_LOG=1 packer build -on-error=ask $packer_params "${yml}.json" > /tmp/bait-packer-${BAIT_SESSION}.log 2>&1
+    touch logs/bait-${image}-packer-${BAIT_SESSION}.log
+    tail -f logs/bait-${image}-packer-${BAIT_SESSION}.log &
+    PACKER_LOG=1 packer build -on-error=ask $packer_params "${yml}.json" > logs/bait-${image}-packer-${BAIT_SESSION}.log 2>&1
 fi
 
 clean_bg

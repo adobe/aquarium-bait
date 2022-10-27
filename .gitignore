@@ -1,6 +1,6 @@
 # Default aquarium bait ignore file
 /.venv
-/out
+/out/*
 /records
 /packer_cache
 
