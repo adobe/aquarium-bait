@@ -2,6 +2,7 @@
 /.venv
 /out/*
 /records
+/logs
 /packer_cache
 
 /override.yml
