@@ -29,17 +29,25 @@ else
     unset override_yml
 fi
 
-# Run the proxy_remote on the provided address and random free port
+# Run the proxy_remote script to listen on the provided address and random free port on the host
+# Value need to be the address `host:port` or just `host` available for the remote to connect to
 if [ "x$PROXY_REMOTE_LISTEN" != "x" ]; then
-    proxy_remote_port=$(python3 -c "import socket, sys; sock = socket.socket(); sock.bind((sys.argv[1], 0)); print(sock.getsockname()[1]); sock.close()" "${PROXY_REMOTE_LISTEN}")
-    proxy_remote_args="-e proxy_remote_host=${PROXY_REMOTE_LISTEN} -e proxy_remote_port=${proxy_remote_port}"
-    echo "Running Proxy Remote on ${PROXY_REMOTE_LISTEN}:${proxy_remote_port}..."
-    python3 "${root_dir}/scripts/proxy_remote.py" ${PROXY_REMOTE_LISTEN} ${proxy_remote_port} &
-    trap "pkill -f 'scripts/proxy_remote.py ${PROXY_REMOTE_LISTEN} ${proxy_remote_port}' || true" EXIT
+    if [ "$(echo "$PROXY_REMOTE_LISTEN" | cut -d: -f2)" = 'x' ]; then
+        # Generate random port
+        proxy_remote_port=$(python3 -c 'import socket, sys; sock = socket.socket(); sock.bind((sys.argv[1], 0)); print(sock.getsockname()[1]); sock.close()' "${PROXY_REMOTE_LISTEN}")
+        PROXY_REMOTE_LISTEN="$(echo "$PROXY_REMOTE_LISTEN" | cut -d: -f1):${proxy_remote_port}"
+    fi
+    proxy_remote_args="-e bait_proxy_url=http://${PROXY_REMOTE_LISTEN}"
+
+    echo "Running Proxy Remote on http://${PROXY_REMOTE_LISTEN} ..."
+    script="scripts/proxy_remote.py $(echo "$PROXY_REMOTE_LISTEN" | tr ':' ' ')"
+    python3 "${root_dir}"/$script &
+    trap "pkill -f '$script' || true" EXIT
 fi
 
 # Run the playbook
 if [ "x$DEBUG" != "x" ]; then
+    echo -- "${root_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
     "${root_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
 else
     "${root_dir}/.venv/bin/ansible-playbook" $proxy_remote_args $override_yml "$@" 2>/dev/null

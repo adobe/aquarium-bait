@@ -1,9 +1,6 @@
 ---
 - name: Build essential ubuntu image
   hosts: all
-  environment:
-    http_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
-    https_proxy: http://{{ proxy_remote_host }}:{{ proxy_remote_port }}
   roles:
     - role: build_essential
     - role: cleanup
