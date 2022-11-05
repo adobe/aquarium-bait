@@ -43,11 +43,10 @@ builders:
 
     security_group_filter:
       filters:
-        tag:Class: image-build-winrm
+        tag:Class: image-build-ssh
 
     # In the base image we're using OpenSSH for Windows
     ssh_username: Administrator
-    ssh_port: 80
     ssh_timeout: 10m
 
 provisioners:
