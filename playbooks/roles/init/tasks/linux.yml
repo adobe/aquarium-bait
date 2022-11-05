@@ -20,15 +20,17 @@
     - apport  # Pings external servers
     - ubuntu-report  # Pings external servers
     - whoopsie  # Pings external servers
-    - cloud-init  # Watching on the configs and altering on boot
 
-- name: Remove unnecessary packages for local VMs
+- name: Remove not needed items from cloud-init cfg
   become: true
-  apt:
-    name: cloud-init
-    state: absent
-  tags:
-    - remove_cloudinit
+  lineinfile:
+    path: /etc/cloud/cloud.cfg
+    regexp: "^ - {{ item }}$"
+    line: " #- {{ item }}"
+  with_items:
+    - apt-configure  # Do not allow to reconfigure apt sources.list
+    - ubuntu-advantage  # We don't need any mothership calls
+    - package-update-upgrade-install  # Do not update the packages - image has to be the same
 
 - name: Disable motd news since it's fetching spam
   become: true

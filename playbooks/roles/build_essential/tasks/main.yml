@@ -1,6 +1,10 @@
 ---
 - name: Install build-essential and m4 packages
   become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
   apt:
     name:
       - build-essential

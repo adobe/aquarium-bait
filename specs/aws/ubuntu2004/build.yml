@@ -1,7 +1,7 @@
 ---
 min_packer_version: 1.7.9
 variables:
-  # All the variables are set by the build_image.sh script based on the path
+  # Variables are set by the build_image.sh script based on the spec path
   bait_path: .
   image_name: image
   parent_name: parent_image
@@ -31,30 +31,33 @@ builders:
     # Disk
     launch_block_device_mappings:
       - device_name: /dev/sda1
-        volume_size: 200
+        volume_size: 40
         volume_type: gp3
         delete_on_termination: true
 
     # Network
     subnet_filter:
-      most_free: true
       filters:
         tag:Class: image-build
+      most_free: true
 
     security_group_filter:
       filters:
         tag:Class: image-build-ssh
 
-    # In the base image we're using OpenSSH for Windows
-    ssh_username: Administrator
-    ssh_timeout: 10m
+    ssh_username: ubuntu
+
+    # Tunnel will transfer traffic through ssh to the http proxy for ansible
+    ssh_remote_tunnels:
+      - 1080:127.0.0.1:1080
 
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/visualstudio_image.yml"
-    # Place ansible_shell_type to the inventory to not disturb the local delegated commands
-    inventory_file_template: "{{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }} ansible_shell_type=powershell\n"
+    playbook_file: "{{ user `bait_path` }}/playbooks/build_essential_image.yml"
+    ansible_env_vars:
+      # Start proxy on static port to use packer's ssh tunnel
+      - PROXY_REMOTE_LISTEN=127.0.0.1:1080
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes

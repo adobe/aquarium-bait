@@ -1,6 +1,10 @@
 ---
 - name: Install MacOS SDK libs to match build env on MacOS
   become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
   apt:
     name: '{{ macsdklibs_lin_list }}'
     update_cache: true

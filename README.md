@@ -146,25 +146,6 @@ For the other overrides look
 
 ### 3. Run build
 
-**NOTICE:** The Aquarium Bait supports local image building with corporate VPN connected through a
-special local proxy which ignores the routing rules and always uses the local interfaces. For
-additional info please look into [./build_image.sh](build_image.sh), [proxy_local.py](scripts/proxy_local.py)
-and [./specs/vmx/.yml](specs/vmx/) specifications.
-
-**NOTICE:** By default Aquarium Bait designed to build the images in sandbox with access from VM
-only to the host. But in case it's strictly necessary you can run the http proxy during ansible
-execution on the host system by setting the env variable in packer spec for ansible provisioner:
-```
-environment:
-  - PROXY_REMOTE_LISTEN={{ build \`PackerHTTPIP\`}}
-```
-The ansible variables to access this proxy passed as `proxy_remote_host` and `proxy_remote_port`.
-
-**NOTICE:** During the VM build the script records the VM screen through VNC and places it into
-`./records/<image_name>.mp4` - so you can always check what's happened if your build accedentally
-crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
-and [./scripts/vncrecord.py](scripts/vncrecord.py).
-
 Now when all the required things are ready - you can run the image builder:
 ```
 $ ./build_image.sh <specs/path/to/spec.yml> [...]
@@ -174,6 +155,60 @@ This script will automatically create the not-existing images in out directory. 
 packer yml files as arguments to build the specific images. Also, you can put `DEBUG=1` env var to
 tell the builder to ask in case of any issue happening during the build, but debug mode created
 images are not supposed to be uploaded to the artifact storage - just for debugging.
+
+
+**NOTICE:** The Aquarium Bait supports local image building with corporate VPN connected through a
+special local proxy which ignores the routing rules and always uses the local interfaces. For
+additional info please look into [./build_image.sh](build_image.sh), [proxy_local.py](scripts/proxy_local.py)
+and [./specs/vmx/.yml](specs/vmx/) specifications.
+
+**NOTICE:** By default Aquarium Bait designed to build the images in sandbox with access from VM
+only to the host. But in case it's strictly necessary you can run the http proxy during ansible
+execution on the host system by setting the env variable in packer spec for ansible provisioner:
+
+* `PROXY_REMOTE_LISTEN` proxy script is running on the host machine and needs a way for remote to
+be able to connect to the host machine (vmx, docker...). Could be used if Socks5 is not working.
+   ```yaml
+   provisioners:
+     - type: ansible
+       ...
+       ansible_env_vars:
+         # The proxy will listen on the address which is in the VM subnetwork
+         - PROXY_REMOTE_LISTEN={{ build \`PackerHTTPIP\`}}
+   ```
+* In case your remote can't reach the host machine easily (cloud) - you can use built-in-packer ssh
+tunnel like that (yep works just with SSH, so keep the base windows images simple):
+   ```yaml
+   builders:
+     ...
+     # Tunnel will transfer traffic through ssh to the http proxy for ansible
+     ssh_remote_tunnels:
+       - 1080:127.0.0.1:1080
+
+   provisioners:
+     - type: ansible
+       ...
+       ansible_env_vars:
+         # Start proxy on static port to use packer's ssh tunnel
+         - PROXY_REMOTE_LISTEN=127.0.0.1:1080
+   ```
+
+The ansible variables to access this proxy passed as `bait_proxy_url` which is `http://host:port`
+and could be used in playbooks/roles like:
+```yaml
+- name: APT task that uses proxy to escape the sandbox
+  environment:
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    name: vim
+    update_cache: true
+```
+
+**NOTICE:** During the VM build the script records the VM screen through VNC and places it into
+`./records/<image_name>.mp4` - so you can always check what's happened if your build accedentally
+crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
+and [./scripts/vncrecord.py](scripts/vncrecord.py).
 
 ### 4. Run pack of the images
 

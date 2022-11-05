@@ -48,4 +48,4 @@ provisioners:
     playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
     extra_arguments:
       - --skip-tags
-      - wipe_disk_zeroes,remove_cloudinit
+      - wipe_disk_zeroes
