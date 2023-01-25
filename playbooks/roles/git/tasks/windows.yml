@@ -9,15 +9,21 @@
 - name: Install git to util folder
   win_command: '{{ download_path }} /VERYSILENT /NORESTART /SP- /NOCANCEL /SUPPRESSMSGBOXES /DIR=C:\util\git'
 
-- name: Enable OpenSSH agent to run
+- name: Do not run ssh-agent service automatically
   win_service:
     name: ssh-agent
-    start_mode: auto
+    start_mode: manual
     state: stopped
 
-- name: Add git bin dir to system PATH
-  win_path:
-    elements: C:\util\git\bin
+- name: Prepend git bin dirs and good ssh-agent to system PATH in first row
+  win_shell: |
+    $val = (Get-ItemProperty -LiteralPath 'HKLM:\System\CurrentControlSet\Control\Session Manager\Environment' -Name path).path
+    $val = "{{ item }};$val"
+    Set-ItemProperty -LiteralPath 'HKLM:\System\CurrentControlSet\Control\Session Manager\Environment' -Name path -Value $val
+  loop:
+    - C:\util\git\bin
+    - C:\util\git\usr\bin
+    - C:\util\git\cmd
 
 - name: Check git binary was installed properly
   win_command: C:\util\git\bin\git --version

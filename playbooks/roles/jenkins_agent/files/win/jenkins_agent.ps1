@@ -112,7 +112,7 @@ function receiveMetadata {
     }
 }
 
-echo ('Init jenkins agent script ' + (date -Format "yy.MM.dd HH:mm:ss"))
+echo ('Init jenkins agent script ' + (Get-Date -Format "yy.MM.dd HH:mm:ss"))
 
 While( -not "$NO_CONFIG_WAIT" ) {
     # Check the workspace disk configuration exists and load the configuration
