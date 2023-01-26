@@ -1,0 +1,42 @@
+---
+- name: Download Ninja archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ ninja_lin_download_url }}'
+    download_checksum: '{{ ninja_lin_download_checksum }}'
+
+- name: Create extract directory
+  become: true
+  file:
+    path: /usr/local/ninja
+    state: directory
+
+- name: Unzip Ninja
+  become: true
+  unarchive:
+    src: '{{ download_path }}'
+    dest: /usr/local/ninja
+    remote_src: true
+
+- name: Check binary was unpacked properly
+  stat:
+    path: /usr/local/ninja/ninja
+  register: reg_ninja_bin_file
+  failed_when: not reg_ninja_bin_file.stat.exists
+
+- name: Create bin directory
+  become: true
+  file:
+    path: /usr/local/bin
+    state: directory
+
+- name: Create symlink
+  become: true
+  file:
+    src: /usr/local/ninja/ninja
+    dest: /usr/local/bin/ninja
+    state: link
+
+- name: Verify ninja binary is executable
+  command: /usr/local/bin/ninja --version  # noqa 303

@@ -1,5 +1,5 @@
 ---
-- name: Install build-essential and m4 packages
+- name: Install python with pip and venv
   become: true
   environment:
     # Redirecting APT requests through proxy
@@ -8,5 +8,10 @@
   apt:
     update_cache: true
     name:
-      - build-essential
-      - m4
+      - python3
+      - python3-pip
+      - python3-venv
+      - python-is-python3
+
+- name: Verify python binary is here
+  command: python --version  # noqa 303

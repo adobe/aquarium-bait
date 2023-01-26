@@ -34,5 +34,8 @@ for disk in $to_format; do
     # Creating the filesystem
     mkfs -t ext4 -L "workspace$counter" "${disk}p1" || mkfs -t ext4 -L "workspace$counter" "${disk}1"
 
+    # Call partprobe to notify the system that the partition table was changed
+    partprobe
+
     counter=$(($counter+1))
 done

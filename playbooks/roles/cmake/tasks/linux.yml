@@ -1,0 +1,33 @@
+---
+- name: Download CMake archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ cmake_lin_download_url }}'
+    download_checksum: '{{ cmake_lin_download_checksum }}'
+
+- name: Create extract directory
+  become: true
+  file:
+    path: /usr/local/cmake
+    state: directory
+
+- name: Install the cmake with installation script
+  become: true
+  command: sh "{{ download_path }}" --skip-license --prefix=/usr/local/cmake
+
+- name: Check cmake binary was unpacked properly
+  stat:
+    path: /usr/local/cmake/bin/cmake
+  register: reg_cmake_bin_file
+  failed_when: not reg_cmake_bin_file.stat.exists
+
+- name: Create symlink
+  become: true
+  file:
+    src: /usr/local/cmake/bin/cmake
+    dest: /usr/local/bin/cmake
+    state: link
+
+- name: Verify cmake binary is executable
+  command: /usr/local/bin/cmake --version  # noqa 303

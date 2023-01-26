@@ -139,6 +139,12 @@ You can grep all the variables that have `_url: http` and put them in the file a
 one-by-one. Some specs are overriding the main download variable by the template (as in example for
 xcode) and you can specify the version for each one to build the different images properly.
 
+Also there's pip index which could be overridden by placing pip.conf in the repo directory:
+```
+[global]
+index-url = https://my-own-artifact-storage/api/pypi/pypi-remote/simple
+```
+
 **WARNING**: Make sure you using https as your artifact transport, otherwise it could interfere
 with the local proxy and won't allow you to download the artifacts from the role.
 

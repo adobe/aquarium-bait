@@ -1,5 +1,5 @@
 ---
-- name: Install tools required by jenkins_agent.sh script
+- name: Install git basic tools
   become: true
   package:
     name: git-core
