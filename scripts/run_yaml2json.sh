@@ -19,4 +19,4 @@ root_dir=$(dirname "$(dirname "$0")")
 pip -q install --upgrade pip wheel
 pip -q install -r "${root_dir}/requirements.txt"
 
-python3 -c 'import sys, yaml, json; j=yaml.safe_load(sys.stdin.read()); print(json.dumps(j))'
+"${root_dir}/scripts/yaml2json.py" "$@"

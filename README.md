@@ -216,6 +216,15 @@ and could be used in playbooks/roles like:
 crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
 and [./scripts/vncrecord.py](scripts/vncrecord.py).
 
+**NOTICE:** If you want to override spec file in runtime `yaml2json.py` script which is executed
+before the packer run can override the values of the spec. For example, you want to put
+`skip_create_ami` in amazon-ebs builder, so you can export env variable like that:
+```
+export BAIT_SPEC_UPDATE='{"builders":[{"skip_create_ami":true}]}'
+```
+... before running the `build_image.sh` and it will be added to the json spec. Could be really
+useful to test the changes for example.
+
 ### 4. Run pack of the images
 
 Now you can run script to pack all the generated images into tight tar.xz archives:
