@@ -9,3 +9,7 @@ vncdotool==0.13.0 # 1.0.0 has issues with vnc password on MacOS
 # Scripts dependencies
 pysocks~=1.7.1
 opencv-python~=4.5.5.64
+
+# Static checks dependencies
+yamllint~=1.29.0
+ansible-lint~=5.4.0  # Latest that supports ansible 2.9

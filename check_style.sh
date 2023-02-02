@@ -11,6 +11,14 @@
 
 # Script to simplify the style check process
 
+root_dir="$(dirname "$0")"
+
+# Setup virtual env
+[ -f "${root_dir}/.venv/bin/activate" ] || python3 -m venv "${root_dir}/.venv"
+. "${root_dir}/.venv/bin/activate"
+pip -q install --upgrade pip wheel
+pip -q install -r "${root_dir}/requirements.txt"
+
 root_dir=$(realpath "$(dirname "$0")")
 errors=0
 
@@ -36,13 +44,13 @@ done
 echo
 echo '---------------------- YAML Lint ----------------------'
 echo
-docker run --rm -v "${root_dir}:/data" cytopia/yamllint:1.22 --strict playbooks specs
+yamllint --strict playbooks specs
 errors=$((${errors}+$?))
 
 echo
 echo '---------------------- Ansible Lint ----------------------'
 echo
-docker run --rm -v "${root_dir}:/data" cytopia/ansible-lint:latest-0.5 playbooks/*.yml
+ansible-lint playbooks/*.yml
 errors=$((${errors}+$?))
 
 exit ${errors}

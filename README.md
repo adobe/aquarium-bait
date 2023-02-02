@@ -521,3 +521,9 @@ executes `./scripts/run_ansible.sh` script during preparation of any image.
 $ . ./.venv/bin/activate
 (.venv) $ ansible all -i localhost, -m debug -a "msg={{ tst_var | regex_replace('\r', '') }}" --extra-vars '{"tst_var":"test\r\n\r\n"}'
 ```
+
+### CI PR verification routines
+
+In case you want to check which changes in roles/playbooks affected the packer specs you can use
+`list_affected.sh` script which will check your current git branch, collect the changes against the
+main branch and will show the roles/playbooks and specs you probably want to test in dry run.
