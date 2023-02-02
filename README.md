@@ -322,22 +322,23 @@ a number of directories which contains the layers from base OS to the target ima
 ##### 2. Load the images
 
 The docker images can't be used directly from disk and need to be loaded to the docker in order
-from base os to the target image:
+from base os to the target image (order is important, because the images contains only their own
+layers and will rely on registry to have the parent ones):
 ```
 $ docker load -i out/docker/ubuntu2004-VERSION/ubuntu2004.tar
-$ docker load -i out/docker/ubuntu2004-python3-VERSION/ubuntu2004-python3.tar
-$ docker load -i out/docker/ubuntu2004-python3-ci-VERSION/ubuntu2004-python3-ci.tar
+$ docker load -i out/docker/ubuntu2004-build-VERSION/ubuntu2004-build.tar
+$ docker load -i out/docker/ubuntu2004-build-ci-VERSION/ubuntu2004-build-ci.tar
 ```
 
-And now you will be able to see that the `docker ps` contains those versioned images. All of them
-will have `aquarium/` prefix so you quickly can distinguish the loaded images from your own.
+And now you will be able to see that the `docker images` contains those versioned images. All of
+them will have `aquarium/` prefix so you quickly can distinguish the loaded images from your own.
 
 ##### 3. Run the container
 
 Docker will take care about the images and will not modify them, but will allow you to run the
 container like that:
 ```
-$ docker run --rm -it aquarium/ubuntu2004:VERSION
+$ docker run --rm -it aquarium/ubuntu2004-build-ci:VERSION
 ```
 
 Of course you can mount volumes, limit the amount of resources for each container and so on - just

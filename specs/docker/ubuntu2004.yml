@@ -10,6 +10,16 @@ builders:
     image: ubuntu:20.04
     commit: true
 
+provisioners:
+  # Install python3 to connect by ansible from host machine in child images
+  - type: shell
+    inline:
+      - apt update
+      - apt install -y python3 python-is-python3
+      # Cleanup
+      - apt -qq clean
+      - rm -rf /var/lib/apt/lists/*
+
 post-processors:
   - type: docker-tag
     repository: "aquarium/{{ user `image_name` }}"

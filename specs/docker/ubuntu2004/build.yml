@@ -12,25 +12,16 @@ builders:
     image: "aquarium/{{ user `parent_name` }}:{{ user `parent_version` }}"
     pull: false
     commit: true
-    changes:
-      - ENV JAVA_HOME /srv/jre
-      - USER jenkins
-      - WORKDIR /home/jenkins
-      - ENTRYPOINT /srv/jenkins_agent/jenkins_agent.sh
 
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
+    playbook_file: "{{ user `bait_path` }}/playbooks/build_essential_image.yml"
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes
       - -e
       - ansible_become=false  # We already root here
-      - -e
-      - jre_extract_path=/srv/jre
-      - -e
-      - jenkins_agent_config_url=https://host.docker.internal:8001/meta/v1/data/?format=env
 
 post-processors:
   - type: docker-tag

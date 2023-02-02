@@ -14,16 +14,14 @@ builders:
     commit: true
 
 provisioners:
-  - type: shell
-    inline:
-      - apt update
-      - apt install -y python3 python3-pip python3-venv python-is-python3
-
-  # Cleaning after using apt
-  - type: shell
-    inline:
-      - apt -qq clean
-      - rm -rf /var/lib/apt/lists/*
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/macsdklibs_image.yml"
+    extra_arguments:
+      - --skip-tags
+      - wipe_disk_zeroes
+      - -e
+      - ansible_become=false  # We already root here
 
 post-processors:
   - type: docker-tag
