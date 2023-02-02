@@ -438,7 +438,11 @@ You can actually make this happen by creating the new repository with the next l
    ./bait/build_image.sh "$@"
    ```
 * check_style.sh
-   > symlink to `bait/check_style.sh`
+   > shell script to run `bait/check_style.sh`, symlink will not work here
+   ```sh
+   #!/bin/sh -e
+   ./bait/check_style.sh "$@"
+   ```
 * pack_image.sh
    > symlink to `bait/pack_image.sh`
 * upload_image.sh

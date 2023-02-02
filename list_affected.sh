@@ -9,15 +9,24 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
-# Script allows to check which roles, playbooks and specs were affected by the branch changes
+# Script allows to check which roles, playbooks and specs were affected by the changes
+# Usage:
+#   $ ./list_affected.sh
+#     # Will show only the branch affects compared to main
+#   $ ./list_affected.sh 12abcdef
+#     # Will show the changes down to 12abcdef (not included)
+#   $ ./list_affected.sh 12abcdef~1
+#     # Will show the changes till 12abcdef (included)
 
-branch_commits=$(git rev-list HEAD ^main)
+diff_commit=$1
+[ "$diff_commit" -a "$diff_commit" != 'X' ] || diff_commit="$(git rev-list HEAD ^main | tail -1)~1"
+[ "$diff_commit" != '~1' ] || diff_commit="HEAD"
 
 # Get list of roles
-roles=$(git show --name-only $branch_commits | grep '^playbooks/roles' | cut -d/ -f 2-3 | sort -u)
+roles=$(git diff --name-only $diff_commit | grep '^playbooks/roles' | cut -d/ -f 2-3 | sort -u)
 
 # Get list of directly affected playbooks
-playbooks=$(git show --name-only $branch_commits | grep '^playbooks/[^/]\+.yml')
+playbooks=$(git diff --name-only $diff_commit | grep '^playbooks/[^/]\+.yml')
 
 # Look for the playbooks affected by changed roles (no nested roles)
 role_names=$(echo "$roles" | cut -d/ -f 2)
@@ -27,7 +36,7 @@ done)"
 playbooks=$(echo "$playbooks" | sort -u)
 
 # Get list of directly affected specs
-specs=$(git show --name-only $branch_commits | grep '^specs/.\+.yml')
+specs=$(git diff --name-only $diff_commit | grep '^specs/.\+.yml')
 
 # Look for the specs affected by the changed playbooks
 specs="$specs\n$(for playbook in $playbooks; do
@@ -35,8 +44,17 @@ specs="$specs\n$(for playbook in $playbooks; do
 done)"
 specs=$(echo "$specs" | sort -u)
 
-echo "$roles"
-echo
-echo "$playbooks"
-echo
-echo "$specs"
+# Print the results
+if [ "$1" != 'X' ]; then
+    if [ "$roles" ]; then
+        echo "$roles"
+        echo
+    fi
+    if [ "$playbooks" ]; then
+        echo "$playbooks"
+        echo
+    fi
+    if [ "$specs" ]; then
+        echo "$specs"
+    fi
+fi
