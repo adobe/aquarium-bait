@@ -2,5 +2,6 @@
 - name: Build essential ubuntu image
   hosts: all
   roles:
+    - role: python
     - role: build_essential
     - role: cleanup

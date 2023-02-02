@@ -15,11 +15,15 @@
 
 - name: Install tools required by jenkins_agent.sh script
   become: true
-  package:
-    name: "{{ item }}"
-  with_items:
-    - iproute2
-    - curl
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name:
+      - iproute2
+      - curl
 
 - name: Create extract directory
   become: true

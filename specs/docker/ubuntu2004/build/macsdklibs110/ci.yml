@@ -7,6 +7,9 @@ variables:
   out_full_path: "{{ env `PWD` }}/out"
   parent_version: parent_version
 
+  # Used to mount ansible playbooks and requirements to the container
+  aquarium_path: "{{ env `PWD` }}"
+
 builders:
   - type: docker
     image: "aquarium/{{ user `parent_name` }}:{{ user `parent_version` }}"
