@@ -12,21 +12,21 @@
 # Script allows to check which roles, playbooks and specs were affected by the changes
 # Usage:
 #   $ ./list_affected.sh
-#     # Will show only the branch affects compared to main
+#     # Will show only the branch affects compared to origin/main
 #   $ ./list_affected.sh 12abcdef
 #     # Will show the changes down to 12abcdef (not included)
 #   $ ./list_affected.sh 12abcdef~1
 #     # Will show the changes till 12abcdef (included)
 
 diff_commit=$1
-[ "$diff_commit" -a "$diff_commit" != 'X' ] || diff_commit="$(git rev-list HEAD ^main | tail -1)~1"
+[ "$diff_commit" -a "$diff_commit" != 'X' ] || diff_commit="$(git rev-list HEAD ^origin/main | tail -1)~1"
 [ "$diff_commit" != '~1' ] || diff_commit="HEAD"
 
 # Get list of roles
 roles=$(git diff --name-only $diff_commit | grep '^playbooks/roles' | cut -d/ -f 2-3 | sort -u)
 
 # Get list of directly affected playbooks
-playbooks=$(git diff --name-only $diff_commit | grep '^playbooks/[^/]\+.yml')
+playbooks=$(git diff --name-only $diff_commit | grep '^playbooks/[^/]\+.yml$')
 
 # Look for the playbooks affected by changed roles (no nested roles)
 role_names=$(echo "$roles" | cut -d/ -f 2)
@@ -36,7 +36,7 @@ done)"
 playbooks=$(echo "$playbooks" | sort -u)
 
 # Get list of directly affected specs
-specs=$(git diff --name-only $diff_commit | grep '^specs/.\+.yml')
+specs=$(git diff --name-only $diff_commit | grep '^specs/.\+.yml$')
 
 # Look for the specs affected by the changed playbooks
 specs="$specs\n$(for playbook in $playbooks; do

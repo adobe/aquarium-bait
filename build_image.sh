@@ -102,7 +102,7 @@ export http_proxy="socks5://127.0.0.1:$proxy_port"
 
 # Clean of the running background apps on exit
 clean_bg() {
-    find "${root_dir}/specs" -name '*.json' -delete
+    rm -f "${yml}.json"
     pkill -SIGINT -f "scripts/vncrecord.py logs/bait-${image}-packer-${BAIT_SESSION}.log" || true
     if [ ! -f "./records/${image}.mp4" ]; then
         pkill -f "scripts/vncrecord.py logs/bait-${image}-packer-${BAIT_SESSION}.log" || true
