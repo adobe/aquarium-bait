@@ -40,7 +40,7 @@ builders:
       filters:
         tag:Class: image-build-winrm
 
-    user_data_file: ./init/aws/winserver2019_init_userdata.txt
+    user_data_file: "{{ user `bait_path` }}/init/aws/winserver2019_init_userdata.txt"
 
     communicator: winrm
     winrm_username: Administrator
