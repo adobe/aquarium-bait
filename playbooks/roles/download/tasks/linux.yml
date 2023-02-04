@@ -11,14 +11,13 @@
     state: directory
 
 - name: Get archive {{ download_local_path }} from the localhost files
-  ignore_errors: true
-  register: reg_remote_file
+  when: lookup('file', download_local_path, errors='ignore')
   copy:
     src: '{{ download_local_path }}'
     dest: '{{ vars[download_result_var] }}'
 
 - name: When the localhost file is not available - download it
-  when: reg_remote_file.failed
+  when: not lookup('file', download_local_path, errors='ignore')
   block:
     - name: Download {{ download_url }} binary and verify checksum
       delegate_to: localhost
