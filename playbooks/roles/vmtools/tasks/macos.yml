@@ -3,8 +3,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ vmtools_mac_vmware_download_url }}'
-    download_checksum: '{{ vmtools_mac_vmware_download_checksum }}'
+    download_url: '{{ vmtools_vmware_mac_download_url }}'
+    download_sum: '{{ vmtools_vmware_mac_download_sum }}'
 
 - name: Mount vmware tools iso file
   become: true

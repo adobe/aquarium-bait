@@ -6,9 +6,9 @@
     - role: xcode  # 12.4
       vars:
         xcode_download_url: https://artifact-storage/aquarium/files/mac/Xcode_12.4.xip
-        xcode_download_checksum: sha256:cc8d10155258f9ddaa5e422ab8f50e6058758c95208e58e59b5db1db033ce2ff
+        xcode_download_sum: sha256:cc8d10155258f9ddaa5e422ab8f50e6058758c95208e58e59b5db1db033ce2ff
         xcode_cmd_download_url: https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_12.4.dmg
-        xcode_cmd_download_checksum: sha256:77a77db309465485e2fe8fb286dd1e5786742530f0a08b31ef4180ddd9c3681a
+        xcode_cmd_download_sum: sha256:77a77db309465485e2fe8fb286dd1e5786742530f0a08b31ef4180ddd9c3681a
         xcode_install_path: /Applications/Xcode_12.4
 
     - role: cleanup

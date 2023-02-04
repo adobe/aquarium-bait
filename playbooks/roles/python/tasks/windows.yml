@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ python_win_download_url }}'
-    download_checksum: '{{ python_win_download_checksum }}'
+    download_sum: '{{ python_win_download_sum }}'
 
 - name: Install python to util dir
   win_command: '{{ download_path }} /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 TargetDir=C:\util\python3'

@@ -3,8 +3,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ ccache_download_url }}'
-    download_checksum: '{{ ccache_download_checksum }}'
+    download_url: '{{ ccache_mac_download_url }}'
+    download_sum: '{{ ccache_mac_download_sum }}'
 
 # Build & install ccache
 - name: Create build directory

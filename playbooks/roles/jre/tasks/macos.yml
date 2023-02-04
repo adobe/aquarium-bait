@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ jre_download_url | default(jre_mac_download_url) }}'
-    download_checksum: '{{ jre_download_checksum | default(jre_mac_download_checksum) }}'
+    download_sum: '{{ jre_download_sum | default(jre_mac_download_sum) }}'
 
 - name: Create extract directory
   become: true

@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ cmake_lin_download_url }}'
-    download_checksum: '{{ cmake_lin_download_checksum }}'
+    download_sum: '{{ cmake_lin_download_sum }}'
 
 - name: Create extract directory
   become: true

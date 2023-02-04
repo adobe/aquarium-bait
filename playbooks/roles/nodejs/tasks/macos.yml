@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ nodejs_mac_download_url }}'
-    download_checksum: '{{ nodejs_mac_download_checksum }}'
+    download_sum: '{{ nodejs_mac_download_sum }}'
 
 - name: Create extract directory
   become: true

@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ ninja_lin_download_url }}'
-    download_checksum: '{{ ninja_lin_download_checksum }}'
+    download_sum: '{{ ninja_lin_download_sum }}'
 
 - name: Create extract directory
   become: true

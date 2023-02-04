@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ sevenzip_mac_download_url }}'
-    download_checksum: '{{ sevenzip_mac_download_checksum }}'
+    download_sum: '{{ sevenzip_mac_download_sum }}'
 
 - name: Unzip 7zip
   become: true

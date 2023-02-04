@@ -2,6 +2,7 @@
 - name: Native CI image provision
   hosts: all
   vars:
+    # Set dirs to the native_platform because we're using only lin/mac as host machine
     download_lin_dir: '{{ native_platform }}'
     download_mac_dir: '{{ native_platform }}'
     jre_extract_path: '{{ native_init_path }}/srv/jre8'
@@ -10,7 +11,7 @@
         name: jre
       vars:
         jre_download_url: "{{ lookup('vars', 'jre_'+native_platform+'_download_url') }}"
-        jre_download_checksum: "{{ lookup('vars', 'jre_'+native_platform+'_download_checksum') }}"
+        jre_download_sum: "{{ lookup('vars', 'jre_'+native_platform+'_download_sum') }}"
         jre_tar_suffix: "{{ lookup('vars', 'jre_'+native_platform+'_tar_suffix') }}"
 
     - include_role:

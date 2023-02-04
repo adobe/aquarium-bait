@@ -126,12 +126,12 @@ variables from the roles. For example:
 # Allow to use local env creds during downloading of the artifacts from storage
 download_headers: X-JFrog-Art-Api:{{ lookup('env', 'ARTIFACTORY_API_KEY') }}
 
-vmtools_lin_vmware_download_url: https://my-own-artifact-storage/archive-ubuntu-remote/pool/universe/o/open-vm-tools/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
+vmtools_vmware_lin_download_url: https://my-own-artifact-storage/archive-ubuntu-remote/pool/universe/o/open-vm-tools/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
 
-xcode_version_133_download_url: https://my-own-artifact-storage/aquarium/files/mac/Xcode_13.3.xip
-xcode_version_133_download_checksum: sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
-xcode_version_133_cmd_download_url: https://my-own-artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
-xcode_version_133_cmd_download_checksum: sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3
+xcode_version_133_mac_download_url: https://my-own-artifact-storage/aquarium/files/mac/Xcode_13.3.xip
+xcode_version_133_mac_download_sum: sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
+xcode_version_133_cmd_mac_download_url: https://my-own-artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
+xcode_version_133_cmd_mac_download_sum: sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3
 ...
 ```
 

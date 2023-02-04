@@ -5,8 +5,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ init_pstools_download_url }}'
-    download_checksum: '{{ init_pstools_download_checksum }}'
+    download_url: '{{ init_pstools_win_download_url }}'
+    download_sum: '{{ init_pstools_win_download_sum }}'
 
 - name: Unzip the PSTools archive
   win_unzip:

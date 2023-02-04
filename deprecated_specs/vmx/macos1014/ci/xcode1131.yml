@@ -40,10 +40,10 @@ provisioners:
       - -e
       - xcode_download_url=https://artifact-storage/aquarium/files/mac/Xcode_11.3.1.xip
       - -e
-      - xcode_download_checksum=sha256:9a92379b90734a9068832f858d594d3c3a30a7ddc3bdb6da49c738aed9ad34b5
+      - xcode_download_sum=sha256:9a92379b90734a9068832f858d594d3c3a30a7ddc3bdb6da49c738aed9ad34b5
       - -e
       - xcode_extraction_timeout=2000
       - -e
       - xcode_cmd_download_url=https://artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_11.3.1.dmg
       - -e
-      - xcode_cmd_download_checksum=sha256:1c4b477285641cca5313f456b712bf726aca8db77f38793420e1d451588673f9
+      - xcode_cmd_download_sum=sha256:1c4b477285641cca5313f456b712bf726aca8db77f38793420e1d451588673f9

@@ -3,8 +3,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ vmtools_lin_vmware_download_url }}'
-    download_checksum: '{{ vmtools_lin_vmware_download_checksum }}'
+    download_url: '{{ vmtools_vmware_lin_download_url }}'
+    download_sum: '{{ vmtools_vmware_lin_download_sum }}'
 
 - name: Install the package
   become: true

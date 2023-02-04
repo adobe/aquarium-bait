@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ sevenzip_win_download_url }}'
-    download_checksum: '{{ sevenzip_win_download_checksum }}'
+    download_sum: '{{ sevenzip_win_download_sum }}'
 
 - name: Install 7zip to {{ sevenzip_install_path }}
   win_package:
