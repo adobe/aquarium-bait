@@ -1,6 +1,6 @@
 ---
 git_mac_download_url: https://artifact-storage/aquarium/files/mac/git/git-2.33.0-intel-universal-mavericks.dmg
-git_mac_download_checksum: sha256:10e750b8ed5c405727d48c841d2d1f694fde22478d9ac7c31628ef27584f33ce
+git_mac_download_sum: sha256:10e750b8ed5c405727d48c841d2d1f694fde22478d9ac7c31628ef27584f33ce
 
 git_win_download_url: https://artifact-storage/aquarium/files/win/git/Git-2.30.1-64-bit.exe
-git_win_download_checksum: sha256:f1358ec93e8975fb4eaacbb71e010fadcb097fb00b8af9ab6d003ba69c08367d
+git_win_download_sum: sha256:f1358ec93e8975fb4eaacbb71e010fadcb097fb00b8af9ab6d003ba69c08367d

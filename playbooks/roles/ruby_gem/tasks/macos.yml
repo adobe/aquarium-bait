@@ -6,8 +6,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ ruby_gem_download_url }}/{{ item.name }}-{{ item.version }}.gem'
-    download_checksum: '{{ item.checksum }}'
+    download_url: '{{ ruby_gem_repo_url }}/{{ item.name }}-{{ item.version }}.gem'
+    download_sum: '{{ item.checksum }}'
     download_result_var: 'download_path_{{ index }}'
 
 - name: Install gems

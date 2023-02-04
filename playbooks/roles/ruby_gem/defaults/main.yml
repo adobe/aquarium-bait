@@ -1,6 +1,6 @@
 ---
 # Used to download the specific gems provided in ruby_gem_list variable
-ruby_gem_download_url: https://artifact-storage/aquarium/gems
+ruby_gem_repo_url: https://artifact-storage/aquarium/gems
 
 required_vars:
   - ruby_gem_list  # List of gems with name, version and checksum

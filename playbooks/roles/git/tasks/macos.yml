@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ git_mac_download_url }}'
-    download_checksum: '{{ git_mac_download_checksum }}'
+    download_sum: '{{ git_mac_download_sum }}'
 
 - name: Mount DMG file
   command: hdiutil attach '{{ download_path }}' -nobrowse -mountpoint /tmp/git_dist

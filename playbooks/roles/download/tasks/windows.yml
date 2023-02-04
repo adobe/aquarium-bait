@@ -1,6 +1,7 @@
 ---
 - name: Set fact with downloaded file for use from caller role
   set_fact:
+    # noqa var-naming
     '{{ download_result_var }}': '{{ download_win_tmp }}\{{ download_url | basename }}'
     download_local_path: '{{ download_win_dir }}/{{ download_url | basename }}'
 
@@ -26,7 +27,7 @@
         headers: '{{ download_headers }}'
         dest: '{{ playbook_dir }}/files/{{ download_local_path }}'
         mode: '0440'
-        checksum: '{{ download_checksum }}'
+        checksum: '{{ download_sum }}'
 
     - name: Get archive {{ download_local_path }} from the localhost files
       win_copy:
@@ -41,5 +42,5 @@
   register: reg_remote_file
   win_stat:
     path: '{{ vars[download_result_var] }}'
-    checksum_algorithm: '{{ download_checksum.split(":") | first }}'
-  failed_when: reg_remote_file.stat.checksum != (download_checksum.split(":") | last)
+    checksum_algorithm: '{{ download_sum.split(":") | first }}'
+  failed_when: reg_remote_file.stat.checksum != (download_sum.split(":") | last)

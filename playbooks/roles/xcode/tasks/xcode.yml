@@ -10,7 +10,7 @@
     name: download
   vars:
     download_url: '{{ xcode_download_url }}'
-    download_checksum: '{{ xcode_download_checksum }}'
+    download_sum: '{{ xcode_download_sum }}'
 
 - name: Install Xcode from XIP file Location
   become: true

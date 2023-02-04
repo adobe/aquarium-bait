@@ -1,3 +1,3 @@
 ---
 perl_win_download_url: https://artifact-storage/aquarium/files/win/ActivePerl-5.28.1.2801-MSWin32-x64-24563874.exe
-perl_win_download_checksum: sha256:66ab41084b2d1e8a7590bccc09657d7db9fc514dbf39230bc070d903fb3665a1
+perl_win_download_sum: sha256:66ab41084b2d1e8a7590bccc09657d7db9fc514dbf39230bc070d903fb3665a1

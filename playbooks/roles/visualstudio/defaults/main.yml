@@ -1,6 +1,6 @@
 ---
-visualstudio_download_url: '{{ visualstudio_version_1693_download_url }}'
-visualstudio_download_checksum: '{{ visualstudio_version_1693_download_checksum }}'
+visualstudio_download_url: '{{ visualstudio_version_1693_win_download_url }}'
+visualstudio_download_sum: '{{ visualstudio_version_1693_win_download_sum }}'
 
 # Where VS will be installed, if empty - will use default path or the one specified in
 # json in the root of the vs archive

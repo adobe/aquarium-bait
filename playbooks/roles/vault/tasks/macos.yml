@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ vault_mac_download_url }}'
-    download_checksum: '{{ vault_mac_download_checksum }}'
+    download_sum: '{{ vault_mac_download_sum }}'
 
 - name: Unzip vault
   become: true

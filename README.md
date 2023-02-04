@@ -126,12 +126,12 @@ variables from the roles. For example:
 # Allow to use local env creds during downloading of the artifacts from storage
 download_headers: X-JFrog-Art-Api:{{ lookup('env', 'ARTIFACTORY_API_KEY') }}
 
-vmtools_lin_vmware_download_url: https://my-own-artifact-storage/archive-ubuntu-remote/pool/universe/o/open-vm-tools/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
+vmtools_vmware_lin_download_url: https://my-own-artifact-storage/archive-ubuntu-remote/pool/universe/o/open-vm-tools/open-vm-tools_11.3.0-2ubuntu0~ubuntu20.04.2_amd64.deb
 
-xcode_version_133_download_url: https://my-own-artifact-storage/aquarium/files/mac/Xcode_13.3.xip
-xcode_version_133_download_checksum: sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
-xcode_version_133_cmd_download_url: https://my-own-artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
-xcode_version_133_cmd_download_checksum: sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3
+xcode_version_133_mac_download_url: https://my-own-artifact-storage/aquarium/files/mac/Xcode_13.3.xip
+xcode_version_133_mac_download_sum: sha256:dc5fd115b0e122427e2a82b3fbd715c3aee49ef76a64c4d1c59a787ce17a611b
+xcode_version_133_cmd_mac_download_url: https://my-own-artifact-storage/aquarium/files/mac/Command_Line_Tools_for_Xcode_13.3.dmg
+xcode_version_133_cmd_mac_download_sum: sha256:7eff583b5ce266cde5c1c8858e779fcb76510ec1af3d9d5408c9f864111005c3
 ...
 ```
 
@@ -219,11 +219,27 @@ and [./scripts/vncrecord.py](scripts/vncrecord.py).
 **NOTICE:** If you want to override spec file in runtime `yaml2json.py` script which is executed
 before the packer run can override the values of the spec. For example, you want to put
 `skip_create_ami` in amazon-ebs builder, so you can export env variable like that:
+
+```sh
+$ export BAIT_SPEC_UPDATE='{"builders":[{"skip_create_ami":true}]}'
 ```
-export BAIT_SPEC_UPDATE='{"builders":[{"skip_create_ami":true}]}'
-```
+
 ... before running the `build_image.sh` and it will be added to the json spec. Could be really
 useful to test the changes for example.
+
+**NOTICE:** Parallel building is possible (really not recommended to build base images of VMX due
+to the tight VNC boot scripts timings) and have one problem with artifacts download, described in
+[#34](https://github.com/adobe/aquarium-bait/issues/34). One solution is use pre-cached artifacts,
+which is the most simple way - and you can either to use one-threaded build first or use special
+[./playbooks/download_file_cache.yml](playbooks/download_file_cache.yml) playbook and run it as:
+
+```sh
+$ ./scripts/run_ansible.sh playbooks/download_file_cache.yml
+```
+
+This playbook is checking the specially formed `_download_url` / `_download_sum` variables to find
+what to download, so if your role vars are using this schema (properly described in the playbook),
+you can benifit from automatic download flow and build your cache easy.
 
 ### 4. Run pack of the images
 

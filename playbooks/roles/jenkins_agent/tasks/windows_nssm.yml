@@ -5,8 +5,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ jenkins_agent_win_nssm_download_url }}'
-    download_checksum: '{{ jenkins_agent_win_nssm_download_checksum }}'
+    download_url: '{{ jenkins_agent_nssm_win_download_url }}'
+    download_sum: '{{ jenkins_agent_nssm_win_download_sum }}'
 
 - name: Unzip the NSSM archive
   win_unzip:

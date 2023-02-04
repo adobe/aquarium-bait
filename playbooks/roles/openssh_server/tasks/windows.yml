@@ -7,8 +7,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ openssh_server_win2022_download_url }}'
-    download_checksum: '{{ openssh_server_win2022_download_checksum }}'
+    download_url: '{{ openssh_server_download_url }}'
+    download_sum: '{{ openssh_server_download_sum }}'
 
 - name: Create fod directory
   win_file:

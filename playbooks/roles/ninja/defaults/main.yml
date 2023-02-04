@@ -1,5 +1,5 @@
 ---
 ninja_mac_download_url: https://artifact-storage/aquarium/files/mac/ninja-mac-1.10.2.zip
-ninja_mac_download_checksum: sha256:6fa359f491fac7e5185273c6421a000eea6a2f0febf0ac03ac900bd4d80ed2a5
+ninja_mac_download_sum: sha256:6fa359f491fac7e5185273c6421a000eea6a2f0febf0ac03ac900bd4d80ed2a5
 ninja_lin_download_url: https://artifact-storage/aquarium/files/lin/ninja-linux-1.10.2.zip
-ninja_lin_download_checksum: sha256:763464859c7ef2ea3a0a10f4df40d2025d3bb9438fcb1228404640410c0ec22d
+ninja_lin_download_sum: sha256:763464859c7ef2ea3a0a10f4df40d2025d3bb9438fcb1228404640410c0ec22d

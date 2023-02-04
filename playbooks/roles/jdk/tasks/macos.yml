@@ -4,7 +4,7 @@
     name: download
   vars:
     download_url: '{{ jdk_mac_download_url }}'
-    download_checksum: '{{ jdk_mac_download_checksum }}'
+    download_sum: '{{ jdk_mac_download_sum }}'
 
 - name: Mount JDK DMG file
   command: hdiutil attach '{{ download_path }}' -nobrowse -mountpoint /tmp/jdk

@@ -17,7 +17,7 @@ outside network.
     name: download
   vars:
     download_url: <URL>
-    download_checksum: <hash_algo:checksum>
+    download_sum: <hash_algo:checksum>
 
 - name: Unpack the downloaded archive
   unarchive:

@@ -1,3 +1,3 @@
 ---
-groovy_download_url: https://artifact-storage/aquarium/files/apache-groovy-sdk-2.5.4.zip
-groovy_download_checksum: sha256:f8e32382ff0b4079e70d47f776363b86ce5ec0ffe56d73608c3ec1dca8d01fc0
+groovy_mac_download_url: https://artifact-storage/aquarium/files/apache-groovy-sdk-2.5.4.zip
+groovy_mac_download_sum: sha256:f8e32382ff0b4079e70d47f776363b86ce5ec0ffe56d73608c3ec1dca8d01fc0

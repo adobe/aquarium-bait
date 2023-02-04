@@ -1,0 +1,64 @@
+---
+# Special playbook to download all the artifacts to the file cache
+# Run it as: ./scripts/run_ansible.sh playbooks/download_file_cache.yml
+#
+# This playbook has one additional requirement: the download variables should be named as:
+#   `<ROLE>_[*_]<PLATFORM>_download_url` and `<ROLE>_[*_]<PLATFORM>_download_sum`
+#
+# It will automatically skip the roles with not changed `artifact-storage/aquarium` url's.
+#
+# TODO: In theory it could be parallelized using async and {{ urls_to_download | batch(10) | list }}
+
+- name: Download file cache
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  # Preparing the roles variables to use them as defaults
+  pre_tasks:
+    - name: Get list of roles
+      find:
+        paths: '{{ lookup("config", "DEFAULT_ROLES_PATH") }}'
+        file_type: directory
+      register: reg_roles_list
+
+    - set_fact:
+        roles_list: '{{ reg_roles_list.files | map(attribute="path") | map("basename") | list }}'
+
+    - name: Found the next roles
+      debug:
+        msg: '{{ roles_list }}'
+
+    - name: Load the role vars and defaults without executing their tasks
+      include_role:
+        name: '{{ item }}'
+        public: true
+        apply:
+          tags: never
+      with_items: '{{ roles_list }}'
+
+  # Finding what to download and executing the download itself for each artifact
+  tasks:
+    - name: Locating all _download_url's avaialble in vars
+      set_fact:
+        urls_to_download: >
+          {{ vars | dict2items
+          | selectattr("key", "regex", "(_lin|_mac|_win)_download_url$")
+          | rejectattr("value", "regex", "^https://artifact-storage/aquarium/files")
+          | list | items2dict }}
+
+    - name: The next artifacts will be placed in the files directory
+      debug:
+        var: urls_to_download
+
+    - name: Downloading the artifact {{ item.key }} {{ item.value }}
+      include_role:
+        name: download
+        tasks_from: linux
+      vars:
+        download_url: '{{ item.value }}'
+        download_sum: '{{ vars[item.key | regex_replace("_url$", "_sum")] }}'
+        # Covering just host platforms here and storing 3rd from end item which is platform
+        download_lin_dir: '{{ item.key.split("_")[-3] }}'
+        download_mac_dir: '{{ item.key.split("_")[-3] }}'
+      with_dict: '{{ urls_to_download }}'

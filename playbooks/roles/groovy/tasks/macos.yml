@@ -3,8 +3,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ groovy_download_url }}'
-    download_checksum: '{{ groovy_download_checksum }}'
+    download_url: '{{ groovy_mac_download_url }}'
+    download_sum: '{{ groovy_mac_download_sum }}'
 
 - name: Unzip groovy
   become: true
