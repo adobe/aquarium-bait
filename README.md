@@ -219,11 +219,27 @@ and [./scripts/vncrecord.py](scripts/vncrecord.py).
 **NOTICE:** If you want to override spec file in runtime `yaml2json.py` script which is executed
 before the packer run can override the values of the spec. For example, you want to put
 `skip_create_ami` in amazon-ebs builder, so you can export env variable like that:
+
+```sh
+$ export BAIT_SPEC_UPDATE='{"builders":[{"skip_create_ami":true}]}'
 ```
-export BAIT_SPEC_UPDATE='{"builders":[{"skip_create_ami":true}]}'
-```
+
 ... before running the `build_image.sh` and it will be added to the json spec. Could be really
 useful to test the changes for example.
+
+**NOTICE:** Parallel building is possible (really not recommended to build base images of VMX due
+to the tight VNC boot scripts timings) and have one problem with artifacts download, described in
+[#34](https://github.com/adobe/aquarium-bait/issues/34). One solution is use pre-cached artifacts,
+which is the most simple way - and you can either to use one-threaded build first or use special
+[./playbooks/download_file_cache.yml](playbooks/download_file_cache.yml) playbook and run it as:
+
+```sh
+$ ./scripts/run_ansible.sh playbooks/download_file_cache.yml
+```
+
+This playbook is checking the specially formed `_download_url` / `_download_sum` variables to find
+what to download, so if your role vars are using this schema (properly described in the playbook),
+you can benifit from automatic download flow and build your cache easy.
 
 ### 4. Run pack of the images
 
