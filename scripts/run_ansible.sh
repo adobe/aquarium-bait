@@ -13,13 +13,10 @@
 #
 # No needed to be run manually - executed by the ansible provisioner section of the packer spec.
 
-root_dir=$(dirname "$(dirname "$0")")
+bait_dir=$(dirname "$(dirname "$0")")
 
-# Setup virtual env
-[ -f "${root_dir}/.venv/bin/activate" ] || python3 -m venv "${root_dir}/.venv"
-. "${root_dir}/.venv/bin/activate"
-pip -q install --upgrade pip wheel
-pip -q install -r "${root_dir}/requirements.txt"
+# Setup virtual env for ansible
+. "${bait_dir}/scripts/require_venv.sh"
 
 # Loads the override configuration for ansible
 override_yml=./override.yml
@@ -41,14 +38,14 @@ if [ "x$PROXY_REMOTE_LISTEN" != "x" ]; then
 
     echo "Running Proxy Remote on http://${PROXY_REMOTE_LISTEN} ..."
     script="scripts/proxy_remote.py $(echo "$PROXY_REMOTE_LISTEN" | tr ':' ' ')"
-    python3 "${root_dir}"/$script &
+    python3 "${bait_dir}"/$script &
     trap "pkill -f '$script' || true" EXIT
 fi
 
 # Run the playbook
 if [ "x$DEBUG" != "x" ]; then
-    echo -- "${root_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
-    "${root_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
+    echo -- "${bait_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
+    "${bait_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
 else
-    "${root_dir}/.venv/bin/ansible-playbook" $proxy_remote_args $override_yml "$@" 2>/dev/null
+    "${bait_dir}/.venv/bin/ansible-playbook" $proxy_remote_args $override_yml "$@" 2>/dev/null
 fi

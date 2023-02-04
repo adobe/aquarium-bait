@@ -1,7 +1,7 @@
 ansible~=2.9.0
 pywinrm~=0.4.2
 
-# Required by vncdo role
+# Required by vncdo role & scripts/vncrecord.py
 vncdotool==0.13.0  # 1.0.0 has issues with vnc password on MacOS
 
 # Scripts dependencies

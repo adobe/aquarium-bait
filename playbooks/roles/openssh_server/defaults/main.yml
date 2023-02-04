@@ -9,8 +9,8 @@ openssh_server_download_url: "{{ lookup('vars', 'openssh_server_'+ansible_os_nam
 openssh_server_download_sum: sha256:{{ lookup('vars', 'openssh_server_'+ansible_os_name.split()[3]+'_win_download_sum', default=openssh_server_2022_win_download_sum) }}
 
 # Needed for Win Server 2019 to install OpenSSH
-openssh_server_fod_download_url: https://artifact-storage/aquarium/files/win/17763.1.180914-1434.rs5_release_amd64fre_SERVER-FOD-PACKAGES_OEM_amd64fre_MULTI.iso
-openssh_server_fod_download_sum: sha256:691a57879da249170400574a4919150c9b11f64f97f92f405dd36dcefcf33701
+openssh_server_fod_win_download_url: https://artifact-storage/aquarium/files/win/17763.1.180914-1434.rs5_release_amd64fre_SERVER-FOD-PACKAGES_OEM_amd64fre_MULTI.iso
+openssh_server_fod_win_download_sum: sha256:691a57879da249170400574a4919150c9b11f64f97f92f405dd36dcefcf33701
 
 # Defines port to use by OpenSSH. If set to 5986 - will replace WinRM service
 openssh_server_ports:

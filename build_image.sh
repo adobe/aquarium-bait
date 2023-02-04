@@ -21,9 +21,6 @@ cd $(dirname "$0")
 script_dir="$PWD"
 cd "${root_dir}"
 
-# Overriding pip.conf location to use the override one
-export PIP_CONFIG_FILE="${root_dir}/pip.conf"
-
 # Used to separate different builds on the same machine
 export BAIT_SESSION=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 8)
 

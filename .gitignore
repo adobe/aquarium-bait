@@ -1,5 +1,6 @@
 # Default aquarium bait ignore file
 /.venv
+.tmp
 /out/*
 /records
 /logs

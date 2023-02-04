@@ -5,8 +5,8 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ openssh_server_fod_download_url }}'
-    download_sum: '{{ openssh_server_fod_download_sum }}'
+    download_url: '{{ openssh_server_fod_win_download_url }}'
+    download_sum: '{{ openssh_server_fod_win_download_sum }}'
 
 - name: Mount the FOD iso as a disk
   win_shell: (Mount-DiskImage -ImagePath "{{ download_path }}" | Get-Volume).DriveLetter
