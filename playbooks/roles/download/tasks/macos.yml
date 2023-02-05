@@ -3,36 +3,30 @@
   set_fact:
     # noqa var-naming
     '{{ download_result_var }}': '{% if inventory_hostname == "localhost" %}{{ playbook_dir }}/files/{{ download_mac_dir }}{% else %}{{ download_mac_tmp }}{% endif %}/{{ download_url | basename }}'
-    download_local_path: '{{ download_mac_dir }}/{{ download_url | basename }}'
+    download_local_path: '{{ playbook_dir }}/files/{{ download_mac_dir }}/{{ download_url | basename }}'
 
 - name: Create download directory
   file:
     path: '{{ download_mac_tmp }}'
     state: directory
 
-- name: Get archive {{ download_local_path }} from the localhost files
-  ignore_errors: true
-  register: reg_remote_file
+- name: Download {{ download_url }} binary and verify checksum
+  when: not lookup('file', download_local_path, errors='ignore')
+  delegate_to: localhost
+  get_url:
+    url: '{{ download_url }}'
+    headers: '{{ download_headers }}'
+    dest: '{{ download_local_path }}'
+    mode: '0440'
+    checksum: '{{ download_sum }}'
+
+# Copy operation is not really needed if we have the local connection and src path = dest path
+# Also it allows to save RAM on target system, big file copies for some reason are memory hungry
+- name: Push archive {{ download_local_path }} to target {{ vars[download_result_var] }} from the localhost files
+  when: not (inventory_hostname == "localhost" and vars[download_result_var] == download_local_path)
   copy:
     src: '{{ download_local_path }}'
     dest: '{{ vars[download_result_var] }}'
-
-- name: When the localhost file is not available - download it
-  when: reg_remote_file.failed
-  block:
-    - name: Download {{ download_url }} binary and verify checksum
-      delegate_to: localhost
-      get_url:
-        url: '{{ download_url }}'
-        headers: '{{ download_headers }}'
-        dest: '{{ playbook_dir }}/files/{{ download_local_path }}'
-        mode: '0440'
-        checksum: '{{ download_sum }}'
-
-    - name: Get archive {{ download_local_path }} from the localhost files
-      copy:
-        src: '{{ download_local_path }}'
-        dest: '{{ vars[download_result_var] }}'
 
 # We need to validate file when it's copied by the next reasons:
 # - the localhost copied file could be corrupted

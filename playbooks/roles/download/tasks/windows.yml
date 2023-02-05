@@ -3,36 +3,28 @@
   set_fact:
     # noqa var-naming
     '{{ download_result_var }}': '{{ download_win_tmp }}\{{ download_url | basename }}'
-    download_local_path: '{{ download_win_dir }}/{{ download_url | basename }}'
+    download_local_path: '{{ playbook_dir }}/files/{{ download_win_dir }}/{{ download_url | basename }}'
 
 - name: Create download directory
   win_file:
     path: '{{ download_win_tmp }}'
     state: directory
 
-- name: Get archive {{ download_local_path }} from the localhost files
-  ignore_errors: true
-  register: reg_remote_file
+- name: Download {{ download_url }} binary and verify checksum
+  when: not lookup('file', download_local_path, errors='ignore')
+  delegate_to: localhost
+  get_url:
+    url: '{{ download_url }}'
+    headers: '{{ download_headers }}'
+    dest: '{{ download_local_path }}'
+    mode: '0440'
+    checksum: '{{ download_sum }}'
+
+# Win task is used only for win remote so no need additional checks here
+- name: Push archive {{ download_local_path }} to target {{ vars[download_result_var] }} from the localhost files
   win_copy:
     src: '{{ download_local_path }}'
     dest: '{{ vars[download_result_var] }}'
-
-- name: When the localhost file is not available - download it
-  when: reg_remote_file.failed
-  block:
-    - name: Download {{ download_url }} binary and verify checksum
-      delegate_to: localhost
-      get_url:
-        url: '{{ download_url }}'
-        headers: '{{ download_headers }}'
-        dest: '{{ playbook_dir }}/files/{{ download_local_path }}'
-        mode: '0440'
-        checksum: '{{ download_sum }}'
-
-    - name: Get archive {{ download_local_path }} from the localhost files
-      win_copy:
-        src: '{{ download_local_path }}'
-        dest: '{{ vars[download_result_var] }}'
 
 # We need to validate file when it's copied by the next reasons:
 # - the localhost copied file could be corrupted
