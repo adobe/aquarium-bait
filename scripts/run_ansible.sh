@@ -47,5 +47,5 @@ if [ "x$DEBUG" != "x" ]; then
     echo -- "${bait_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
     "${bait_dir}/.venv/bin/ansible-playbook" -vvv $proxy_remote_args $override_yml "$@"
 else
-    "${bait_dir}/.venv/bin/ansible-playbook" $proxy_remote_args $override_yml "$@" 2>/dev/null
+    "${bait_dir}/.venv/bin/ansible-playbook" $proxy_remote_args $override_yml "$@"
 fi
