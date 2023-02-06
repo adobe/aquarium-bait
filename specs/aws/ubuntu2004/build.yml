@@ -5,6 +5,7 @@ variables:
   bait_path: .
   image_name: image
   parent_name: parent_image
+  remote_proxy_port: '1080'
 
   aws_region: us-west-2
   aws_account_id: "{{ env `AWS_ACCOUNT_ID` }}"
@@ -49,7 +50,7 @@ builders:
 
     # Tunnel will transfer traffic through ssh to the http proxy for ansible
     ssh_remote_tunnels:
-      - 1080:127.0.0.1:1080
+      - "{{ user `remote_proxy_port` }}:127.0.0.1:{{ user `remote_proxy_port` }}"
 
 provisioners:
   - type: ansible
@@ -57,7 +58,7 @@ provisioners:
     playbook_file: "{{ user `bait_path` }}/playbooks/build_essential_image.yml"
     ansible_env_vars:
       # Start proxy on static port to use packer's ssh tunnel
-      - PROXY_REMOTE_LISTEN=127.0.0.1:1080
+      - PROXY_REMOTE_LISTEN=127.0.0.1:{{ user `remote_proxy_port` }}
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes

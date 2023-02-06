@@ -185,18 +185,21 @@ be able to connect to the host machine (vmx, docker...). Could be used if Socks5
 * In case your remote can't reach the host machine easily (cloud) - you can use built-in-packer ssh
 tunnel like that (yep works just with SSH, so keep the base windows images simple):
    ```yaml
+   variables:
+     remote_proxy_port: '1080'
+     ...
    builders:
      ...
      # Tunnel will transfer traffic through ssh to the http proxy for ansible
      ssh_remote_tunnels:
-       - 1080:127.0.0.1:1080
+       - "{{ user `remote_proxy_port` }}:127.0.0.1:{{ user `remote_proxy_port` }}"
 
    provisioners:
      - type: ansible
        ...
        ansible_env_vars:
          # Start proxy on static port to use packer's ssh tunnel
-         - PROXY_REMOTE_LISTEN=127.0.0.1:1080
+         - PROXY_REMOTE_LISTEN=127.0.0.1:{{ user `remote_proxy_port` }}
    ```
 
 The ansible variables to access this proxy passed as `bait_proxy_url` which is `http://host:port`

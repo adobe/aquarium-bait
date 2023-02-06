@@ -97,6 +97,9 @@ proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.
 # your artifacts but it's a simpliest solution I found for now
 export http_proxy="socks5://127.0.0.1:$proxy_port"
 
+# Generating port for remote proxy to use in PROXY_REMOTE_LISTEN
+remote_proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.0.0.1", 0)); print(sock.getsockname()[1]); sock.close()')
+
 # Clean of the running background apps on exit
 clean_bg() {
     rm -f "${yml}.json"
@@ -118,6 +121,7 @@ packer_params="$packer_params -var bait_path=${script_dir}"
 packer_params="$packer_params -var image_name=${image}"
 packer_params="$packer_params -var username=packer -var password=packer"
 packer_params="$packer_params -var out_full_path=${image_outdir}"
+packer_params="$packer_params -var remote_proxy_port=${remote_proxy_port}"
 if [ $stage -gt 1 ]; then
     parent_name=$(echo "${yml_bait}" | cut -d. -f1 | cut -d/ -f3- | rev | cut -d/ -f2- | rev | tr / -)
     if [ $image_type != "aws" ]; then
