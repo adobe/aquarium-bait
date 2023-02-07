@@ -21,7 +21,15 @@ builders:
     secret_key: "{{ user `aws_secret_key` }}"
 
     # https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LaunchInstances:
-    source_ami: ami-090b2f6d3af372d21  # Release Windows_Server-2022-English-Full-Base-2022.08.10
+    # source_ami: ami-0e2daa9ce776be2b0  # Release Windows_Server-2022-English-Full-Base-2023.01.19
+    # Unfortunately AWS removes the old windows AMI's, so we have to use the filter...
+    source_ami_filter:
+      filters:
+        virtualization-type: hvm
+        root-device-type: ebs
+        name: Windows_Server-2022-English-Full-Base-*
+      owners: ["801119661308"]  # Amazon
+      most_recent: true
 
     # Disk
     launch_block_device_mappings:
