@@ -1,0 +1,14 @@
+---
+- name: Install ccache
+  become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name:
+      - ccache
+
+- name: Verify ccache binary is here
+  command: ccache --version  # noqa 303
