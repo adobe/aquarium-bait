@@ -9,7 +9,7 @@ variables:
   username: packer
   password: packer
 
-  iso_full_path: "{{ user `bait_path` }}/init/iso/Windows-Server-2019_1809.16_64Bit_English_DC_STD_MLF_X22-67487.iso"
+  iso_full_path: "{{ user `bait_path` }}/init/iso/Windows-Server-2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.iso"
   init_vmx_full_path: "{{ user `bait_path` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
 
 builders:
@@ -26,15 +26,15 @@ builders:
 
       - <tab><tab><tab><spacebar><wait5s>  # Using default english localization and press next
       - <spacebar><wait30s>  # Press "Install now" button
-      - <down><tab><spacebar><wait5s>  # Selecting "Windows Server 2019 Standard (Desktop Experience)"
+      - <down><tab><spacebar><wait5s>  # Selecting "Windows Server 2022 Standard (Desktop Experience)"
       - <spacebar><tab><spacebar><wait5s>  # Accept the license terms and continue
       - <tab><spacebar><wait5s>  # Select "Windows only" custom install
-      - <tab><tab><tab><tab><spacebar>  # Use disk layout by default 100% and press continue
+      - <leftShiftOn><tab><tab><leftShiftOff><spacebar>  # Use disk layout by default 100% and press continue
 
       - <wait10m>  # Installation process started and it automatically restarts twice
 
       - <leftCtrlOn><leftShiftOn><f3><leftShiftOff><leftCtrlOff>  # Entering the Audit Mode for optimizations
-      - <wait1m>
+      - <wait1m>  # The system will reboot and automatically log in as Administrator
 
       - <leftSuperOn>r<leftSuperOff><wait1s>powershell<enter><wait10s>  # Entering powershell
 

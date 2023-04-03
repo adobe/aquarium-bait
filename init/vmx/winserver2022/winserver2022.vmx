@@ -2,8 +2,8 @@
 config.version = "8"
 
 # Common
-extendedConfigFile = "winserver2019.vmxf"
-displayName = "winserver-2019-init"
+extendedConfigFile = "winserver2022.vmxf"
+displayName = "winserver-2022-init"
 
 tools.syncTime = "TRUE"
 tools.remindInstall = "FALSE"
@@ -23,9 +23,9 @@ memsize = "8192"
 
 # System
 virtualHW.productCompatibility = "hosted"
-virtualHW.version = "18"
+virtualHW.version = "19"
 firmware = "efi"
-guestOS = "windows2019srv-64"
+guestOS = "windows2019srvNext-64"
 keyboardAndMouseProfile = "5275c0a5-fae6-427a-0332-58d6ff84c4b8"
 smbios.reflectHost = "FALSE"
 smbios.restrictSerialCharset = "TRUE"
@@ -50,7 +50,7 @@ ehci:0.present = "FALSE"
 ethernet0.addressType = "generated"
 ethernet0.connectionType = "hostonly"
 ethernet0.present = "TRUE"
-ethernet0.virtualDev = "e1000e"
+ethernet0.virtualDev = "vmxnet3"
 
 pciBridge0.present = "TRUE"
 pciBridge4.present = "TRUE"

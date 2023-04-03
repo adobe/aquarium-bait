@@ -24,6 +24,8 @@ builders:
     shutdown_command: shutdown /s /t 5 /f /d p:4:1 /c "Packer Shutdown"
     ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
     ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    vmx_data:
+      proxyApps.publishToHost: "FALSE"  # Do not create Applications directory in VM folder
 
     # In the base image we're using OpenSSH for Windows
     ssh_username: "{{ user `username` }}"
@@ -33,8 +35,8 @@ builders:
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/visualstudio_image.yml"
+    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
     inventory_file_template: "{{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }} ansible_shell_type=powershell\n"
     extra_arguments:
       - -e
-      - 'visualstudio_install_path="C:\Program Files (x86)\MSVS"'
+      - jre_extract_path=C:\util\jre

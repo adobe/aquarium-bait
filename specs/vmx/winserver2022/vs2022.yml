@@ -37,4 +37,6 @@ provisioners:
     inventory_file_template: "{{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }} ansible_shell_type=powershell\n"
     extra_arguments:
       - -e
-      - 'visualstudio_install_path="C:\Program Files (x86)\MSVS"'
+      - visualstudio_download_url={% print visualstudio_version_1705_win_download_url %}
+      - -e
+      - visualstudio_download_sum={% print visualstudio_version_1705_win_download_sum %}

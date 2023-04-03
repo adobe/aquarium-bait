@@ -12,7 +12,7 @@
     arguments: /qn /norestart INSTALLDIR={{ sevenzip_install_path }}
     path: '{{ download_path }}'
 
-- name: Add git bin dir to system PATH
+- name: Add 7zip bin dir to system PATH
   win_path:
     elements: '{{ sevenzip_install_path }}'
 
