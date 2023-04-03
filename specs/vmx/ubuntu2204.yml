@@ -9,7 +9,7 @@ variables:
   username: packer
   password: packer
 
-  iso_full_path: "{{ user `bait_path` }}/init/iso/ubuntu-20.04.4-live-server-amd64.iso"
+  iso_full_path: "{{ user `bait_path` }}/init/iso/ubuntu-22.04.2-live-server-amd64.iso"
   init_vmx_full_path: "{{ user `bait_path` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
 
 builders:
@@ -24,6 +24,7 @@ builders:
     boot_command:
       - <enter><wait1s>  # Select default English language
       - <enter><wait1s>  # Select done on keyboard layout for English US
+      - <enter><wait1s>  # Select ordinary install of ubuntu server
       - <enter><wait1s>  # Select continue without network
       - <enter><wait1s>  # Select done without proxy
       - <enter><wait1s>  # Select done without altering package mirror
@@ -39,7 +40,7 @@ builders:
       - "{{ user `password` }}<tab>"  # Put confirm password
       - <enter><wait1s>  # Set the user and continue
 
-      - <enter><wait1s>  # Skip advantage token and continue
+      - <enter><wait1s>  # Skip ubuntu pro setup
       - <spacebar><tab><tab><enter><wait1s>  # Enable openssh and continue
 
       - <wait3m>  # Install process started and will need just a reboot

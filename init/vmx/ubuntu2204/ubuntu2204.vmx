@@ -2,8 +2,8 @@
 config.version = "8"
 
 # Common
-extendedConfigFile = "ubuntu2004.vmxf"
-displayName = "ubuntu-2004-init"
+extendedConfigFile = "ubuntu2204.vmxf"
+displayName = "ubuntu-2204-init"
 
 tools.syncTime = "TRUE"
 tools.remindInstall = "FALSE"
@@ -23,7 +23,7 @@ memsize = "8192"
 
 # System
 virtualHW.productCompatibility = "hosted"
-virtualHW.version = "18"
+virtualHW.version = "19"
 firmware = "efi"
 guestOS = "ubuntu-64"
 smbios.reflectHost = "FALSE"
@@ -49,7 +49,7 @@ ehci:0.present = "FALSE"
 ethernet0.addressType = "generated"
 ethernet0.connectionType = "hostonly"
 ethernet0.present = "TRUE"
-ethernet0.virtualDev = "e1000e"
+ethernet0.virtualDev = "vmxnet3"
 
 pciBridge0.present = "TRUE"
 pciBridge4.present = "TRUE"

@@ -33,11 +33,9 @@ builders:
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
+    playbook_file: "{{ user `bait_path` }}/playbooks/macsdklibs_image.yml"
     ansible_env_vars:
       - PROXY_REMOTE_LISTEN={{ build `PackerHTTPIP` }}
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}
-      - -e
-      - jre_extract_path=/srv/jre
