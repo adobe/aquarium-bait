@@ -35,8 +35,8 @@ playbooks="$playbooks\n$(for role in $role_names; do
 done)"
 playbooks=$(echo "$playbooks" | sort -u)
 
-# Get list of directly affected specs
-specs=$(git diff --name-only $diff_commit | grep '^specs/.\+.yml$')
+# Get list of directly affected specs, skipping deleted ones with filter
+specs=$(git diff --diff-filter=AMRC --name-only $diff_commit | grep '^specs/.\+.yml$')
 
 # Look for the specs affected by the changed playbooks
 specs="$specs\n$(for playbook in $playbooks; do
