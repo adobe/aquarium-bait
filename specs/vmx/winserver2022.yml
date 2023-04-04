@@ -1,0 +1,114 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # Variables are set by the build_image.sh script based on the spec path
+  bait_path: .
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+  iso_full_path: "{{ user `bait_path` }}/init/iso/Windows-Server-2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.iso"
+  init_vmx_full_path: "{{ user `bait_path` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
+
+builders:
+  - type: vmware-vmx  # Use vmx init to describe the steps and control the VM parameters exactly
+    vm_name: "{{ user `image_name` }}"
+    display_name: "{{ user `image_name` }}"
+    source_path: "{{ user `init_vmx_full_path` }}"
+    linked: false  # Create full copy to unlink from init template
+    output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
+    headless: true
+    boot_wait: 2s  # Till the first installation screen
+    boot_command:
+      - <spacebar><wait30s>  # Pressing anykey to boot from installer and wait for the welcome screen
+
+      - <tab><tab><tab><spacebar><wait5s>  # Using default english localization and press next
+      - <spacebar><wait30s>  # Press "Install now" button
+      - <down><tab><spacebar><wait5s>  # Selecting "Windows Server 2022 Standard (Desktop Experience)"
+      - <spacebar><tab><spacebar><wait5s>  # Accept the license terms and continue
+      - <tab><spacebar><wait5s>  # Select "Windows only" custom install
+      - <leftShiftOn><tab><tab><leftShiftOff><spacebar>  # Use disk layout by default 100% and press continue
+
+      - <wait10m>  # Installation process started and it automatically restarts twice
+
+      - <leftCtrlOn><leftShiftOn><f3><leftShiftOff><leftCtrlOff>  # Entering the Audit Mode for optimizations
+      - <wait1m>  # The system will reboot and automatically log in as Administrator
+
+      - <leftSuperOn>r<leftSuperOff><wait1s>powershell<enter><wait10s>  # Entering powershell
+
+      # Disable password complexity requirements policy
+      - mkdir C:\tmp
+      - <enter>
+      - secedit /export /cfg C:\tmp\secpol.cfg
+      - <enter>
+      - (gc C:\tmp\secpol.cfg).replace("PasswordComplexity = 1", "PasswordComplexity = 0") | Out-File C:\tmp\secpol.cfg
+      - <enter>
+      - secedit /configure /db C:\windows\security\local.sdb /cfg C:\tmp\secpol.cfg /areas SECURITYPOLICY
+      - <enter><wait10s>
+
+      # Create superuser
+      - net user /add {{ user `username` }} {{ user `password` }}
+      - <enter>
+      - net localgroup Administrators {{ user `username` }} /add
+      - <enter>
+      - Set-LocalUser -Name {{ user `username` }} -PasswordNeverExpires 1
+      - <enter><wait10s>
+
+      # Enable WinRM HTTP
+      - winrm quickconfig
+      - <enter><wait1s>  # Configure basic winrm service
+      - y<enter><wait1s>  # Confirm enabling the service
+      - winrm set winrm/config/service/auth '@{Basic="true"}'
+      - <enter><wait5s>  # Enabling basic auth
+      - winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+      - <enter><wait10s>  # Allow unencrypted data transfer
+
+      # Enable WinRM HTTPS
+      # this one is not working stable with the OSOT, because looks like it
+      # removes the certificates from the storage. So staying with HTTP since we running it locally
+      #
+      # - New-SelfSignedCertificate -CertstoreLocation Cert:\LocalMachine\My -DnsName "WinRMCertificate"
+      # - <enter><wait5s>  # Create the certficate for WinRM
+      # - Enable-PSRemoting -SkipNetworkProfileCheck -Force
+      # - <enter><wait5s>  # Enable the WinRM service
+      # - ($cert = gci Cert:\LocalMachine\My\) -and (New-Item -Path WSMan:\LocalHost\Listener -Transport HTTPS -Address * -CertificateThumbPrint $cert.Thumbprint -Force)
+      # - <enter><wait5s>  # Adding HTTPS listener to WinRM
+      # - New-NetFirewallRule -DisplayName "WinRM HTTPS Ingest" -Name "WinRM HTTPS Ingest" -Profile Any -LocalPort 5986 -Protocol TCP
+      # - <enter><wait5s>  # Enable WinRM HTTPS firewall
+      # - Set-Item WSMan:\localhost\Service\Auth\Basic -Value $true
+      # - <enter><wait5s>  # Enable WinRM basic auth
+    shutdown_command: shutdown /s /t 5 /f /d p:4:1 /c "Packer Shutdown"
+    communicator: winrm
+    winrm_username: "{{ user `username` }}"
+    winrm_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    # winrm_use_ssl: true  # To work with winrm https
+    # winrm_insecure: true  # To work with winrm https
+    winrm_timeout: 2m
+    # Dynamically create the main disk
+    disk_additional_size: [204800]  # 200GB
+    disk_adapter_type: sata
+    vmdk_name: MainDisk
+    disk_type_id: 1  # Sparse disk to replace .vmdk `parentFileNameHint` absolute path in the linked clones
+    vmx_data:
+      sata0:1.fileName: "{{ user `iso_full_path` }}"
+      sata0:0.present: "TRUE"  # Enable the main disk
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
+    user: "{{ user `username` }}"
+    use_proxy: false  # For proper connection with VMWare
+    extra_arguments:
+      # - -e  # To work with winrm https
+      # - ansible_winrm_server_cert_validation=ignore
+      - -e
+      - ansible_password={{ user `password` }}
+      - -e
+      - vmtools_vm_type=vmware
+      - -e
+      - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `image_name` }}/{{ user `image_name` }}.vmx

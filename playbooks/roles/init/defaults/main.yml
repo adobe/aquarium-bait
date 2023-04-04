@@ -5,8 +5,8 @@ init_pstools_win_download_sum: sha256:102576f2df817427fee2804380ef8904afb7b46d73
 init_sdelete_win_download_url: https://artifact-storage/aquarium/files/win/SDelete/SDelete-v2.04.zip
 init_sdelete_win_download_sum: sha256:49cfc704a431d0f4557d06561310ade7ba78b84c389a99cbe0fac83410f6b255
 
-init_osot_win_download_url: https://artifact-storage/aquarium/files/win/VMwareHorizonOSOptimizationTool-x86_64-2107.exe
-init_osot_win_download_sum: sha256:c6db0f134296853755bd6cb083b1fcbbe177b52059b4434e81e24b013978fb12
+init_osot_win_download_url: https://artifact-storage/aquarium/files/win/VMwareHorizonOSOptimizationTool-x86_64-2204.exe
+init_osot_win_download_sum: sha256:ccc40a199d85afae5342bf8be742411b6bad6cec7099c73fa70eb69273b5e45d
 
 init_ubuntu_apt_sec_url: https://artifact-storage/cache-proxy/security-ubuntu-remote/
 init_ubuntu_apt_url: https://artifact-storage/cache-proxy/archive-ubuntu-remote/

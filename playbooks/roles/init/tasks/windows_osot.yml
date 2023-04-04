@@ -15,6 +15,7 @@
 
 # The next commands will mess up with the network interface, so need
 # to execute them and after they are completed restart the system
+# In finalize we skipping 3, because it causes tool freeze and 7 8 due to no tool available
 - name: Create bat file to execute in the background
   win_copy:
     content: >
@@ -32,12 +33,15 @@
       -SecurityCenter Disable
       -SmartScreen Disable
       -HVCI Disable
-      -Finalize All
-      > C:\tmp\osot_opt_fin.log 2>&1
+      > C:\tmp\osot_opt.log 2>&1
 
       {{ download_path }} -v
       -Generalize C:\tmp\osot-generalize-answers.xml
       > C:\tmp\osot_gen.log 2>&1
+
+      {{ download_path }} -v
+      -Finalize 0 1 2 4 5 6 9 10 11
+      > C:\tmp\osot_fin.log 2>&1
 
       echo completed > C:\tmp\osot_status.txt
 
@@ -47,8 +51,7 @@
 # This command will stall until the system will be rebooted, so will
 # fail with "Unexpected failure during module execution" error and it's ok.
 # Later we validate the logs out of OSOT tool, so can make sure it was executed properly
-- name: Run OSOT optimization, generalization and finalization (fail due to "Unexpected failure during module execution" is ok)
-  ignore_errors: true  # This task will fail due to the network interface reinit
+- name: Run OSOT optimization, generalization and finalization
   win_psexec:
     executable: C:\util\pstools\PsExec.exe
     interactive: true
@@ -63,13 +66,13 @@
     path: C:\tmp\osot_status.txt
     regex: completed
 
-- name: Get log from OSOT optimization and finalization
-  register: reg_osot_opt_fin_log
-  win_shell: type C:\tmp\osot_opt_fin.log
+- name: Get log from OSOT optimization
+  register: reg_osot_opt_log
+  win_shell: type C:\tmp\osot_opt.log
 
-- name: Show OSOT optimization and finalization log
+- name: Show OSOT optimization log
   debug:
-    var: reg_osot_opt_fin_log.stdout_lines
+    var: reg_osot_opt_log.stdout_lines
 
 - name: Get log from OSOT generalization
   register: reg_osot_gen_log
@@ -79,12 +82,20 @@
   debug:
     var: reg_osot_gen_log.stdout_lines
 
+- name: Get log from OSOT finalization
+  register: reg_osot_fin_log
+  win_shell: type C:\tmp\osot_fin.log
+
+- name: Show OSOT finalization log
+  debug:
+    var: reg_osot_fin_log.stdout_lines
+
 # Validate the OSOT logs to contain the necessary lines - this way we
 # make sure the optimization was executed properly and not fail somewhere
-- name: Verify OSOT opt fin log
-  when: item not in reg_osot_opt_fin_log.stdout_lines
+- name: Verify OSOT opt log
+  when: item not in reg_osot_opt_log.stdout_lines
   fail:
-    msg: OSOT opt fin log does not contains the required line "{{ item }}"
+    msg: OSOT opt log does not contains the required line "{{ item }}"
   with_items:
     - Turn off Windows Antimalware - Machine Policy
     - Disable Behavior Monitoring - Machine Policy
@@ -96,7 +107,6 @@
     - Adjust for best performance - HKLM Registry
     - Disable Windows Search - Service
     - Optimization is done.
-    - Finalize is done.
 
 - name: Verify OSOT gen log
   when: item not in reg_osot_gen_log.stdout_lines
@@ -104,3 +114,10 @@
     msg: OSOT gen log does not contains the required line "{{ item }}"
   with_items:
     - Generalize is done, please reboot your computer.
+
+- name: Verify OSOT fin log
+  when: item not in reg_osot_fin_log.stdout_lines
+  fail:
+    msg: OSOT fin log does not contains the required line "{{ item }}"
+  with_items:
+    - Finalize is done.

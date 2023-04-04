@@ -1,0 +1,54 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  bait_path: .
+  image_name: image
+  parent_name: parent_image
+  out_full_path: "{{ env `PWD` }}/out"
+  parent_full_path: "{{ user `out_full_path` }}/parent_image-version"
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `image_name` }}"
+    display_name: "{{ user `image_name` }}"
+    source_path: "{{ user `parent_full_path` }}/{{ user `parent_name` }}.vmx"
+    linked: true  # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
+    headless: true
+    boot_wait: 30s
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/xcode_image.yml"
+    user: "{{ user `username` }}"
+    # Use python3 installed before instead of the default not working one (/usr/bin/python3)
+    # due to not installed developer tools and absent of any built-in python.
+    # Using inventory here because extra_arguments are working for localhost (vncdo) too.
+    inventory_file_template: >
+      {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
+      ansible_python_interpreter=/usr/local/bin/python3
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - xcode_download_url={% print xcode_version_143_mac_download_url %}
+      - -e
+      - xcode_download_sum={% print xcode_version_143_mac_download_sum %}
+      - -e
+      - xcode_cmd_download_url={% print xcode_version_143_cmd_mac_download_url %}
+      - -e
+      - xcode_cmd_download_sum={% print xcode_version_143_cmd_mac_download_sum %}

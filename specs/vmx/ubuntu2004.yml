@@ -33,7 +33,7 @@ builders:
       - <tab><enter><wait1s>  # Confirm destructive action and continue
 
       - "{{ user `username` }}<tab>"  # Put name
-      - ubuntu2004<tab>  # Put server name
+      - "{{ user `image_name` }}<tab>"  # Put server name
       - "{{ user `username` }}<tab>"  # Put username
       - "{{ user `password` }}<tab>"  # Put password
       - "{{ user `password` }}<tab>"  # Put confirm password
@@ -69,6 +69,8 @@ provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
     playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
+    ansible_env_vars:
+      - PROXY_REMOTE_LISTEN={{ build `PackerHTTPIP` }}
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}

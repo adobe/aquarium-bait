@@ -1,0 +1,42 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  bait_path: .
+  image_name: image
+  parent_name: parent_image
+  out_full_path: "{{ env `PWD` }}/out"
+  parent_full_path: "{{ user `out_full_path` }}/parent_image-version"
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `image_name` }}"
+    display_name: "{{ user `image_name` }}"
+    source_path: "{{ user `parent_full_path` }}/{{ user `parent_name` }}.vmx"
+    linked: true  # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
+    headless: true
+    boot_wait: 15s
+    shutdown_command: shutdown /s /t 5 /f /d p:4:1 /c "Packer Shutdown"
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+
+    # In the base image we're using OpenSSH for Windows
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_timeout: 10m
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/visualstudio_image.yml"
+    inventory_file_template: "{{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }} ansible_shell_type=powershell\n"
+    extra_arguments:
+      - -e
+      - visualstudio_download_url={% print visualstudio_version_1705_win_download_url %}
+      - -e
+      - visualstudio_download_sum={% print visualstudio_version_1705_win_download_sum %}

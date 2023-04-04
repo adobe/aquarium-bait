@@ -5,5 +5,5 @@ xcode_download_sum: '{{ xcode_version_122_mac_download_sum }}'
 xcode_extraction_timeout: 3000  # Right now ~941sec
 xcode_install_path: /Applications
 
-xcode_cmd_download_url: '{{ xcode_version_cmd_122_mac_download_url }}'
-xcode_cmd_download_sum: '{{ xcode_version_cmd_122_mac_download_sum }}'
+xcode_cmd_download_url: '{{ xcode_version_122_cmd_mac_download_url }}'
+xcode_cmd_download_sum: '{{ xcode_version_122_cmd_mac_download_sum }}'

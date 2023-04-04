@@ -3,6 +3,10 @@
   include_tasks: linux.yml
   when: ansible_system == 'Linux'
 
+- name: Execute on MacOS
+  include_tasks: macos.yml
+  when: ansible_system == 'Darwin'
+
 - name: Execute on Windows
   include_tasks: windows.yml
   when: ansible_system == 'Win32NT'

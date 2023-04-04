@@ -1,0 +1,14 @@
+---
+- name: Download python pkg to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ python_mac_download_url }}'
+    download_sum: '{{ python_mac_download_sum }}'
+
+- name: Install python from pkg
+  command: installer -pkg '{{ download_path }}' -target /
+  become: true
+
+- name: Verify python binary is here
+  command: python --version  # noqa 303

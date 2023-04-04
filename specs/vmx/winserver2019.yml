@@ -26,7 +26,7 @@ builders:
 
       - <tab><tab><tab><spacebar><wait5s>  # Using default english localization and press next
       - <spacebar><wait30s>  # Press "Install now" button
-      - <down><tab><spacebar><wait5s>  # Selecting "Windows Server 2019 Standard (Desktop Experience)" as recommended by Allen
+      - <down><tab><spacebar><wait5s>  # Selecting "Windows Server 2019 Standard (Desktop Experience)"
       - <spacebar><tab><spacebar><wait5s>  # Accept the license terms and continue
       - <tab><spacebar><wait5s>  # Select "Windows only" custom install
       - <tab><tab><tab><tab><spacebar>  # Use disk layout by default 100% and press continue

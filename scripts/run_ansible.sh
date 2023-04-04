@@ -29,7 +29,7 @@ fi
 # Run the proxy_remote script to listen on the provided address and random free port on the host
 # Value need to be the address `host:port` or just `host` available for the remote to connect to
 if [ "x$PROXY_REMOTE_LISTEN" != "x" ]; then
-    if [ "$(echo "$PROXY_REMOTE_LISTEN" | cut -d: -f2)" = 'x' ]; then
+    if [ "x$(echo "${PROXY_REMOTE_LISTEN}:" | cut -d: -f2)" = 'x' ]; then
         # Generate random port
         proxy_remote_port=$(python3 -c 'import socket, sys; sock = socket.socket(); sock.bind((sys.argv[1], 0)); print(sock.getsockname()[1]); sock.close()' "${PROXY_REMOTE_LISTEN}")
         PROXY_REMOTE_LISTEN="$(echo "$PROXY_REMOTE_LISTEN" | cut -d: -f1):${proxy_remote_port}"

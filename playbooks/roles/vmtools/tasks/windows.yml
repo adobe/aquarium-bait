@@ -9,11 +9,17 @@
 # In case you see errors - check the log file:
 # C:\Users\packer\AppData\Local\Temp\vminst.log
 - name: Install VMware tools
+  ignore_unreachable: true  # Will cause UNREACHABLE error, so skip it
+  win_shell: '{{ download_path }} /S /v "/qn REBOOT=ReallySuppress"'  # Using win shell here to properly parse quotes
+  args:
+    executable: cmd
   register: reg_vmtools_result
-  failed_when: reg_vmtools_result.rc != 1641  # Reboot will cause this exit code
-  win_command: '{{ download_path }} /qn ADDLOCAL=ALL'
+  failed_when: reg_vmtools_result.rc != 3010  # Describes reboot is needed
 
-- name: Wait additional time before connecting back
+- name: Reboot the VM after VM tools installation
+  win_reboot:
+
+- name: Wait till connection will be available
   wait_for_connection:
     delay: 20
 

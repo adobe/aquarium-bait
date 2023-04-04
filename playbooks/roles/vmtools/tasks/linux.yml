@@ -1,12 +1,11 @@
 ---
-- name: Download package to the environment
-  include_role:
-    name: download
-  vars:
-    download_url: '{{ vmtools_vmware_lin_download_url }}'
-    download_sum: '{{ vmtools_vmware_lin_download_sum }}'
-
-- name: Install the package
+- name: Install VMWare open vm tools
   become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
   apt:
-    deb: "{{ download_path }}"
+    update_cache: true
+    name:
+      - open-vm-tools

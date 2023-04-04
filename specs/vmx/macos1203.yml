@@ -1,4 +1,5 @@
 ---
+# WARNING: Uses pre-cached python so make sure it's available in playbook/files/mac
 min_packer_version: 1.7.9
 variables:
   # All the variables are set by the build_image.sh script based on the path
@@ -98,7 +99,7 @@ provisioners:
   # MacOS >=12.3 get rid of python2 - so we need to install python3 to run ansible
   - type: shell
     inline:
-      - curl -o /tmp/python.pkg "$PACKER_HTTP_ADDR/mac/python-3.9.11-macos11.pkg"
+      - curl -o /tmp/python.pkg "$PACKER_HTTP_ADDR/mac/python-3.10.4-macos11.pkg"
       - echo '{{ user `password` }}' | sudo -S installer -pkg /tmp/python.pkg -target /
 
   - type: ansible

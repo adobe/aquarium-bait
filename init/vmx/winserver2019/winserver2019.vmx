@@ -86,4 +86,12 @@ serial0.startConnected = "FALSE"
 serial0.fileType = "thinprint"
 serial0.fileName = "thinprint"
 
+# Do not install the tools by default
 isolation.tools.autoInstall.disable = "TRUE"
+
+# Disable mitigations in order to improve performance
+ulm.disableMitigations = "TRUE"
+
+# Allow to execute nested hypervisors and IOMMU
+vhv.enable = "TRUE"  # Enable hypervisor apps
+vvtd.enable = "TRUE"  # Enable IOMMU
