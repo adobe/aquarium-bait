@@ -20,7 +20,7 @@ builders:
     attach_snapshot: original
     output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
     headless: true
-    boot_wait: 30s
+    boot_wait: 2m
     shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -h now"
     ssh_username: "{{ user `username` }}"
     ssh_password: "{{ user `password` }}"
@@ -33,7 +33,7 @@ builders:
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/xcode_image.yml"
+    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
     user: "{{ user `username` }}"
     # Use python3 installed before instead of the default not working one (/usr/bin/python3)
     # due to not installed developer tools and absent of any built-in python.
@@ -45,10 +45,6 @@ provisioners:
       - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - xcode_download_url={% print xcode_version_133_mac_download_url %}
+      - jre_extract_path=/opt/srv/jre
       - -e
-      - xcode_download_sum={% print xcode_version_133_mac_download_sum %}
-      - -e
-      - xcode_cmd_download_url={% print xcode_version_133_cmd_mac_download_url %}
-      - -e
-      - xcode_cmd_download_sum={% print xcode_version_133_cmd_mac_download_sum %}
+      - jenkins_agent_ui=true  # MacOS needs UI to work properly (DIBR-4244)

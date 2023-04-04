@@ -1,3 +1,6 @@
 ---
 python_win_download_url: https://artifact-storage/aquarium/files/win/python-3.10.4-amd64.exe
 python_win_download_sum: sha256:a81fc4180f34e5733c3f15526c668ff55de096366f9006d8a44c0336704e50f1
+
+python_mac_download_url: https://artifact-storage/aquarium/files/mac/python-3.10.4-macos11.pkg
+python_mac_download_sum: sha256:6379d291a415e16ad9932a9dbe1ba0791696d016552e0172a33d0413d7bb1e55

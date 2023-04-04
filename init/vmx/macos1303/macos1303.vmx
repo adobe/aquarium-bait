@@ -2,8 +2,8 @@
 config.version = "8"
 
 # Common
-extendedConfigFile = "macos1203.vmxf"
-displayName = "macos-1203-init"
+extendedConfigFile = "macos1303.vmxf"
+displayName = "macos-1303-init"
 
 tools.syncTime = "TRUE"
 tools.remindInstall = "FALSE"
@@ -23,9 +23,9 @@ memsize = "8192"
 
 # System
 virtualHW.productCompatibility = "hosted"
-virtualHW.version = "18" # 19 does not support paravirt appleGPU driver
+virtualHW.version = "19"
 firmware = "efi"
-guestOS = "darwin20-64"
+guestOS = "darwin22-64"
 keyboardAndMouseProfile = "macProfile"
 smbios.reflectHost = "FALSE"
 smbios.restrictSerialCharset = "TRUE"
@@ -52,7 +52,7 @@ ehci:0.present = "FALSE"
 ethernet0.addressType = "generated"
 ethernet0.connectionType = "hostonly"
 ethernet0.present = "TRUE"
-ethernet0.virtualDev = "e1000e"
+ethernet0.virtualDev = "vmxnet3"
 
 pciBridge0.present = "TRUE"
 pciBridge4.present = "TRUE"

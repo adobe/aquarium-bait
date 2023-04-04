@@ -18,6 +18,12 @@
   vars:
     vncdo_template: mac/vmtools_install_macos_{{ ansible_distribution_major_version }}.vdo
 
+- name: Login to user desktop to complete VMware tools installation
+  include_role:
+    name: vncdo
+  vars:
+    vncdo_template: mac/login_to_user_desktop.vdo
+
 - name: Verify vmware kernel extensions was installed properly
   command: kextstat -k -l -b "com.vmware.kext.{{ item }}"
   register: reg_kextstat

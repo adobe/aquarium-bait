@@ -72,8 +72,10 @@ by `./check_style.sh` script and it will execute a number of tools to validate t
 ### 1. Create ISO of MacOS installer
 
 1. Download MacOS installer from app store:
-  * [Catalina 10.15](https://itunes.apple.com/us/app/macos-catalina/id1466841314?ls=1&mt=12)
-  * [BigSur 11.0](https://itunes.apple.com/us/app/macos-big-sur/id1526878132?ls=1&mt=12)
+  * [Catalina 10.15](https://itunes.apple.com/us/app/macos-catalina/id1466841314)
+  * [BigSur 11](https://itunes.apple.com/us/app/macos-big-sur/id1526878132)
+  * [Monterey 12](https://itunes.apple.com/by/app/macos-monterey/id1576738294)
+  * [Ventura 13](https://apps.apple.com/us/app/macos-ventura/id1638787999)
 2. Create dmg:
    ```
    $ hdiutil create -o /tmp/macos-installer -size 8500m -volname macosx-installer -layout SPUD -fs HFS+J
