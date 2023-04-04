@@ -91,6 +91,6 @@ isolation.tools.autoInstall.disable = "TRUE"
 # Disable mitigations in order to improve performance
 ulm.disableMitigations = "TRUE"
 
-# Allow to execute nested virtualization
-vhv.enable = "TRUE"
-vvtd.enable = "TRUE"
+# Allow to execute nested hypervisors and IOMMU
+vhv.enable = "TRUE"  # Enable hypervisor apps
+vvtd.enable = "TRUE"  # Enable IOMMU
