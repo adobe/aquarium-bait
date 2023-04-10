@@ -1,0 +1,67 @@
+---
+- name: Install iptables persistent scripts to restore the rules after reboot
+  become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name: iptables-persistent
+
+- name: Clean up outgoing firewall rules
+  become: true
+  iptables:
+    chain: OUTPUT
+    flush: true
+    ip_version: "{{ item }}"
+  loop:
+    - ipv4
+    - ipv6
+
+- name: Add output firewall rules
+  when: item.proto is defined and item.dports is defined
+  become: true
+  iptables:
+    comment: "{{ item.name }}"
+    chain: OUTPUT
+    jump: ACCEPT
+    match: multiport  # To support multiple ports
+    protocol: "{{ item.proto }}"
+    destination: "{{ omit if item.dests is not defined else item.dests | join(',') }}"
+    destination_port: "{{ item.dports | join(',') }}"
+  with_items: "{{ firewall_rules_out }}"
+
+- name: Reject outgoing requests by default
+  become: true
+  iptables:
+    chain: OUTPUT
+    ctstate: NEW
+    jump: REJECT
+    ip_version: "{{ item }}"
+  loop:
+    - ipv4
+    - ipv6
+
+- name: Save the iptables v4 configuration
+  become: true
+  shell: iptables-save > /etc/iptables/rules.v4
+
+- name: Save the iptables v6 configuration
+  become: true
+  shell: ip6tables-save > /etc/iptables/rules.v6
+
+- name: Modify hosts file
+  when: firewall_hosts_change | bool
+  block:
+    - name: Modify hosts file to point to specific hosts
+      become: true
+      blockinfile:
+        dest: /etc/hosts
+        content: |
+          {% for item in firewall_rules_out %}
+          {%- if item.hosts is defined and (item.dests is defined or item.hosts_ips is defined) -%}
+          # {{ item.name }}
+          {{ item.hosts_ips | default(item.dests) | random }} {{ item.hosts | join(" ") }}
+          {% endif %}
+          {% endfor %}

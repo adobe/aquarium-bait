@@ -1,0 +1,56 @@
+---
+- name: Disable packetfilter firewall
+  become: true
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode off
+
+- name: Disable app firewall
+  become: true
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off
+
+- name: Add output firewall rules
+  when: item.proto is defined and item.dports is defined
+  become: true
+  blockinfile:
+    dest: /etc/pf.conf
+    content: |
+      # Block all the new outgoing connections
+      block return out all flags S/SA
+
+      {% for item in firewall_rules_out %}
+      {%- if item.proto is defined and item.dports is defined -%}
+      # {{ item.name }}
+      pass out proto {{ item.proto }} to { {{ item.dests | default(['any']) | join(',') }} } port { {{ item.dports | join(',') }} }
+      {% endif %}
+      {% endfor %}
+  with_items: "{{ firewall_rules_out }}"
+
+- name: Verify the packet filter config file
+  become: true
+  command: pfctl -nf /etc/pf.conf
+
+- name: Apply the packet filter config file
+  become: true
+  command: pfctl -f /etc/pf.conf
+
+- name: Enable app firewall
+  become: true
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+
+- name: Enable packetfilter firewall
+  become: true
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+
+- name: Modify hosts file
+  when: firewall_hosts_change | bool
+  block:
+    - name: Modify hosts file to point to specific hosts
+      become: true
+      blockinfile:
+        dest: /etc/hosts
+        content: |
+          {% for item in firewall_rules_out %}
+          {%- if item.hosts is defined and (item.dests is defined or item.hosts_ips is defined) -%}
+          # {{ item.name }}
+          {{ item.hosts_ips | default(item.dests) | random }} {{ item.hosts | join(" ") }}
+          {% endif %}
+          {% endfor %}

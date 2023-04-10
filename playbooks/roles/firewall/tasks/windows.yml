@@ -1,0 +1,50 @@
+---
+- name: Disable firewall for all the domains for changes
+  win_firewall:
+    state: disabled
+    profiles:
+      - Domain
+      - Private
+      - Public
+
+- name: Set reject for all the connections by default
+  win_command: netsh advfirewall set allprofiles firewallpolicy blockinbound,blockoutbound
+
+- name: Clean up outgoing firewall rules
+  win_shell: Remove-NetFirewallRule -Direction Outbound
+
+- name: Add output firewall rules
+  when: item.proto is defined and item.dports is defined
+  win_firewall_rule:
+    name: "{{ item.name }}"
+    description: "Prepared automatically: {{ item.name }}"
+    action: allow
+    direction: out
+    protocol: "{{ item.proto }}"
+    remoteip: "{{ item.dests | default(['any']) | join(',') }}"
+    remoteport: "{{ item.dports | join(',') }}"
+  with_items: "{{ firewall_rules_out }}"
+
+- name: Modify hosts file
+  when: firewall_hosts_change | bool
+  block:
+    - name: Clean up the hosts file
+      win_hosts:
+        state: absent
+
+    # Hosts file can't provide round-robin, so chosing random ip from list to use on this host
+    - name: Modify hosts file to point to specific hosts
+      when: item.hosts is defined and (item.dests is defined or item.hosts_ips is defined)
+      win_hosts:
+        ip_address: "{{ item.hosts_ips | default(item.dests) | random }}"
+        canonical_name: "{{ item.hosts[0] }}"
+        aliases: "{{ item.hosts[1:] | default([]) }}"
+      with_items: "{{ firewall_rules_out }}"
+
+- name: Enable firewall for all the domains
+  win_firewall:
+    state: enabled
+    profiles:
+      - Domain
+      - Private
+      - Public

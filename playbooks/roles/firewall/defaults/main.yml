@@ -1,0 +1,71 @@
+---
+# Hosts modification could be helpful, but not everywhere, because doesn't supports round-robin
+firewall_hosts_change: false
+
+# The list rules to allow output connections to specific hosts
+# Format:
+#   - name: string, Rule simple description
+#     hosts: list, dns names of the server, used in /etc/hosts
+#     hosts_ips: list, ip's which are used in /etc/hosts file instead of dests (which could be subnets)
+#     proto: string, protocol usually "tcp" or "udp"
+#     dests: list, the actual addresses or subnets to connect, "ip" or "subnet/mask" (like "1.2.3.4" or "1.2.3.0/24")
+#     dports: list, destination ports (services) of the above described destinations
+#
+# Examples:
+#   - name: Artifact-storage HTTPS
+#     hosts:
+#       - artifact-storage
+#       - artifact-storage.example.org
+#       - docker-project-release.artifact-storage
+#       - docker-project-release.artifact-storage.example.org
+#     proto: tcp
+#     dests:
+#       - 172.16.5.1
+#       - 172.16.5.2
+#       - 172.16.5.3
+#       - 172.16.5.4
+#     dports:
+#       - 443
+#
+#   - name: Git SSH
+#     hosts:
+#       - git
+#       - git.example.org
+#     proto: tcp
+#     dests:
+#       - 172.16.6.1
+#     dports:
+#       - 22
+#
+#   - name: Important service
+#     hosts:
+#       - important-service
+#       - important-service.example.org
+#     hosts_ips:
+#       - 172.16.8.55
+#       - 172.16.10.121
+#       - 172.16.12.205
+#     proto: tcp
+#     dests:
+#       - 172.16.8.0/23
+#       - 172.16.10.0/23
+#       - 172.16.12.0/23
+#     dports:
+#       - 443
+#
+#   - name: Jenkins Server HTTPS/JNLP
+#     hosts:
+#       - jenkins
+#       - jenkins.example.org
+#     proto: tcp
+#     dests:
+#       - 172.16.15.44
+#     dports:
+#       - 443
+#       - 50000  # JNLP
+firewall_rules_out:
+  # If you're not using hosts, than you will probably need this rule
+  - name: Allow DNS resolution
+    proto: udp
+    dports:
+      - 53
