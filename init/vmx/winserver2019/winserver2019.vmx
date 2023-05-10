@@ -95,3 +95,6 @@ ulm.disableMitigations = "TRUE"
 # Allow to execute nested hypervisors and IOMMU
 vhv.enable = "TRUE"  # Enable hypervisor apps
 vvtd.enable = "TRUE"  # Enable IOMMU
+
+# Do not create Applications directory in VM folder
+proxyApps.publishToHost = "FALSE"

@@ -120,3 +120,8 @@ provisioners:
       - vncdo_vmx_path={{ user `out_full_path` }}/{{ user `image_name` }}/{{ user `image_name` }}.vmx
       - -e
       - vmtools_vm_type=vmware
+
+    # By default packer uses `/usr/bin/sftp-server -e` which not exist on macos,
+    # which causes issues while running on OpenSSH client >9
+    use_sftp: true
+    sftp_command: /usr/libexec/sftp-server -e

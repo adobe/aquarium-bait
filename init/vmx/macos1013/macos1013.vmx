@@ -85,3 +85,6 @@ usb.present = "TRUE"
 usb_xhci.present = "TRUE"
 
 isolation.tools.autoInstall.disable = "TRUE"
+
+# Do not create Applications directory in VM folder
+proxyApps.publishToHost = "FALSE"

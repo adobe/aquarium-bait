@@ -41,3 +41,6 @@ provisioners:
       - ansible_sudo_pass={{ user `password` }}
       - -e
       - jre_extract_path=/srv/jre
+
+    # scp causes issues while running on OpenSSH client >9
+    use_sftp: true

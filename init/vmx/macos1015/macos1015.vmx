@@ -92,4 +92,7 @@ ulm.disableMitigations = "TRUE"
 
 # Allow to execute nested virtualization
 vhv.enable = "TRUE"
-vvtd.enable = "TRUE"
+#vvtd.enable = "TRUE"  # Enable IOMMU: is not supported on mac VM's - will crash on start
+
+# Do not create Applications directory in VM folder
+proxyApps.publishToHost = "FALSE"

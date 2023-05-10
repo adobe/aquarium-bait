@@ -440,16 +440,11 @@ You can actually make this happen by creating the new repository with the next l
 * .ansible-lint
    > Symlink to `bait/.ansible-lint` or your own lint rules for ansible playbooks
 * .gitignore
-   > symlink to `bait/.gitignore_prop`
+   > file copy of `bait/.gitignore_prop`
 * .yamllint.yml
    > Symlink to `bait/.yamllint.yml` or your own style rules for yaml files
 * ansible.cfg
-   > a bit of overrides to make ansible work well
-   ```ini
-   [defaults]
-   # To use roles from the Bait
-   roles_path=./playbooks/roles:./bait/playbooks/roles
-   ```
+   > Symlink to `bait/ansible.cfg` or your own overrides for ansible configs
 * override.yml
    > your overrides for url's and other ansible variables. Check **Ansible files** section details
 

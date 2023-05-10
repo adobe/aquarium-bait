@@ -38,3 +38,8 @@ provisioners:
     extra_arguments:
       - -e
       - 'visualstudio_install_path="C:\Program Files (x86)\MSVS"'
+
+    # By default packer uses `/usr/bin/sftp-server -e` which not exist on windows and
+    # not set to use sftp by default, which causes issues while running on OpenSSH client >9
+    use_sftp: true
+    sftp_command: sftp-server.exe -e

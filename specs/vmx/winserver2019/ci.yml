@@ -40,3 +40,8 @@ provisioners:
     extra_arguments:
       - -e
       - jre_extract_path=C:\util\jre
+
+    # By default packer uses `/usr/bin/sftp-server -e` which not exist on windows and
+    # not set to use sftp by default, which causes issues while running on OpenSSH client >9
+    use_sftp: true
+    sftp_command: sftp-server.exe -e
