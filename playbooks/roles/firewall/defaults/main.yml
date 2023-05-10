@@ -64,8 +64,16 @@ firewall_hosts_change: false
 #       - 443
 #       - 50000  # JNLP
 firewall_rules_out:
+  # Imperfect, because needs access only to DHCP multicast address
+  - name: Allow DHCP client requests
+    proto: udp
+    dports:
+      - 67  # DHCP IPv4
+      - 547  # DHCP IPv6
+
   # If you're not using hosts, than you will probably need this rule
   - name: Allow DNS resolution
     proto: udp
+    # dests:  # Please add destinations of your known DNS services
     dports:
       - 53
