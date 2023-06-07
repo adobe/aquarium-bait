@@ -151,6 +151,8 @@ if [ $stage -gt 1 ]; then
             exit 1
         fi
         # Getting the list of the other dependencies and load them in reverse order
+        # MacOS doesn't have tac command
+        if ! command -v tac > /dev/null; then alias tac="tail -r"; fi
         image_deps=$(grep -A100 -m 1 '^parents:' "${parent_manifest}" | tail -n +2 | awk '{if(/^ /)print;else exit}' | cut -d- -f2- | tac)
         for dep_name in ${image_deps}; do
             dep_image="$(dirname "${parent_image}")/${dep_name}"
