@@ -15,7 +15,10 @@ provisioners:
   - type: shell
     inline:
       - apt update
+      # Installing python for ansible
       - apt install -y python3 python-is-python3
+      # Installing sftp server to use it in ansible to copy files back and forth (OpenSSH client >9)
+      - apt install -y --no-install-recommends openssh-sftp-server
       # Cleanup
       - apt -qq clean
       - rm -rf /var/lib/apt/lists/*

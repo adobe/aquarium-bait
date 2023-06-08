@@ -35,6 +35,9 @@ provisioners:
       - -e
       - jenkins_agent_config_url=https://host.docker.internal:8001/meta/v1/data/?format=env
 
+    # SCP is not working on OpenSSH client >9
+    use_sftp: true
+
 post-processors:
   - type: docker-tag
     repository: "aquarium/{{ user `image_name` }}"

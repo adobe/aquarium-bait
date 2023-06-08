@@ -23,7 +23,7 @@ root_dir="$PWD"
 cd "${OUT_PATH}"
 
 # Getting the image build timestamp and part of the checksum
-image_date=$(date -u -d "@$(date -d "$(docker image inspect --format '{{ .Created }}' "aquarium/${IMAGE_NAME}:original")" '+%s')" '+%Y%m%d.%H%M%S')
+image_date=$(docker image inspect --format '{{ index (split .Created ".") 0 }}' "aquarium/${IMAGE_NAME}:original" | tr 'T' '.' | tr -d ':-')
 image_version="${image_date}_$(docker image inspect --format '{{ slice .Id 7 15 }}' "aquarium/${IMAGE_NAME}:original")"
 image_name_completed="${IMAGE_NAME}-${image_version}"
 image_stage=$(echo "${IMAGE_NAME}" | tr '-' ' ' | wc -w)
