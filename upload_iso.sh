@@ -35,6 +35,8 @@ if ! echo "${FILE_PATH}" | grep -q '.iso$' ; then
 fi
 
 echo "INFO:  calcuating checksum ..."
+# MacOS doesn't have sha256sum command
+if ! command -v sha256sum > /dev/null; then alias sha256sum="shasum -a 256 -b"; fi
 checksum=$(sha256sum "$FILE_PATH" | cut -d' ' -f1)
 
 url="$ARTIFACT_STORAGE_URL/${ARTIFACT_PATH}"

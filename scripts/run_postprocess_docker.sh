@@ -86,7 +86,9 @@ fi
 
 
 echo 'INFO: Run checksum of all the files in the archive'
-shasum -a 256 -b "${image_name_completed}"/* > "${image_name_completed}.sha256"
+# MacOS doesn't have sha256sum command
+if ! command -v sha256sum > /dev/null; then alias sha256sum="shasum -a 256 -b"; fi
+sha256sum "${image_name_completed}"/* > "${image_name_completed}.sha256"
 mv "${image_name_completed}.sha256" "${image_name_completed}/"
 
 # Applying restrictive permissions to the image

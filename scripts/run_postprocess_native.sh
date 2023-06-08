@@ -27,7 +27,9 @@ cd "${OUT_PATH}"
 
 # Getting the timestamp of the environment for proper versioning
 image_timestamp=$(for f in "${IMAGE_NAME}"/*; do date -ur "$f" +%y%m%d.%H%M%S; done | sort | tail -1)
-image_name_completed="${IMAGE_NAME}-${image_timestamp}_$(shasum -a 256 -b "${IMAGE_FULL_PATH}.tar" | cut -c -8)"
+# MacOS doesn't have sha256sum command
+if ! command -v sha256sum > /dev/null; then alias sha256sum="shasum -a 256 -b"; fi
+image_name_completed="${IMAGE_NAME}-${image_timestamp}_$(sha256sum "${IMAGE_FULL_PATH}.tar" | cut -c -8)"
 
 echo 'INFO: Creating the imag directory and removing the env directory'
 mkdir "${image_name_completed}"
@@ -44,7 +46,7 @@ echo "---\n# Aquarium Bait image manifest file\nsize_kb:" > "${image_name_comple
 du -a -k "${image_name_completed}" | awk '{ print "  \"" $2 "\": " $1}' | sort >> "${image_name_completed}/${image_name_completed}.yml"
 
 echo 'INFO: Run checksum of all the files in the archive'
-shasum -a 256 -b "${image_name_completed}"/* > "${image_name_completed}.sha256"
+sha256sum "${image_name_completed}"/* > "${image_name_completed}.sha256"
 mv "${image_name_completed}.sha256" "${image_name_completed}/"
 
 echo "INFO: Image post-process completed: ${image_name_completed}"
