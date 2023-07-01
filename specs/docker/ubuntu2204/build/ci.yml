@@ -13,6 +13,11 @@ builders:
     pull: false
     commit: true
     changes:
+      # Locale is important during compilation
+      - ENV LANG en_US.UTF-8
+      - ENV LC_ALL en_US.UTF-8
+      - ENV LANGUAGE en_US:en
+      # Jenkins agent variables
       - ENV JAVA_HOME /srv/jre
       - USER jenkins
       - WORKDIR /home/jenkins

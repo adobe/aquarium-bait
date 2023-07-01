@@ -1,0 +1,22 @@
+---
+- name: Install locales package
+  become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name:
+      - locales
+
+- name: Generating UTF-8 locale
+  become: true
+  locale_gen:
+    name: en_US.UTF-8
+    state: present
+
+- name: Set systemd locale
+  when: ansible_service_mgr == "systemd"
+  become: true
+  command: localectl set-locale LANG=en_US.UTF-8 LANGUAGE=en_US:en

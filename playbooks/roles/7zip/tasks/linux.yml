@@ -1,0 +1,14 @@
+---
+- name: Install 7zip tools
+  become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name:
+      - p7zip-full
+
+- name: Verify 7zip binary was installed properly
+  command: 7z  # noqa 303
