@@ -4,6 +4,7 @@ variables:
   # Variables are set by the build_image.sh script based on the spec path
   bait_path: .
   image_name: image
+  remote_proxy_port: '1080'
 
   aws_region: us-west-2
   aws_key_id: "{{ env `AWS_KEY_ID` }}"
@@ -49,3 +50,5 @@ provisioners:
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes
+      - -e
+      - bait_proxy_url=http://127.0.0.1:{{ user `remote_proxy_port` }}

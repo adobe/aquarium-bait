@@ -5,8 +5,9 @@ variables:
   bait_path: .
   image_name: image
   parent_name: parent_image
-  out_full_path: "{{ env `PWD` }}/out"
   parent_full_path: "{{ user `out_full_path` }}/parent_image-version"
+  out_full_path: "{{ env `PWD` }}/out"
+  remote_proxy_port: '1080'
   aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
   username: packer
   password: packer
@@ -34,11 +35,11 @@ provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
     playbook_file: "{{ user `bait_path` }}/playbooks/build_essential_image.yml"
-    ansible_env_vars:
-      - PROXY_REMOTE_LISTEN={{ build `PackerHTTPIP` }}
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - bait_proxy_url=http://{{ build `PackerHTTPIP` }}:{{ user `remote_proxy_port` }}
 
     # scp causes issues while running on OpenSSH client >9
     use_sftp: true

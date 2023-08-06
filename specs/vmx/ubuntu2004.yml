@@ -5,6 +5,7 @@ variables:
   bait_path: .
   image_name: image
   out_full_path: "{{ env `PWD` }}/out"
+  remote_proxy_port: '1080'
   aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
   username: packer
   password: packer
@@ -69,11 +70,11 @@ provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
     playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
-    ansible_env_vars:
-      - PROXY_REMOTE_LISTEN={{ build `PackerHTTPIP` }}
     extra_arguments:
       - -e
       - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - bait_proxy_url=http://{{ build `PackerHTTPIP` }}:{{ user `remote_proxy_port` }}
       - -e
       - vmtools_vm_type=vmware
 

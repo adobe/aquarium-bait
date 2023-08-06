@@ -175,15 +175,15 @@ and [./specs/vmx/.yml](specs/vmx/) specifications.
 only to the host. But in case it's strictly necessary you can run the http proxy during ansible
 execution on the host system by setting the env variable in packer spec for ansible provisioner:
 
-* `PROXY_REMOTE_LISTEN` proxy script is running on the host machine and needs a way for remote to
-be able to connect to the host machine (vmx, docker...). Could be used if Socks5 is not working.
+* Remote proxy script is started on the host machine in `build_image.sh` and needs a way for remote
+to be able to connect to the host machine (vmx, docker...). Could be used if Socks5 is not working.
    ```yaml
    provisioners:
      - type: ansible
        ...
-       ansible_env_vars:
-         # The proxy will listen on the address which is in the VM subnetwork
-         - PROXY_REMOTE_LISTEN={{ build \`PackerHTTPIP\`}}
+       extra_arguments:
+         - -e
+         - bait_proxy_url=http://{{ build `PackerHTTPIP`}}:{{ user `remote_proxy_port` }}
    ```
 * In case your remote can't reach the host machine easily (cloud) - you can use built-in-packer ssh
 tunnel like that (yep works just with SSH, so keep the base windows images simple):
@@ -200,9 +200,9 @@ tunnel like that (yep works just with SSH, so keep the base windows images simpl
    provisioners:
      - type: ansible
        ...
-       ansible_env_vars:
-         # Start proxy on static port to use packer's ssh tunnel
-         - PROXY_REMOTE_LISTEN=127.0.0.1:{{ user `remote_proxy_port` }}
+       extra_arguments:
+         - -e
+         - bait_proxy_url=http://127.0.0.1:{{ user `remote_proxy_port` }}
    ```
 
 The ansible variables to access this proxy passed as `bait_proxy_url` which is `http://host:port`
@@ -319,10 +319,6 @@ quite safe images out of the box.
 
 ### Docker
 
-* TODO: Network isolation - right now there is no way to properly use hostonly network - only NAT.
-This is a minor issue because containers don't run any OS services on their own and will not
-interact with the internet if it's not described in the specs/playbooks.
-
 It's a good driver to run Linux envs without the VM overhead on Linux hosts - gives enough
 flexibility and starts relatively quickly. The images are stored using `docker save` command and
 after that in the postprocess the parent layers are removed from the child image (otherwise it
@@ -333,6 +329,41 @@ store them. That could be seen as bad choice until you need to support a number 
 receiving transports. With files it's relatively easy to control the access, store the additional
 metadata and have cache in the huge organization. But it's still possible to use registry to get
 the base images.
+
+**NOTICE:** Isolation during the build is running as special container - and it's allow to only
+reach `host.docker.internal`. You don't have to use it but it's really improving your control over
+your containers. The proxy container is sitting in `./init/docker/bait_proxy` dir, auto running by
+`build_image.sh` and could be adjusted for your needs by using the build args through env variable
+`bait_proxy_build_opts`. Example usage of isolation proxy in packer spec:
+```
+variables:
+  # Will be set to random free one by build_image.sh
+  remote_proxy_port: '1080'
+
+builders:
+  - type: docker
+    ...
+    run_command:
+      - -dit
+      - --net=container:bait_proxy  # Host only access
+      - --entrypoint=/bin/sh
+      - --
+      - "{{.Image}}"
+
+provisioners:
+  - type: ansible
+    ...
+    extra_arguments:
+      - -e
+      - bait_proxy_url=http://host.docker.internal:{{ user `remote_proxy_port` }}
+
+  - type: shell
+    env:
+      http_proxy: http://host.docker.internal:{{ user `remote_proxy_port` }}
+      https_proxy: http://host.docker.internal:{{ user `remote_proxy_port` }}
+    inline:
+      - ...
+```
 
 #### Using manually
 
@@ -452,6 +483,18 @@ You can actually make this happen by creating the new repository with the next l
    > shell script to run `bait/build_image.sh`, symlink will not work here
    ```sh
    #!/bin/sh -e
+
+   # Check if the spec exists in the directory, otherwise will run bait version of it
+   spec_file="$@"
+   [ -e "$@" ] || spec_file="bait/$@"
+
+   # Set the bait_proxy image variables to properly build in the restricted environment
+   # Example is here, please replace if necessary and uncomment
+   #bait_proxy_build_opts="--build-arg BASE_IMAGE=docker-hub-remote.example.com/ubuntu:20.04"
+   #bait_proxy_build_opts="--build-arg APT_URL=https://artifact-storage/archive-ubuntu-remote/ $bait_proxy_build_opts"
+   #bait_proxy_build_opts="--build-arg APT_SEC_URL=https://artifact-storage/security-ubuntu-remote/ $bait_proxy_build_opts"
+   #export bait_proxy_build_opts
+
    ./bait/build_image.sh "$@"
    ```
 * check_style.sh

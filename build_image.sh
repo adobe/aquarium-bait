@@ -97,8 +97,14 @@ proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.
 # your artifacts but it's a simpliest solution I found for now
 export http_proxy="socks5://127.0.0.1:$proxy_port"
 
-# Generating port for remote proxy to use in PROXY_REMOTE_LISTEN
-remote_proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("127.0.0.1", 0)); print(sock.getsockname()[1]); sock.close()')
+# Generating port for remote proxy to use in bait_proxy_url
+remote_proxy_port=$(python3 -c 'import socket; sock = socket.socket(); sock.bind(("0.0.0.0", 0)); print(sock.getsockname()[1]); sock.close()')
+
+# Run the proxy_remote script to listen on the provided address and random free port on the host
+echo "Running Proxy Remote on http://0.0.0.0:${remote_proxy_port} ..."
+remote_proxy_cmd="scripts/proxy_remote.py 0.0.0.0 ${remote_proxy_port}"
+python3 "${script_dir}"/$remote_proxy_cmd &
+
 
 # Clean of the running background apps on exit
 clean_bg() {
@@ -111,7 +117,18 @@ clean_bg() {
     # TODO: Remove the broken docker images
 }
 
-trap "clean_bg ; pkill -f 'scripts/proxy_local.py $proxy_port' || true" EXIT
+trap "clean_bg ; pkill -f 'scripts/proxy_local.py $proxy_port' || true; pkill -f '$remote_proxy_cmd' || true" EXIT
+
+# Running the docker isolate container
+if [ "$image_type" = 'docker' ]; then
+    # Docker on macos is particularly hard to isolate, so running proxy container which allows
+    # just the host.docker.internal access and using it as network for the container we building
+    # Use bait_proxy_build_opts to set the build args like the BASE_IMAGE or APT_URL
+    # --add-host is required here for linux docker hosts where we have it not set by default
+    echo "INFO: Running isolation proxy container: bait_proxy"
+    [ "$(docker images -q bait_proxy)" ] || docker build --tag bait_proxy $bait_proxy_build_opts "${script_dir}/init/docker/bait_proxy"
+    [ "$(docker ps -q -f name=bait_proxy)" ] || docker run --rm -id --cap-add=NET_ADMIN --add-host=host.docker.internal:host-gateway --name bait_proxy bait_proxy &
+fi
 
 ##
 # Collecting packer params to build the image

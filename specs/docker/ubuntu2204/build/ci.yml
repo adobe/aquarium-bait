@@ -4,14 +4,21 @@ variables:
   # All the variables are set by the build_image.sh script based on the path
   image_name: image
   parent_name: parent_image
-  out_full_path: "{{ env `PWD` }}/out"
   parent_version: parent_version
+  out_full_path: "{{ env `PWD` }}/out"
+  remote_proxy_port: '1080'
 
 builders:
   - type: docker
     image: "aquarium/{{ user `parent_name` }}:{{ user `parent_version` }}"
     pull: false
     commit: true
+    run_command:
+      - -dit
+      - --net=container:bait_proxy  # Host only access
+      - --entrypoint=/bin/sh
+      - --
+      - "{{.Image}}"
     changes:
       # Locale is important during compilation
       - ENV LANG en_US.UTF-8
@@ -32,6 +39,8 @@ provisioners:
       - wipe_disk_zeroes
       - -e
       - ansible_become=false  # We already root here
+      - -e
+      - bait_proxy_url=http://host.docker.internal:{{ user `remote_proxy_port` }}
       - -e
       - jre_extract_path=/srv/jre
       - -e
