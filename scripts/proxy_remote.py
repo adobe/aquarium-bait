@@ -16,229 +16,99 @@
 # Usage:
 #   $ ./proxy_remote.py [[host] port]
 
-
 import sys
+import http.server
+import http.client
 import socket
 import ssl
-import select
-import http.client as httplib
-import urllib.parse as urlparse
 import threading
-import gzip
-import zlib
-import re
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from socketserver import ThreadingMixIn
-from io import StringIO
+import select
+from urllib.parse import urlparse
 
-
-class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
-    address_family = socket.AF_INET
-    daemon_threads = True
-
-    def handle_error(self, request, client_address):
-        # surpress socket/ssl related errors
-        cls, e = sys.exc_info()[:2]
-        if cls is socket.error or cls is ssl.SSLError:
-            pass
-        else:
-            return HTTPServer.handle_error(self, request, client_address)
-
-
-class ProxyRequestHandler(BaseHTTPRequestHandler):
-    timeout = 5
-
-    def __init__(self, *args, **kwargs):
-        self.tls = threading.local()
-        self.tls.conns = {}
-
-        BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
-
-    def log_error(self, format, *args):
-        # surpress "Request timed out: timeout('timed out',)"
-        if isinstance(args[0], socket.timeout):
-            return
-
-        self.log_message(format, *args)
-
-    def do_CONNECT(self):
-        address = self.path.split(':', 1)
-        address[1] = int(address[1]) or 443
-        try:
-            s = socket.create_connection(address, timeout=self.timeout)
-        except Exception as e:
-            self.send_error(502)
-            return
-        self.send_response(200, 'Connection Established')
-        self.end_headers()
-
-        conns = [self.connection, s]
-        self.close_connection = 0
-        while not self.close_connection:
-            rlist, wlist, xlist = select.select(conns, [], conns, self.timeout)
-            if xlist or not rlist:
-                break
-            for r in rlist:
-                other = conns[1] if r is conns[0] else conns[0]
-                try:
-                    data = r.recv(8192)
-                    if not data:
-                        self.close_connection = 1
-                        break
-                    other.sendall(data)
-                except ConnectionResetError:
-                    print("PROXYR: Connection was reset")
-                    break
+class ProxyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format, *args):
+        pass
 
     def do_GET(self):
-        req = self
-        content_length = int(req.headers.get('Content-Length', 0))
-        req_body = self.rfile.read(content_length) if content_length else None
+        self.handle_http_request()
 
-        if req.path[0] == '/':
-            if isinstance(self.connection, ssl.SSLSocket):
-                req.path = "https://%s%s" % (req.headers['Host'], req.path)
-            else:
-                req.path = "http://%s%s" % (req.headers['Host'], req.path)
+    def do_POST(self):
+        self.handle_http_request()
 
-        req_body_modified = self.request_handler(req, req_body)
-        if req_body_modified is False:
-            self.send_error(403)
-            return
-        elif req_body_modified is not None:
-            req_body = req_body_modified
-            req.headers['Content-length'] = str(len(req_body))
+    def do_CONNECT(self):
+        self.handle_tcp_connect()
 
-        u = urlparse.urlsplit(req.path)
-        scheme, netloc, path = u.scheme, u.netloc, (u.path + '?' + u.query if u.query else u.path)
-        assert scheme in ('http', 'https')
-        if netloc:
-            req.headers['Host'] = netloc
-        setattr(req, 'headers', self.filter_headers(req.headers))
+    def handle_http_request(self):
+        url = urlparse(self.path)
+        print(f"PROXYR: {self.command} request for {url.geturl()}")
 
-        try:
-            origin = (scheme, netloc)
-            if not origin in self.tls.conns:
-                if scheme == 'https':
-                    self.tls.conns[origin] = httplib.HTTPSConnection(netloc, timeout=self.timeout)
-                else:
-                    self.tls.conns[origin] = httplib.HTTPConnection(netloc, timeout=self.timeout)
-            conn = self.tls.conns[origin]
-            conn.request(self.command, path, req_body, dict(req.headers))
-            res = conn.getresponse()
+        if url.scheme == "https":
+            client = http.client.HTTPSConnection(url.netloc, context=ssl._create_unverified_context())
+        else:
+            client = http.client.HTTPConnection(url.netloc)
 
-            version_table = {10: 'HTTP/1.0', 11: 'HTTP/1.1'}
-            setattr(res, 'headers', res.msg)
-            setattr(res, 'response_version', version_table[res.version])
+        client.request(
+            self.command,
+            url.path,
+            body=self.rfile.read(int(self.headers['Content-Length'])) if 'Content-Length' in self.headers else None,
+            headers=self.headers
+        )
 
-            # support streaming
-            if not 'Content-Length' in res.headers and 'no-store' in res.headers.get('Cache-Control', ''):
-                self.response_handler(req, req_body, res, '')
-                setattr(res, 'headers', self.filter_headers(res.headers))
-                self.relay_streaming(res)
-                return
+        response = client.getresponse()
+        self.send_response(response.status)
 
-            res_body = res.read()
-        except Exception as e:
-            if origin in self.tls.conns:
-                del self.tls.conns[origin]
-            self.send_error(502)
-            return
+        for key, value in response.getheaders():
+            self.send_header(key, value)
+        self.end_headers()
 
-        content_encoding = res.headers.get('Content-Encoding', 'identity')
-        res_body_plain = self.decode_content_body(res_body, content_encoding)
+        self.wfile.write(response.read())
+        client.close()
 
-        res_body_modified = self.response_handler(req, req_body, res, res_body_plain)
-        if res_body_modified is False:
-            self.send_error(403)
-            return
-        elif res_body_modified is not None:
-            res_body_plain = res_body_modified
-            res_body = self.encode_content_body(res_body_plain, content_encoding)
-            res.headers['Content-Length'] = str(len(res_body))
-
-        setattr(res, 'headers', self.filter_headers(res.headers))
-
-        self.wfile.write(("%s %d %s\r\n" % (self.protocol_version, res.status, res.reason)).encode())
-        for line in res.headers:
-            self.wfile.write(line.encode())
-        #self.end_headers()
-        self.wfile.write(b"\r\n")
-        self.wfile.write(res_body)
-        #self.wfile.flush()
-        #self.wfile.close()
-
-    def relay_streaming(self, res):
-        self.wfile.write(("%s %d %s\r\n" % (self.protocol_version, res.status, res.reason)).encode())
-        for line in res.headers.headers:
-            self.wfile.write(line)
+    def handle_tcp_connect(self):
+        print(f"PROXYR: {self.command} request for {self.path}")
+        self.send_response(200)
         self.end_headers()
         try:
+            hostname, port = self.path.split(':')
+            port = int(port)
+        except ValueError:
+            self.wfile.write(b'Invalid host or port')
+            return
+
+        try:
+            downstream = socket.create_connection((hostname, port))
+            print(f"PROXYR: Connected to {hostname}:{port}")
+        except Exception as e:
+            print(f"PROXYR: Failed to connect to {hostname}:{port}: {e}")
+            self.wfile.write(b'Failed to connect')
+            return
+
+        print(f"PROXYR: Tunnel established to {hostname}:{port}")
+        upstream = self.connection
+        self.rfile = downstream.makefile('rb')
+        self.wfile = downstream.makefile('wb')
+        self._run_request_loop(upstream, downstream)
+
+    def _run_request_loop(self, upstream, downstream):
+        try:
             while True:
-                chunk = res.read(8192)
-                if not chunk:
-                    break
-                self.wfile.write(chunk)
-            self.wfile.flush()
-        except socket.error:
-            # connection closed by client
-            pass
-
-    do_HEAD = do_GET
-    do_POST = do_GET
-    do_PUT = do_GET
-    do_DELETE = do_GET
-    do_OPTIONS = do_GET
-
-    def filter_headers(self, headers):
-        # http://tools.ietf.org/html/rfc2616#section-13.5.1
-        hop_by_hop = ('connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade')
-        for k in hop_by_hop:
-            del headers[k]
-
-        # accept only supported encodings
-        if 'Accept-Encoding' in headers:
-            ae = headers['Accept-Encoding']
-            filtered_encodings = [x for x in re.split(r',\s*', ae) if x in ('identity', 'gzip', 'x-gzip', 'deflate')]
-            headers['Accept-Encoding'] = ', '.join(filtered_encodings)
-
-        return headers
-
-    def encode_content_body(self, text, encoding):
-        if encoding == 'identity':
-            data = text
-        elif encoding in ('gzip', 'x-gzip'):
-            io = StringIO()
-            with gzip.GzipFile(fileobj=io, mode='wb') as f:
-                f.write(text)
-            data = io.getvalue()
-        elif encoding == 'deflate':
-            data = zlib.compress(text)
-        else:
-            raise Exception("Unknown Content-Encoding: %s" % encoding)
-        return data
-
-    def decode_content_body(self, data, encoding):
-        if encoding == 'identity':
-            text = data
-        elif encoding in ('gzip', 'x-gzip'):
-            io = StringIO(data)
-            with gzip.GzipFile(fileobj=io) as f:
-                text = f.read()
-        elif encoding == 'deflate':
-            try:
-                text = zlib.decompress(data)
-            except zlib.error:
-                text = zlib.decompress(data, -zlib.MAX_WBITS)
-        else:
-            raise Exception("Unknown Content-Encoding: %s" % encoding)
-        return text
-
-    def request_handler(self, req, req_body):
-        pass
-
-    def response_handler(self, req, req_body, res, res_body):
-        pass
+                r, w, x = select.select([upstream, downstream], [], [])
+                if upstream in r:
+                    data = upstream.recv(1024)
+                    if not data:
+                        break
+                    downstream.sendall(data)
+                if downstream in r:
+                    data = downstream.recv(4024)
+                    if not data:
+                        break
+                    upstream.sendall(data)
+        except socket.error as e:
+            print(f"PROXYR: Socket error: {e}")
+        finally:
+            print("PROXYR: Tunnel closed")
+            upstream.close()
+            downstream.close()
 
 
 if __name__ == "__main__":
@@ -250,8 +120,10 @@ if __name__ == "__main__":
     elif len(sys.argv) > 1:
         port = int(sys.argv[1])
 
-    ProxyRequestHandler.protocol_version = "HTTP/1.1"
-    httpd = ThreadingHTTPServer((host, port), ProxyRequestHandler)
+    with http.server.HTTPServer((host, port), ProxyHTTPRequestHandler) as server:
+        print("PROXYR: Started Aquarium Bait HTTP Remote proxy on %s:%d" % server.socket.getsockname())
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("PROXYR: Stopping the proxy process...")
 
-    print("PROXYR: Serving HTTP Proxy Remote on", httpd.socket.getsockname())
-    httpd.serve_forever()

@@ -127,7 +127,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     with ThreadingTCPServer(('127.0.0.1', port), SocksProxy) as server:
-        print("PROXYL: Started Aquarium Bait noroute proxy on %s %s" % server.server_address)
+        print("PROXYL: Started Aquarium Bait noroute proxy on %s:%d" % server.server_address)
         try:
             server.serve_forever()
         except KeyboardInterrupt:

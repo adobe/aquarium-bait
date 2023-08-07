@@ -40,6 +40,8 @@ provisioners:
       - -e
       - ansible_become=false  # We already root here
       - -e
+      - bait_proxy_url=http://host.docker.internal:{{ user `remote_proxy_port` }}
+      - -e
       - jre_extract_path=/srv/jre
       - -e
       - jenkins_agent_config_url=https://host.docker.internal:8001/meta/v1/data/?format=env
