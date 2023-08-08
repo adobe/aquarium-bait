@@ -4,15 +4,26 @@ variables:
   # All the variables are set by the build_image.sh script based on the path
   image_name: image
   out_full_path: "{{ env `PWD` }}/out"
+  remote_proxy_port: '1080'
 
 builders:
   - type: docker
     image: ubuntu:22.04
     commit: true
+    run_command:
+      - -dit
+      - -u=0  # Using root user
+      - --net=container:bait_proxy  # Host only access
+      - --entrypoint=/bin/sh
+      - --
+      - "{{.Image}}"
 
 provisioners:
   # Install python3 to connect by ansible from host machine in child images
   - type: shell
+    env:
+      http_proxy: http://host.docker.internal:{{ user `remote_proxy_port` }}
+      https_proxy: http://host.docker.internal:{{ user `remote_proxy_port` }}
     inline:
       - apt update
       # Installing python for ansible

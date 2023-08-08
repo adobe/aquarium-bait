@@ -1,0 +1,154 @@
+---
+# This playbook runs on during validation to check the build scripts is ok, connection to the
+# machine is possible and the proxy is working correctly as well as download role.
+
+- name: Bait internal validation playbook
+  hosts: all
+
+  pre_tasks:
+    ##
+    # Test 1 & 2: Ensure isolation & remote proxy are working correctly
+    ##
+    - name: Execute on POSIX (Mac/Lin)
+      when: ansible_system != 'Win32NT'
+      block:
+        - name: Store build identifier to allow the layer to contain something
+          copy:
+            dest: /bait_id.txt
+            content: '{{ lookup("env", "BAIT_SESSION") }}'
+
+        - name: Check it's possible to request http://google.com through remote proxy
+          environment:
+            # Redirecting requests through proxy
+            http_proxy: '{{ bait_proxy_url | default(omit) }}'
+            https_proxy: '{{ bait_proxy_url | default(omit) }}'
+          uri:
+            url: http://google.com
+            follow_redirects: none
+            timeout: 5
+            status_code: 301
+
+        - name: Install ca-certificates for linux to validate remote
+          become: true
+          environment:
+            # Redirecting APT requests through proxy
+            http_proxy: "{{ bait_proxy_url | default(omit) }}"
+            https_proxy: "{{ bait_proxy_url | default(omit) }}"
+          apt:
+            update_cache: true
+            name:
+              - ca-certificates
+
+        - name: Check it's possible to request https://google.com through remote proxy
+          environment:
+            # Redirecting requests through proxy
+            http_proxy: '{{ bait_proxy_url | default(omit) }}'
+            https_proxy: '{{ bait_proxy_url | default(omit) }}'
+          uri:
+            url: https://google.com
+            follow_redirects: none
+            timeout: 5
+            status_code: 301
+
+        - name: Check it's impossible to request google.com without remote proxy
+          uri:
+            url: http://google.com
+            follow_redirects: none
+            timeout: 5
+            status_code: -1
+
+    - name: Execute on Windows
+      when: ansible_system == 'Win32NT'
+      block:
+        - name: Store build identifier to allow the layer to contain something
+          win_copy:
+            dest: C:\bait_id.txt
+            content: '{{ lookup("env", "BAIT_SESSION") }}'
+
+        - name: Check it's possible to request http://google.com through remote proxy
+          environment:
+            # Redirecting requests through proxy
+            http_proxy: '{{ bait_proxy_url | default(omit) }}'
+            https_proxy: '{{ bait_proxy_url | default(omit) }}'
+          win_uri:
+            url: http://google.com
+            follow_redirects: none
+            timeout: 5
+            status_code: 301
+
+        - name: Check it's possible to request https://google.com through remote proxy
+          environment:
+            # Redirecting requests through proxy
+            http_proxy: '{{ bait_proxy_url | default(omit) }}'
+            https_proxy: '{{ bait_proxy_url | default(omit) }}'
+          win_uri:
+            url: https://google.com
+            follow_redirects: none
+            timeout: 5
+            status_code: 301
+
+        - name: Check it's impossible to request google.com without remote proxy
+          win_uri:
+            url: http://google.com
+            follow_redirects: none
+            timeout: 5
+            status_code: -1
+
+    ##
+    # Test 3: Ensure download role working correctly
+    ##
+    - set_fact:
+        reference_file_sum: sha256:6a5c56b5123cd8266e6c1cd290199dcd1d37fa7a3f48309acecc3526dc402cdb
+
+    - name: Download the reference README.md file to the environment
+      include_role:
+        name: download
+      vars:
+        download_url: http://not-existing-server/reference/README.md
+        download_sum: '{{ reference_file_sum }}'
+
+    - name: Execute on POSIX (Mac/Lin)
+      when: ansible_system != 'Win32NT'
+      block:
+        - name: Make sure file exists and have desired checksum
+          stat:
+            path: '{{ download_path }}'
+            checksum_algorithm: '{{ (reference_file_sum.split(":") | first) }}'
+          register: reg_reference_file
+          failed_when: reg_reference_file.stat.checksum != (reference_file_sum.split(":") | last)
+
+    - name: Execute on Windows
+      when: ansible_system == 'Win32NT'
+      block:
+        - name: Make sure file exists and have desired checksum
+          win_stat:
+            path: '{{ download_path }}'
+            checksum_algorithm: '{{ reference_file_sum.split(":") | first }}'
+          register: reg_reference_file
+          failed_when: reg_reference_file.stat.checksum != (reference_file_sum.split(":") | last)
+
+  roles:
+    ##
+    # Test 4: Verify cleanup is working properly
+    ##
+    - role: cleanup
+
+  post_tasks:
+    # Reference file should be cleaned up
+    - name: Execute on POSIX (Mac/Lin)
+      when: ansible_system != 'Win32NT'
+      block:
+        - name: Verify the reference file does not exist anymore
+          stat:
+            path: '{{ download_path }}'
+          register: reg_reference_file
+          failed_when: reg_reference_file.stat.exists
+
+    - name: Execute on Windows
+      when: ansible_system == 'Win32NT'
+      block:
+        - name: Verify the reference file does not exist anymore
+          win_stat:
+            path: '{{ download_path }}'
+          register: reg_reference_file
+          failed_when: reg_reference_file.stat.exists

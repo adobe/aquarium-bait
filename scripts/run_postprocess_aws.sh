@@ -9,6 +9,17 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
-# The AWS images are already good as is and don't need a post-processing
+# The AWS images are already good as is and doesn't need a post-processing, but needs to
+# report the image name anyway
 
-echo "INFO: Image post-process completed."
+BAIT_SESSION="$1"
+IMAGE_FULL_PATH="$2"
+
+IMAGE_NAME=$(basename "${IMAGE_FULL_PATH}")
+
+root_dir="$PWD"
+
+# Getting AMI name from the packer log
+image_name_completed=$(grep "^==> amazon-ebs: Prevalidating AMI Name:" "${root_dir}/logs/bait-${IMAGE_NAME}-packer-${BAIT_SESSION}.log" | rev | cut -d" " -f -1 | rev)
+
+echo "INFO: Image post-process completed: ${image_name_completed}"
