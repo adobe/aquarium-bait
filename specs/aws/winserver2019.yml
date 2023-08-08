@@ -21,8 +21,7 @@ builders:
     secret_key: "{{ user `aws_secret_key` }}"
 
     # https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LaunchInstances:
-    # source_ami: ami-01aeb1044bb7cb673  # Release Windows_Server-2019-English-Full-Base-2023.01.19
-    # Unfortunately AWS removes the old windows AMI's, so we have to use the filter...
+    # For AWS it seems unreasonable to bind to specific version of the OS AMI (often removed)
     source_ami_filter:
       filters:
         virtualization-type: hvm

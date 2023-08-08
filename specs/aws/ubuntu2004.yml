@@ -22,7 +22,14 @@ builders:
     secret_key: "{{ user `aws_secret_key` }}"
 
     # https://cloud-images.ubuntu.com/locator/ec2/
-    source_ami: ami-00bb3d0b5b36e89b8  # Release 20220810
+    # For AWS it seems unreasonable to bind to specific version of the OS AMI (often removed)
+    source_ami_filter:
+      filters:
+        virtualization-type: hvm
+        root-device-type: ebs
+        name: ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*
+      owners: ["099720109477"]  # Ubuntu
+      most_recent: true
 
     # Disk
     launch_block_device_mappings:
