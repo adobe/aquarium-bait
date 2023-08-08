@@ -17,6 +17,8 @@ jobs:
 
       - name: Run docker image build validation
         run: |
+          echo '172.17.0.1 host.docker.internal' | sudo tee -a /etc/hosts
+          packer plugins install github.com/hashicorp/docker
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file": "{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
           for spec in $(find ./specs/docker -name '*.yml' | sort); do
             ./build_image.sh "${spec}"

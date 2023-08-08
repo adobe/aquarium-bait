@@ -12,6 +12,11 @@
     - name: Execute on POSIX (Mac/Lin)
       when: ansible_system != 'Win32NT'
       block:
+        - name: Store build identifier to allow the layer to contain something
+          copy:
+            dest: /bait_id.txt
+            content: '{{ lookup("env", "BAIT_SESSION") }}'
+
         - name: Check it's possible to request http://google.com through remote proxy
           environment:
             # Redirecting requests through proxy
@@ -55,6 +60,11 @@
     - name: Execute on Windows
       when: ansible_system == 'Win32NT'
       block:
+        - name: Store build identifier to allow the layer to contain something
+          win_copy:
+            dest: C:\bait_id.txt
+            content: '{{ lookup("env", "BAIT_SESSION") }}'
+
         - name: Check it's possible to request http://google.com through remote proxy
           environment:
             # Redirecting requests through proxy

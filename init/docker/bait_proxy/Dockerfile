@@ -25,6 +25,6 @@ ENTRYPOINT sh -xc 'iptables -P INPUT DROP && \
     iptables -P FORWARD DROP && \
     iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT && \
     iptables -A OUTPUT -p udp --dport 53 -j ACCEPT && \
-    iptables -A INPUT -d $(dig host.docker.internal +short)/32 -p tcp -m tcp -j ACCEPT && \
-    iptables -A OUTPUT -d $(dig host.docker.internal +short)/32 -p tcp -m tcp -j ACCEPT && \
+    iptables -A INPUT -d $(dig host.docker.internal +short | grep -o ".*" || echo "172.17.0.1")/32 -p tcp -m tcp -j ACCEPT && \
+    iptables -A OUTPUT -d $(dig host.docker.internal +short | grep -o ".*" || echo "172.17.0.1")/32 -p tcp -m tcp -j ACCEPT && \
     cat -'

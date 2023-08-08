@@ -127,7 +127,7 @@ if [ "$image_type" = 'docker' ]; then
     # --add-host is required here for linux docker hosts where we have it not set by default
     echo "INFO: Running isolation proxy container: bait_proxy"
     [ "$(docker images -q bait_proxy)" ] || docker build --tag bait_proxy $bait_proxy_build_opts "${script_dir}/init/docker/bait_proxy"
-    [ "$(docker ps -q -f name=bait_proxy)" ] || docker run --rm -id --cap-add=NET_ADMIN --add-host=host.docker.internal:host-gateway --name bait_proxy bait_proxy &
+    [ "$(docker ps -q -f name=bait_proxy)" ] || docker run --rm -id --cap-add=NET_ADMIN --add-host=host.docker.internal:host-gateway --name bait_proxy bait_proxy
 fi
 
 ##
