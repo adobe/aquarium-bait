@@ -12,6 +12,7 @@ builders:
     commit: true
     run_command:
       - -dit
+      - -u=0  # Using root user
       - --net=container:bait_proxy  # Host only access
       - --entrypoint=/bin/sh
       - --

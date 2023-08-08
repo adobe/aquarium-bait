@@ -18,9 +18,6 @@ bait_dir=$(dirname "$(dirname "$0")")
 # Setup virtual env for ansible
 . "${bait_dir}/scripts/require_venv.sh"
 
-check=
-[ -z "$ANSIBLE_DRY_RUN" ] || check=--check
-
 # Loads the override configuration for ansible
 override_yml=./override.yml
 if [ -f "${override_yml}" ]; then
@@ -31,8 +28,8 @@ fi
 
 # Run the playbook
 if [ "x$DEBUG" != "x" ]; then
-    echo -- "${bait_dir}/.venv/bin/ansible-playbook" -vvv $override_yml $check "$@"
-    "${bait_dir}/.venv/bin/ansible-playbook" -vvv $override_yml $check "$@"
+    echo -- "${bait_dir}/.venv/bin/ansible-playbook" -vvv $override_yml "$@"
+    "${bait_dir}/.venv/bin/ansible-playbook" -vvv $override_yml "$@"
 else
-    "${bait_dir}/.venv/bin/ansible-playbook" $override_yml $check "$@"
+    "${bait_dir}/.venv/bin/ansible-playbook" $override_yml "$@"
 fi

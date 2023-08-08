@@ -222,16 +222,18 @@ and could be used in playbooks/roles like:
 crashed during packer execution. For additional info look into [./build_image.sh](build_image.sh)
 and [./scripts/vncrecord.py](scripts/vncrecord.py).
 
-**NOTICE:** If you want to override spec file in runtime `yaml2json.py` script which is executed
-before the packer run can override the values of the spec. For example, you want to put
-`skip_create_ami` in amazon-ebs builder, so you can export env variable like that:
+**NOTICE:** If you want to override spec file in runtime `yaml2json.py` script, which is executed
+before the packer run, can override the values of the spec. For example, you want to put
+`skip_create_ami` in amazon-ebs builder no matter what, you can export env variable like that:
 
 ```sh
-$ export BAIT_SPEC_UPDATE='{"builders":[{"skip_create_ami":true}]}'
+$ export BAIT_SPEC_APPLY='{"builders":[{"skip_create_ami":true}]}'
 ```
 
-... before running the `build_image.sh` and it will be added to the json spec. Could be really
-useful to test the changes for example.
+... before running the `build_image.sh` and it will be added to the json spec. There are 2 more env
+vars `BAIT_SPEC_CHANGE` and `BAIT_SPEC_DELETE` in case you want just to change the value of already
+existing item (and do not add it if it's not here) and if you want to delete the part of the tree.
+Those could be really useful to test the changes for example.
 
 **NOTICE:** Parallel building is possible (really not recommended to build base images of VMX due
 to the tight VNC boot scripts timings) and have one problem with artifacts download, described in
@@ -284,6 +286,11 @@ First cloud provider integration to the images build system. It needs some knowl
 and pre-setup of the AWS project. Cloud driver also quite different from the local drivers like vmx
 or docker - it will still use the specs in packer yml format, but will store the image directly in
 AWS project.
+
+**NOTE:** Since the AMI's are updated by the OS providers - it's hard to bind to specific version
+in the base image (it could be removed or not supported by the AWS platform itself anymore). So for
+clouds we're using the latest AMI available on the build occurance and then this built base image
+could be used in the childs indefinitely.
 
 #### Usage
 

@@ -187,7 +187,7 @@ fi
 clean_bg
 
 echo "INFO:  generating packer json for '${yml}'..."
-cat "${yml}" | "${script_dir}/scripts/run_yaml2json.sh" "$BAIT_SPEC_UPDATE" > "${yml}.json"
+cat "${yml}" | "${script_dir}/scripts/run_yaml2json.sh" "$BAIT_SPEC_APPLY" "$BAIT_SPEC_CHANGE" "$BAIT_SPEC_DELETE" > "${yml}.json"
 
 if [ "$image_type" = 'vmx' ]; then
     # Cleaning the non-tracked files from the init directory
