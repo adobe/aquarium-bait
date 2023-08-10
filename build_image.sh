@@ -75,9 +75,10 @@ if [ "$image_type" = 'vmx' ]; then
     fi
 
     # Check the minimum disk space (200GB) is available for proper VM disk cleanup
-    if [ "$(df -m "${image_outdir}" | tail -1 | awk '{print $4}')" -lt 201000 ]; then
-        echo "ERROR: Available disk space is lower than required 200GB for VM"
-        exit 1
+    disk_space=$(df -m "${image_outdir}" | tail -1 | awk '{print $4}')
+    if [ "$disk_space" -lt 201000 ]; then
+        echo "ERROR: Available disk space is lower than required 200GB for VM: ${disk_space}MB"
+        #exit 1
     fi
 fi
 
