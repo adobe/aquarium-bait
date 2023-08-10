@@ -22,7 +22,7 @@ script_dir="$PWD"
 cd "${root_dir}"
 
 # Used to separate different builds on the same machine
-export BAIT_SESSION=$(LC_ALL=C tr -dc A-Za-z0-9 < /dev/urandom | head -c 8)
+export BAIT_SESSION=$(dd bs=1024 if=/dev/urandom count=1 2>/dev/null | LC_ALL=C tr -dc a-zA-Z0-9 | head -c 8)
 
 # Disable packer auto-update calls
 export CHECKPOINT_DISABLE=1

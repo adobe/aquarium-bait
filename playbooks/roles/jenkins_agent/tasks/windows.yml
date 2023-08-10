@@ -36,17 +36,9 @@
     path: "{{ jenkins_agent_path }}"
     state: directory
 
-- name: Create log directory
-  win_file:
-    path: C:\Users\jenkins
-    state: directory
-
-- name: Add jenkins home dir allow rights
-  win_acl:
-    path: C:\Users\jenkins
-    user: jenkins
-    rights: FullControl
-    type: allow
+- name: Create user profile dirs
+  win_user_profile:
+    username: jenkins
 
 - name: Store disk formatall script
   win_copy:
@@ -59,8 +51,8 @@
     name: formatall
     working_directory: C:\
     application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-    stdout_file: C:\Users\jenkins\formatall.log
-    stderr_file: C:\Users\jenkins\formatall.log
+    stdout_file: C:\tmp\formatall.log
+    stderr_file: C:\tmp\formatall.log
     arguments:
       - -ExecutionPolicy
       - Bypass

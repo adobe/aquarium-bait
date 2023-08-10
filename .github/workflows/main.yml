@@ -7,9 +7,12 @@ on:
     branches: [ "main" ]
 
 jobs:
-  Check:
+  Check-Lin:
     runs-on: ubuntu-latest
     steps:
+      - name: Show used docker version
+        run: docker version
+
       - uses: actions/checkout@v3
 
       - name: Run checkstyle
@@ -20,15 +23,13 @@ jobs:
           # For some reason github doesn't want to work with --add-host option, so workaround:
           echo '172.17.0.1 host.docker.internal' | sudo tee -a /etc/hosts
 
-          # Installing necessary plugins for packer
-          packer plugins install github.com/hashicorp/docker
-          packer plugins install github.com/hashicorp/ansible
-
           # Change the playbook file in the packer spec to skip testing of unavailable artifacts
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
           # Find all the specs and sort them to build them sequentially (parent-child)
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
           for spec in $(find ./specs/docker -name '*.yml' | sort); do
+            echo "::group::./build_image.sh ${spec}"
             ./build_image.sh "${spec}" | tee build.log
 
             # Check the result in out directory is good
@@ -47,4 +48,96 @@ jobs:
 
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
+            echo "::endgroup::"
+          done
+
+  Check-Mac-Desktop:
+    runs-on: macos-12
+    steps:
+      - name: Setup Docker Desktop
+        uses: docker-practice/actions-setup-docker@master
+        timeout-minutes: 12
+
+      - name: Show used docker version
+        run: docker version
+
+      - uses: actions/checkout@v3
+
+      - name: Run checkstyle
+        run: ./check_style.sh
+
+      - name: Run docker image build validation
+        run: |
+          # Change the playbook file in the packer spec to skip testing of unavailable artifacts
+          export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
+
+          # Find all the specs and sort them to build them sequentially (parent-child)
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
+          for spec in $(find ./specs/docker -name '*.yml' | sort); do
+            echo "::group::./build_image.sh ${spec}"
+            ./build_image.sh "${spec}" | tee build.log
+
+            # Check the result in out directory is good
+            image_name=$(grep 'INFO: Image post-process completed:' build.log | rev | cut -d " " -f -1 | rev)
+
+            ( cd out/docker
+              # Check manifest
+              ls -lh "./${image_name}/${image_name}.yml"
+              # Check packer.log
+              ls -lh "./${image_name}/packer.log"
+              # Check saved tar archive
+              ls -lh "./${image_name}"/*.tar
+              # Check sha256 file and the content is good
+              shasum -a 256 -c "./${image_name}/${image_name}.sha256"
+            )
+
+            # Verify image packing
+            ./pack_image.sh "out/docker/${image_name}"
+            echo "::endgroup::"
+          done
+
+  Check-Mac-Colima:
+    runs-on: macos-12
+    steps:
+      - name: Setup Docker Colima
+        run: |
+          brew install docker
+          colima start
+
+      - name: Show used docker version
+        run: docker version
+
+      - uses: actions/checkout@v3
+
+      - name: Run checkstyle
+        run: ./check_style.sh
+
+      - name: Run docker image build validation
+        run: |
+          # Change the playbook file in the packer spec to skip testing of unavailable artifacts
+          export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
+
+          # Find all the specs and sort them to build them sequentially (parent-child)
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
+          for spec in $(find ./specs/docker -name '*.yml' | sort); do
+            echo "::group::./build_image.sh ${spec}"
+            ./build_image.sh "${spec}" | tee build.log
+
+            # Check the result in out directory is good
+            image_name=$(grep 'INFO: Image post-process completed:' build.log | rev | cut -d " " -f -1 | rev)
+
+            ( cd out/docker
+              # Check manifest
+              ls -lh "./${image_name}/${image_name}.yml"
+              # Check packer.log
+              ls -lh "./${image_name}/packer.log"
+              # Check saved tar archive
+              ls -lh "./${image_name}"/*.tar
+              # Check sha256 file and the content is good
+              shasum -a 256 -c "./${image_name}/${image_name}.sha256"
+            )
+
+            # Verify image packing
+            ./pack_image.sh "out/docker/${image_name}"
+            echo "::endgroup::"
           done
