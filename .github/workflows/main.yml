@@ -23,10 +23,6 @@ jobs:
           # For some reason github doesn't want to work with --add-host option, so workaround:
           echo '172.17.0.1 host.docker.internal' | sudo tee -a /etc/hosts
 
-          # Installing necessary plugins for packer
-          packer plugins install github.com/hashicorp/docker
-          packer plugins install github.com/hashicorp/ansible
-
           # Change the playbook file in the packer spec to skip testing of unavailable artifacts
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
@@ -69,10 +65,6 @@ jobs:
 
       - name: Run docker image build validation
         run: |
-          # Installing necessary plugins for packer
-          packer plugins install github.com/hashicorp/docker
-          packer plugins install github.com/hashicorp/ansible
-
           # Change the playbook file in the packer spec to skip testing of unavailable artifacts
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
@@ -118,10 +110,6 @@ jobs:
 
       - name: Run docker image build validation
         run: |
-          # Installing necessary plugins for packer
-          packer plugins install github.com/hashicorp/docker
-          packer plugins install github.com/hashicorp/ansible
-
           # Change the playbook file in the packer spec to skip testing of unavailable artifacts
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
