@@ -27,7 +27,9 @@ jobs:
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
           # Find all the specs and sort them to build them sequentially (parent-child)
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
           for spec in $(find ./specs/docker -name '*.yml' | sort); do
+            echo "::group::./build_image.sh ${spec}"
             ./build_image.sh "${spec}" | tee build.log
 
             # Check the result in out directory is good
@@ -46,6 +48,7 @@ jobs:
 
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
+            echo "::endgroup::"
           done
 
   Check-Mac-Desktop:
@@ -69,7 +72,9 @@ jobs:
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
           # Find all the specs and sort them to build them sequentially (parent-child)
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
           for spec in $(find ./specs/docker -name '*.yml' | sort); do
+            echo "::group::./build_image.sh ${spec}"
             ./build_image.sh "${spec}" | tee build.log
 
             # Check the result in out directory is good
@@ -88,6 +93,7 @@ jobs:
 
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
+            echo "::endgroup::"
           done
 
   Check-Mac-Colima:
@@ -112,7 +118,9 @@ jobs:
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
           # Find all the specs and sort them to build them sequentially (parent-child)
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
           for spec in $(find ./specs/docker -name '*.yml' | sort); do
+            echo "::group::./build_image.sh ${spec}"
             ./build_image.sh "${spec}" | tee build.log
 
             # Check the result in out directory is good
@@ -131,4 +139,5 @@ jobs:
 
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
+            echo "::endgroup::"
           done
