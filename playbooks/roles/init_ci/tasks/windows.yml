@@ -1,0 +1,27 @@
+---
+# Any scanning non-deterministic software makes it hard to create automation, so instead of scanning
+# (or any other invasive approach) it's better to use complete isolation and short live workers.
+- name: Ensure windows defender is completely disabled
+  win_feature:
+    name: Windows-Defender
+    state: absent
+
+# Updates should be absorbed only though the base OS image update, updates in runtime
+- name: Disabling update services
+  win_service:
+    name: '{{ item }}'
+    start_mode: disabled
+    state: stopped
+  with_items:
+    - edgeupdate  # Edge browser updater
+    - wuauserv  # General windows update
+    - UsoSvc  # Update Orchestrator Service
+  register: reg_service_disable
+  failed_when: false  # Some services could not exist, so skipping them
+
+- name: Enable long paths
+  win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+    name: LongPathsEnabled
+    data: 1
+    type: dword
