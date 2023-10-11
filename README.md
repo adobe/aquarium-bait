@@ -292,6 +292,10 @@ in the base image (it could be removed or not supported by the AWS platform itse
 clouds we're using the latest AMI available on the build occurance and then this built base image
 could be used in the childs indefinitely.
 
+**NOTE:** For macos image building on AWS you need to have an allocated dedicated server, as well
+as plenty of money upfront (24h minimum usage) and being ready to have this server be in pending
+state after the instance termination.
+
 #### Usage
 
 ##### 1. Setup the AWS project
