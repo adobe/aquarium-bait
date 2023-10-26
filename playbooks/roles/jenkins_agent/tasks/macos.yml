@@ -127,6 +127,7 @@
     mode: "0644"
   vars:
     java_home: "{{ jenkins_agent_java_home }}"
+    config_url: "{{ jenkins_agent_config_url }}"
     script_path: "{{ jenkins_agent_path }}/jenkins_agent.sh"
 
 - name: Store mountall executable scripts

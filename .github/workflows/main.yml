@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Setup Docker Desktop
         uses: docker-practice/actions-setup-docker@master
-        timeout-minutes: 12
+        timeout-minutes: 22
 
       - name: Show used docker version
         run: docker version
