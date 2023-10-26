@@ -55,9 +55,18 @@ builders:
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
+    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
     user: ec2-user
     use_proxy: false
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes
+      - -e
+      - jre_extract_path=/opt/srv/jre
+      - -e
+      - jenkins_agent_config_url=http://169.254.169.254/latest/user-data
+      # Using arm package for jre
+      - -e
+      - jre_mac_download_url={% print jre_mac_arm_download_url %}
+      - -e
+      - jre_mac_download_sum={% print jre_mac_arm_download_sum %}

@@ -3,7 +3,8 @@
 # Run it as: ./scripts/run_ansible.sh playbooks/download_file_cache.yml
 #
 # This playbook has one additional requirement: the download variables should be named as:
-#   `<ROLE>_[*_]<PLATFORM>_download_url` and `<ROLE>_[*_]<PLATFORM>_download_sum`
+#   * `<ROLE>_[*_]<PLATFORM>[_<ARCH>]_download_url`
+#   * `<ROLE>_[*_]<PLATFORM>[_<ARCH>]_download_sum`
 #
 # It will automatically skip the roles with not changed `artifact-storage/aquarium` url's.
 #
@@ -43,7 +44,7 @@
       set_fact:
         urls_to_download: >
           {{ vars | dict2items
-          | selectattr("key", "regex", "(_lin|_mac|_win)_download_url$")
+          | selectattr("key", "regex", "(_lin|_mac|_win)(_[^_]+)?_download_url$")
           | rejectattr("value", "regex", "^https://artifact-storage/aquarium/files")
           | list | items2dict }}
 
@@ -58,7 +59,7 @@
       vars:
         download_url: '{{ item.value }}'
         download_sum: '{{ vars[item.key | regex_replace("_url$", "_sum")] }}'
-        # Covering just host platforms here and storing 3rd from end item which is platform
-        download_lin_dir: '{{ item.key.split("_")[-3] }}'
-        download_mac_dir: '{{ item.key.split("_")[-3] }}'
+        # The platform could be -3 or -4 item (if optional arch is used) so filtering here by known platforms
+        download_lin_dir: '{{ item.key.split("_")[-4:-2] | intersect(["lin","win","mac"]) | first }}'
+        download_mac_dir: '{{ item.key.split("_")[-4:-2] | intersect(["lin","win","mac"]) | first }}'
       with_dict: '{{ urls_to_download }}'
