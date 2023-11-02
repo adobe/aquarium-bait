@@ -40,8 +40,6 @@ provisioners:
       - ansible_sudo_pass={{ user `password` }}
       - -e
       - jre_extract_path=/opt/srv/jre
-      - -e
-      - jenkins_agent_ui=true  # MacOS needs UI to work properly (DIBR-4244)
 
     # By default packer uses `/usr/bin/sftp-server -e` which not exist on macos,
     # which causes issues while running on OpenSSH client >9

@@ -27,6 +27,7 @@ for i in $(seq 1 20); do
         fi
         mount | grep "^$disk"
     done
+
     sleep $i
 done
 

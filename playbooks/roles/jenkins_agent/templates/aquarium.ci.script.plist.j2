@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>aquarium.ci.mountall</string>
+    <string>aquarium.ci.{{ script_name }}</string>
 
     <key>Program</key>
     <string>{{ script_path }}</string>
@@ -14,8 +14,8 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/var/log/mountall_out.log</string>
+    <string>/var/log/{{ script_name }}.log</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/mountall_err.log</string>
+    <string>/var/log/{{ script_name }}.log</string>
 </dict>
 </plist>
