@@ -142,16 +142,6 @@ if( "$JENKINS_HTTPS_INSECURE" -eq "true" ) {
     [System.Net.ServicePointManager]::CertificatePolicy = $default_cp;
 }
 
-# Wait for jenkins response
-While( $true ) {
-    $code = try { (Invoke-WebRequest "${JENKINS_URL}").StatusCode } catch { $_.Exception.Response.StatusCode.Value__ }
-    if( $code -eq 200 -or $code -eq 403 ) {
-        break
-    }
-    echo "Wait for '${JENKINS_URL}' jenkins response..."
-    sleep 5
-}
-
 # Go into custom workspace directory if it's set
 if( "${JENKINS_AGENT_WORKSPACE}" ) {
     While( $true ) {
@@ -163,6 +153,16 @@ if( "${JENKINS_AGENT_WORKSPACE}" ) {
         echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."
         sleep 5
     }
+}
+
+# Wait for jenkins response
+While( $true ) {
+    $code = try { (Invoke-WebRequest "${JENKINS_URL}").StatusCode } catch { $_.Exception.Response.StatusCode.Value__ }
+    if( $code -eq 200 -or $code -eq 403 ) {
+        break
+    }
+    echo "Wait for '${JENKINS_URL}' jenkins response..."
+    sleep 5
 }
 
 # Download the agent jar and connect to jenkins

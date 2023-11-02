@@ -74,8 +74,8 @@
     name: jenkins_agent
     working_directory: C:\Users\jenkins
     application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-    stdout_file: C:\Users\jenkins\jenkins_agent.log
-    stderr_file: C:\Users\jenkins\jenkins_agent.log
+    stdout_file: C:\Users\jenkins\agent.log
+    stderr_file: C:\Users\jenkins\agent.log
     arguments:
       - -ExecutionPolicy
       - Bypass

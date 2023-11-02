@@ -34,7 +34,7 @@
     group: wheel
     mode: "0755"
 
-- when: jenkins_agent_ui
+- when: jenkins_agent_ui | bool
   tags: jenkins_agent_service_config
   block:
     - name: Making jenkins user to autologin
@@ -82,7 +82,7 @@
     - name: Wait for sudo to be available
       command: sudo --stdin echo ok
       args:
-        stdin: '{{ ansible_sudo_pass }}'
+        stdin: '{{ ansible_sudo_pass | default("") }}'
       retries: 20  # sudo could take a while to complete this become
       delay: 10
       register: reg_result
@@ -116,7 +116,7 @@
       command: sudo -u jenkins defaults -currentHost write com.apple.loginwindow TALLogoutSavesState 0
 
 - name: Store LaunchDaemon plist file for agent autorun during system startup
-  when: not jenkins_agent_ui
+  when: not jenkins_agent_ui | bool
   tags: jenkins_agent_service_config
   become: true
   template:
@@ -130,22 +130,29 @@
     config_url: "{{ jenkins_agent_config_url }}"
     script_path: "{{ jenkins_agent_path }}/jenkins_agent.sh"
 
-- name: Store mountall executable scripts
+- name: Store disk scripts
   become: true
   copy:
-    src: mac/mountall.sh
-    dest: "{{ jenkins_agent_path }}/mountall.sh"
+    src: mac/{{ item }}.sh
+    dest: "{{ jenkins_agent_path }}/{{ item }}.sh"
     owner: root
     group: wheel
     mode: "0755"
+  loop:
+    - mountall
+    - formatall
 
-- name: Store service plist file for mountall autorun
+- name: Store service plist files for scripts autorun
   become: true
   template:
-    src: aquarium.ci.mountall.plist.j2
-    dest: /Library/LaunchDaemons/aquarium.ci.mountall.plist
+    src: aquarium.ci.script.plist.j2
+    dest: /Library/LaunchDaemons/aquarium.ci.{{ item }}.plist
     owner: root
     group: wheel
     mode: "0644"
   vars:
-    script_path: "{{ jenkins_agent_path }}/mountall.sh"
+    script_name: "{{ item }}"
+    script_path: "{{ jenkins_agent_path }}/{{ item }}.sh"
+  loop:
+    - mountall
+    - formatall

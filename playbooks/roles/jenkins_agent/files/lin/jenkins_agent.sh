@@ -20,9 +20,7 @@
 #   $ NO_CONFIG_WAIT=1 JENKINS_URL=<url> JENKINS_AGENT_SECRET=<secret> JENKINS_AGENT_NAME=<name> ./jenkins_agent.sh
 
 # If the CONFIG_FILE var is not set then use workspace volume config env file path
-# Works well only if System Integrity Protection (SIP) is disabled, otherwise the jenkins user
-# will not be able to access the mounted workspace disk.
-[ "$CONFIG_FILE" ] || CONFIG_FILE=/mnt/workspace/config/jenkins_agent.env
+[ "$CONFIG_FILE" ] || CONFIG_FILE=/mnt/ws/config/jenkins_agent.env
 
 getConfigUrls() {
     # Prepare a list of the gateway endpoints to locate Fish API host
@@ -90,22 +88,33 @@ if [ "x${JENKINS_HTTPS_INSECURE}" = "xtrue" ]; then
     jenkins_insecure="-disableHttpsCertValidation"
 fi
 
+# Waiting for workspace
+ws_path=.
+
+# Go into custom workspace directory if it's set
+if [ "${JENKINS_AGENT_WORKSPACE}" ]; then
+    ws_path="${JENKINS_AGENT_WORKSPACE}"
+fi
+
+# Wait for the write access to the directory
+mkdir -p "${ws_path}" || true
+until touch "$ws_path/.testwrite"; do
+    echo "Wait for '$ws_path' dir write access available..."
+    sleep 5
+    mkdir -p "${ws_path}" || true
+done
+rm -f "$ws_path/.testwrite"
+
+until cd "${ws_path}"; do
+    echo "Wait for '${ws_path}' dir available..."
+    sleep 5
+done
+
 # Wait for jenkins response
 until curl -s -o /dev/null -w '%{http_code}' ${curl_insecure} "${JENKINS_URL}" | grep -s '403\|200' > /dev/null; do
     echo "Wait for '${JENKINS_URL}' jenkins response..."
     sleep 5
 done
-
-# Go into custom workspace directory if it's set
-if [ "${JENKINS_AGENT_WORKSPACE}" ]; then
-    mkdir -p "${JENKINS_AGENT_WORKSPACE}" || true
-    until cd "${JENKINS_AGENT_WORKSPACE}" 2>/dev/null; do
-        # Try to create the required directory
-        echo "Wait for '${JENKINS_AGENT_WORKSPACE}' dir available..."
-        sleep 5
-        mkdir -p "${JENKINS_AGENT_WORKSPACE}" || true
-    done
-fi
 
 # Download the agent jar and connect to jenkins
 curl -sSLo agent.jar ${curl_insecure} "${JENKINS_URL}/jnlpJars/agent.jar"

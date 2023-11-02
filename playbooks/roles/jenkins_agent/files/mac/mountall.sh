@@ -1,21 +1,65 @@
 #!/bin/sh
 # Mounts all the available volumes on external disks
-# It takes some time for MacOS to fill the disks list, so repeating it
-#
-# The headless users will have access to disks only if SIP is disabled
 
-# 210 sec to mount the external disks
-for i in $(seq 1 20); do
-    disks=$(diskutil list | grep external | cut -d ' ' -f 1)
-    echo "Located disks: $disks"
-    for disk in $disks; do
-        echo "Mounting: $disk..."
-        diskutil list "$disk"
-        # Mount could fail if the disk is not healthy
-        diskutil mountDisk "$disk"
-        # Disable Spotlight for the mounted volume
-        mdutil -i off "$(diskutil info "$disk" | grep 'Mount Point:' | cut -d: -f 2 | awk '{$1=$1};1')"
-        mount | grep "^$disk"
+# It takes some time for VMX MacOS to fill the disks list, so repeating it
+# 55 sec to mount the external disks
+for i in $(seq 1 10); do
+    # List physical disks devices paths with suffix "internal" or "external"
+    disks_type=$(diskutil list physical | grep '^/dev' | tr -d '(,):' | cut -d' ' -f 1-2 | tr ' ' '-' | grep 'internal\|external')
+
+    echo "Located disks: $disks_type"
+
+    # Internal disks doesn't need much and available for regular user, but external ones needs additional attention
+    mounted=''
+    for disk_type in $disks_type; do
+        disk=$(echo "$disk_type" | cut -d'-' -f 1)
+        type=$(echo "$disk_type" | cut -d'-' -f 2)
+
+        # Getting the amount of volumes inside the disk to process
+        vol_num=$(diskutil list -plist "$disk" | plutil -extract AllDisks raw -)
+        if [ "x$vol_num" = "x" -a "$vol_num" -gt 0 ]; then continue; fi
+
+        # Skipping 0 here because it will be the disk device itself
+        for vol_index in $(seq 1 $(($vol_num-1))); do
+            vol="/dev/$(diskutil list -plist "$disk" | plutil -extract AllDisks.$vol_index raw -)"
+            echo "Processing volume: $vol..."
+            # Check if already mounted
+            mountpoint=$(diskutil info -plist "${vol}" | plutil -extract MountPoint raw -)
+            if [ "x$mountpoint" = "x" ]; then
+                echo "Mounting: $vol..."
+                diskutil mount nobrowse "${vol}" && mounted=1
+                mountpoint=$(diskutil info -plist "${vol}" | plutil -extract MountPoint raw -)
+            fi
+
+            # In case there is an image inside the disk - let's attach it as well
+            # It's very useful for external disks, which is prohibited to use by regular users
+            if [ "x$type" = "xexternal" ]; then
+                # For external drives we utilize local ssh as a little trick to get access to disks from launchd
+                ssh_dir="/var/root/.ssh"
+                key="$ssh_dir/mountall.id_rsa"
+                ssh-keygen -b 4096 -t rsa -f "$key" -q -N ''
+                cp "$key.pub" "$ssh_dir/authorized_keys"
+                ssh -i "$key" -o StrictHostKeyChecking=no root@127.0.0.1 sh -c "
+                    if [ "x$mountpoint" != "x" -a -e "$mountpoint/ws_image"* ]; then
+                        echo "Attaching ws_image of volume $vol..."
+                        hdiutil attach "$mountpoint/ws_image"* -nobrowse
+                    fi
+                " && mounted=1
+                rm -f "$key" "$key.pub" "$ssh_dir/authorized_keys" "$ssh_dir/known_hosts"
+            else
+                if [ "x$mountpoint" != "x" -a -e "$mountpoint/ws_image"* ]; then
+                    echo "Attaching ws_image of volume $vol..."
+                    hdiutil attach "$mountpoint/ws_image"* -nobrowse && mounted=1
+                fi
+            fi
+        done
     done
+
+    if [ "x$mounted" != 'x' ]; then
+        echo "Disabling Spotlight for all the mounted volumes"
+        # Unfortunately with enabled SIP it's hard to disable spotlight for specific volume
+        mdutil -a -i off
+    fi
+
     sleep $i
 done
