@@ -66,3 +66,15 @@
     key: TALLogoutSavesState
     type: int
     value: 0
+
+# MacOS > 12.3 doesn't have python available, so before cleanup of homebrew we need to install one
+- name: Make sure python is installed to allow to run ansible
+  include_role:
+    name: python
+
+# AWS instances have homebrew installed which we don't need in the base image
+- name: Remove homebrew if preinstalled
+  become: true
+  file:
+    path: /opt/homebrew
+    state: absent

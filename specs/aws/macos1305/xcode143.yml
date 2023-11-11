@@ -4,8 +4,10 @@ variables:
   # Variables are set by the build_image.sh script based on the spec path
   bait_path: .
   image_name: image
+  parent_name: parent_image
 
   aws_region: us-west-2
+  aws_account_id: "{{ env `AWS_ACCOUNT_ID` }}"
   aws_key_id: "{{ env `AWS_KEY_ID` }}"
   aws_secret_key: "{{ env `AWS_SECRET_KEY` }}"
 
@@ -23,12 +25,10 @@ builders:
     # https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LaunchInstances:
     # For AWS it seems unreasonable to bind to specific version of the OS AMI (often removed)
     source_ami_filter:
-      filters:
-        virtualization-type: hvm
-        root-device-type: ebs
-        name: amzn-ec2-macos-12.6.*-arm64
-      owners: ["887450438545"]  # Amazon
       most_recent: true
+      owners: ["{{ user `aws_account_id` }}"]  # Required by packer for security reasons
+      filters:
+        tag:Name: "aquarium/{{ user `parent_name` }}"
 
     # Disk
     launch_block_device_mappings:
@@ -55,16 +55,22 @@ builders:
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
-    playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
+    playbook_file: "{{ user `bait_path` }}/playbooks/xcode_image.yml"
     user: ec2-user
     use_proxy: false
     # Using workaround for one interesting issue: if we install Xcode and will try to use it's /usr/bin/python3
     # ansible will find that the license acceptance is needed before python script will be executed.
-    # During executing of init we do a little switch from homebrew python to local python in order
-    # to remove homebrew properly
     inventory_file_template: >
       {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
-      ansible_interpreter_python_fallback=/usr/local/bin/python3,/opt/homebrew/bin/python3
+      ansible_python_interpreter=/usr/local/bin/python3
     extra_arguments:
       - --skip-tags
       - wipe_disk_zeroes
+      - -e
+      - xcode_download_url={% print xcode_version_143_mac_download_url %}
+      - -e
+      - xcode_download_sum={% print xcode_version_143_mac_download_sum %}
+      - -e
+      - xcode_cmd_download_url={% print xcode_version_143_cmd_mac_download_url %}
+      - -e
+      - xcode_cmd_download_sum={% print xcode_version_143_cmd_mac_download_sum %}
