@@ -59,8 +59,8 @@ jobs:
     runs-on: macos-12
     steps:
       - name: Setup Docker Desktop
-        uses: docker-practice/actions-setup-docker@master
-        timeout-minutes: 22
+        uses: better0fdead/actions-setup-docker@a6579726684664a50afca06b0b394c8990599b75  # Jun 20 2023, fixes the issue with not start in time
+        timeout-minutes: 30
 
       - name: Show used docker version
         run: docker version
