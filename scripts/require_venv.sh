@@ -16,13 +16,12 @@
 
 # Setup virtual env
 if [ ! -f "${bait_dir}/.venv/bin/activate" ]; then
+  echo 'INFO: Creating new python venv environment...'
   python3 -m venv "${bait_dir}/.venv"
+  PIP_CONFIG_FILE="${PWD}/pip.conf" pip install --upgrade pip wheel
 fi
 
 . "${bait_dir}/.venv/bin/activate"
 
-# Install the requirements if necessary
-if ! python3 -c "import sys, pkg_resources; pkg_resources.require(open(sys.argv[1],mode='r'))" "${bait_dir}/requirements.txt" 2> /dev/null; then
-  PIP_CONFIG_FILE="${PWD}/pip.conf" pip -q install --upgrade pip wheel
-  PIP_CONFIG_FILE="${PWD}/pip.conf" pip -q install -r "${bait_dir}/requirements.txt"
-fi
+# Install the requirements if necessary, otherwise it will skip upgrade
+PIP_CONFIG_FILE="${PWD}/pip.conf" pip install -r "${bait_dir}/requirements.txt" | grep -v 'Requirement already satisfied:'
