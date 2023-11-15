@@ -13,7 +13,11 @@ jobs:
       - name: Show used docker version
         run: docker version
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
 
       - name: Run checkstyle
         run: ./check_style.sh
@@ -61,7 +65,11 @@ jobs:
       - name: Show used docker version
         run: docker version
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
 
       - name: Run checkstyle
         run: ./check_style.sh
@@ -107,7 +115,11 @@ jobs:
       - name: Show used docker version
         run: docker version
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
 
       - name: Run checkstyle
         run: ./check_style.sh
