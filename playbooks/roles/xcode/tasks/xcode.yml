@@ -14,7 +14,7 @@
 
 - name: Install Xcode from XIP file Location
   become: true
-  command: xip --expand '{{ download_path }}'
+  command: xip -x '{{ download_path }}'
   args:
     chdir: '{{ xcode_install_path }}'
   async: '{{ xcode_extraction_timeout }}'  # Prevent SSH connections timing out waiting for extraction

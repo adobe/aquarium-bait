@@ -7,8 +7,17 @@
     download_sum: '{{ python_mac_download_sum }}'
 
 - name: Install python from pkg
-  command: installer -pkg '{{ download_path }}' -target /
   become: true
+  command: installer -pkg '{{ download_path }}' -target /
+
+- name: Create a symbolic link for python to python3
+  become: true
+  file:
+    src: /usr/local/bin/python3
+    dest: /usr/local/bin/python
+    owner: root
+    group: wheel
+    state: link
 
 - name: Verify python binary is here
-  command: python --version  # noqa 303
+  command: /usr/local/bin/python --version  # noqa 303
