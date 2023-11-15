@@ -24,4 +24,4 @@ fi
 . "${bait_dir}/.venv/bin/activate"
 
 # Install the requirements if necessary, otherwise it will skip upgrade
-PIP_CONFIG_FILE="${PWD}/pip.conf" pip install -r "${bait_dir}/requirements.txt" | grep -v 'Requirement already satisfied:'
+PIP_CONFIG_FILE="${PWD}/pip.conf" pip install -r "${bait_dir}/requirements.txt" | (grep -v 'Requirement already satisfied:' || true)
