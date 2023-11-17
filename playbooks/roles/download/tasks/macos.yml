@@ -18,7 +18,7 @@
     headers: '{{ download_headers }}'
     dest: '{{ download_local_path }}'
     mode: '0440'
-    checksum: '{{ download_sum }}'
+    checksum: '{{ download_sum|default(omit) }}'
 
 # Copy operation is not really needed if we have the local connection and src path = dest path
 # Also it allows to save RAM on target system, big file copies for some reason are memory hungry
@@ -33,6 +33,7 @@
 # - during making of playbooks it's easy to forgot to update checksum of the file
 # - the copy process potentially could transfer files wrong
 - name: Make sure the copied file {{ vars[download_result_var] }} checksum is ok
+  when: download_sum|default(false)|bool
   register: reg_remote_file
   stat:
     path: '{{ vars[download_result_var] }}'

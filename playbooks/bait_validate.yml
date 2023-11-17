@@ -107,6 +107,12 @@
         download_url: http://not-existing-server/reference/README.md
         download_sum: '{{ reference_file_sum }}'
 
+    - name: Check it's possible to download README.md file without checksum
+      include_role:
+        name: download
+      vars:
+        download_url: http://not-existing-server/reference/README.md
+
     - name: Execute on POSIX (Mac/Lin)
       when: ansible_system != 'Win32NT'
       block:

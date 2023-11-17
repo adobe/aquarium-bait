@@ -1,3 +1,6 @@
 ---
 required_mac_vars:
   - init_ci_mac_vmx_path  # Path to the VMX file to change it
+
+# In order to make migration from mac x86 to arm easier
+init_ci_mac_install_rosetta: true

@@ -30,3 +30,11 @@
   with_items:
     - system  # Will work for shh and system LaunchDaemons
     - user  # Will work for user LaunchAgents too
+
+- name: Install rosetta to support x86 binaries on ARM devices
+  become: true
+  include_role:
+    name: rosetta
+  when:
+    - ansible_facts.architecture == 'arm64'
+    - init_ci_mac_install_rosetta|bool
