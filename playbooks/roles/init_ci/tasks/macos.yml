@@ -32,7 +32,6 @@
     - user  # Will work for user LaunchAgents too
 
 - name: Install rosetta to support x86 binaries on ARM devices
-  become: true
   include_role:
     name: rosetta
   when:
