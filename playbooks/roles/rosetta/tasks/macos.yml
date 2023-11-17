@@ -6,7 +6,7 @@
     # Will use rosetta_packages if they are defined to get the relative path, otherwise will use default one
     download_url: '{{ rosetta_download_prefix }}/{{ ((rosetta_packages|default({}))[ansible_osversion]|default([])|last|default({}))["rel"]|default(rosetta_default_rel) }}'
     # Sum will be skipped in case rosetta_packages are not defined
-    download_sum: '{{ rosetta_packages|default({}))[ansible_osversion]|default([])|last|default({}))["sum"]|default(omit) }}'
+    download_sum: '{{ ((rosetta_packages|default({}))[ansible_osversion]|default([])|last|default({}))["sum"]|default(omit) }}'
 
 - name: Validating rosetta package Apple signature
   become: true
