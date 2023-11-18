@@ -10,7 +10,7 @@ How this works:
 2. Place the dists, 2 ways:
    * Upload the directory to your preferred artifact storage by `upload_file.sh`
       * Set overrides for `rosetta_download_prefix` in your override.yml
-   * Put the downloaded files locally in `playbooks/files/mac` without rosetta directory
+   * Put the created rosetta dir with all the content in `playbooks/files/mac` locally
 3. Run he role and it will download the dist needed for your specific MacOS version and install it
 
 ## Tasks

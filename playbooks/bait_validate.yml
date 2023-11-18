@@ -107,12 +107,6 @@
         download_url: http://not-existing-server/reference/README.md
         download_sum: '{{ reference_file_sum }}'
 
-    - name: Check it's possible to download README.md file without checksum
-      include_role:
-        name: download
-      vars:
-        download_url: http://not-existing-server/reference/README.md
-
     - name: Execute on POSIX (Mac/Lin)
       when: ansible_system != 'Win32NT'
       block:
@@ -133,9 +127,49 @@
           register: reg_reference_file
           failed_when: reg_reference_file.stat.checksum != (reference_file_sum.split(":") | last)
 
+    ##
+    # Test 4: Ensure we can download file without checksum
+    ##
+    - set_fact:
+        reference_file_sum: sha256:44fcba548cd35acead1efb08f8f0edf237f642a78953805bedcd484950d4ccfa
+
+    - name: Check it's possible to download another README.md file without checksum from andother directory
+      include_role:
+        name: download
+      vars:
+        download_url: http://not-existing-server/reference/README.md
+        download_lin_dir: test/subdir
+        download_mac_dir: test/subdir
+        download_win_dir: test/subdir
+
+    - name: Check if download_path contains the overridden dir
+      when: 'test/subdir' in download_path
+      fail:
+        msg: 'Test failed: "{{ download_path }}" does not contain "test/subdir"'
+
+    - name: Execute on POSIX (Mac/Lin)
+      when: ansible_system != 'Win32NT'
+      block:
+        - name: Make sure file exists and have failed checksum
+          stat:
+            path: '{{ download_path }}'
+            checksum_algorithm: '{{ (reference_file_sum.split(":") | first) }}'
+          register: reg_reference_file
+          failed_when: reg_reference_file.stat.checksum != (reference_file_sum.split(":") | last)
+
+    - name: Execute on Windows
+      when: ansible_system == 'Win32NT'
+      block:
+        - name: Make sure file exists and have failed checksum
+          win_stat:
+            path: '{{ download_path }}'
+            checksum_algorithm: '{{ reference_file_sum.split(":") | first }}'
+          register: reg_reference_file
+          failed_when: reg_reference_file.stat.checksum != (reference_file_sum.split(":") | last)
+
   roles:
     ##
-    # Test 4: Verify cleanup is working properly
+    # Test 5: Verify cleanup is working properly
     ##
     - role: cleanup
 
