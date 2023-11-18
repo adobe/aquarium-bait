@@ -143,7 +143,7 @@
         download_win_dir: test/subdir
 
     - name: Check if download_path contains the overridden dir
-      when: 'test/subdir' in download_path
+      when: "'test/subdir' in download_path"
       fail:
         msg: 'Test failed: "{{ download_path }}" does not contain "test/subdir"'
 
