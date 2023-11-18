@@ -47,7 +47,8 @@ for child in data:
     for pkg in packages:
         urls.append(nextSibling(pkg, 'key', 'URL').text)
 
-    file_prefix = f'rosetta/RosettaUpdateAuto_{macos_build_version}'
+    file_prefix = f'RosettaUpdateAuto_{macos_build_version}'
+    path_prefix = f'rosetta/{file_prefix}'
 
     # Reading the existing file metadata to check if we need to download new version
     # Metadata format:
@@ -55,7 +56,7 @@ for child in data:
     #   <sha256sum>\n
     existing_sum = ''
     try:
-        with open(file_prefix+'.meta', 'r') as fd:
+        with open(path_prefix+'.meta', 'r') as fd:
             existing_date = fd.readline().strip()
             existing_sum = fd.readline().strip()
             if existing_date == post_date:
@@ -83,13 +84,13 @@ for child in data:
 
         # (Re)placing the package and metadata to the desired location
         try:
-            os.remove(file_prefix+'.pkg')
+            os.remove(path_prefix+'.pkg')
         except:
-            os.makedirs(os.path.dirname(file_prefix), exist_ok=True)
-        os.rename('.tmp.RosettaUpdateAuto.pkg', file_prefix+'.pkg')
+            os.makedirs(os.path.dirname(path_prefix), exist_ok=True)
+        os.rename('.tmp.RosettaUpdateAuto.pkg', path_prefix+'.pkg')
 
         # Writing new metadata file
-        with open(file_prefix+'.meta', 'w') as fd:
+        with open(path_prefix+'.meta', 'w') as fd:
             fd.write(post_date+'\n')
             fd.write(file_checksum+'\n')
 
