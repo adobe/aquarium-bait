@@ -16,12 +16,13 @@
 
 # Setup virtual env
 if [ ! -f "${bait_dir}/.venv/bin/activate" ]; then
-  echo 'INFO: Creating new python venv environment...'
-  python3 -m venv "${bait_dir}/.venv"
-  PIP_CONFIG_FILE="${PWD}/pip.conf" pip install --upgrade pip wheel
+  echo 'INFO: Creating new python venv environment...' 1>&2
+  python3 -m venv "${bait_dir}/.venv" 1>&2
+  . "${bait_dir}/.venv/bin/activate"
+  PIP_CONFIG_FILE="${PWD}/pip.conf" pip install --upgrade pip wheel 1>&2
+else
+  . "${bait_dir}/.venv/bin/activate"
 fi
 
-. "${bait_dir}/.venv/bin/activate"
-
 # Install the requirements if necessary, otherwise it will skip upgrade
-PIP_CONFIG_FILE="${PWD}/pip.conf" pip install -r "${bait_dir}/requirements.txt" | (grep -v 'Requirement already satisfied:' || true)
+PIP_CONFIG_FILE="${PWD}/pip.conf" pip install -r "${bait_dir}/requirements.txt" | (grep -v 'Requirement already satisfied:' || true) 1>&2

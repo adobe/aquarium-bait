@@ -21,9 +21,9 @@ builders:
 provisioners:
   # Install python3 to connect by ansible from host machine in child images
   - type: shell
-    env:
-      http_proxy: http://host.docker.internal:{{ user `remote_proxy_port` }}
-      https_proxy: http://host.docker.internal:{{ user `remote_proxy_port` }}
+    environment_vars:
+      - http_proxy=http://host.docker.internal:{{ user `remote_proxy_port` }}
+      - https_proxy=http://host.docker.internal:{{ user `remote_proxy_port` }}
     inline:
       - apt update
       # Installing python for ansible

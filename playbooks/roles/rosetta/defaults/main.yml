@@ -1,0 +1,18 @@
+---
+rosetta_download_prefix: https://artifact-storage/aquarium/files/mac/rosetta
+
+rosetta_default_rel: RosettaUpdateAuto_{{ ansible_osversion|default('') }}.pkg
+
+# Here you can place your list of downloaded dists which is outputted by `get_catalog_pkgs.py`
+# It will be used automatically with rosetta_download_prefix to get the proper pkg and validate it,
+# otherwise validation will be skipped and will use suffix `rosetta_default_rel`
+# rosetta_packages:
+#   20A5374g:
+#     - rel: rosetta/RosettaUpdateAuto_20A5374g.pkg
+#       mtd: rosetta/RosettaUpdateAuto_20A5374g.meta
+#       sum: sha256:d1759e019f228216847b85de57d1d7809e726e0b8c15651562acb6bc671cd323
+#   20A5374i:
+#     - rel: rosetta/RosettaUpdateAuto_20A5374i.pkg
+#       mtd: rosetta/RosettaUpdateAuto_20A5374i.meta
+#       sum: sha256:58ad7866e7e87274c4759cb86c76bc3a340d64f546ed7714e4ba4ea0d85ee645
+#   ...

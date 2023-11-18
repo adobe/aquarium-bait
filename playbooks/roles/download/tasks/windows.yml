@@ -18,7 +18,7 @@
     headers: '{{ download_headers }}'
     dest: '{{ download_local_path }}'
     mode: '0440'
-    checksum: '{{ download_sum }}'
+    checksum: '{{ download_sum|default(omit) }}'
 
 # Win task is used only for win remote so no need additional checks here
 - name: Push archive {{ download_local_path }} to target {{ vars[download_result_var] }} from the localhost files
@@ -31,6 +31,7 @@
 # - during making of playbooks it's easy to forgot to update checksum of the file
 # - the copy process potentially could transfer files wrong
 - name: Make sure the copied file {{ vars[download_result_var] }} checksum is ok
+  when: download_sum|default(false)|bool
   register: reg_remote_file
   win_stat:
     path: '{{ vars[download_result_var] }}'

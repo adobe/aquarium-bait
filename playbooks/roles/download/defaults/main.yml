@@ -3,16 +3,16 @@
 #  - download_*_tmp path - cleaned by `cleanup` role and if you want to customize - you will need
 #                          to take care of those files yourself if they are not needed
 #  - download_*_dir name - used to distribute the artifacts on localhost in `playbooks/files` dir
-download_lin_tmp: /tmp/lin
 download_lin_dir: lin
-download_mac_tmp: /tmp/mac
+download_lin_tmp: /tmp/{{ download_lin_dir }}
 download_mac_dir: mac
-download_win_tmp: C:\tmp\win
+download_mac_tmp: /tmp/{{ download_mac_dir }}
 download_win_dir: win
+download_win_tmp: C:\tmp\{{ download_win_dir }}
 download_result_var: download_path  # The output variable name contains downloaded file
 
 download_headers: null  # In case some spcific headers needed (like auth for example)
 
 required_vars:
   - download_url  # https://artifact-storage/...
-  - download_sum  # sha256:1234567890abcdef...
+#  - download_sum  # sha256:1234567890abcdef... - not required but good to have
