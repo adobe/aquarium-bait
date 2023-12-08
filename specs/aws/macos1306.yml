@@ -26,7 +26,7 @@ builders:
       filters:
         virtualization-type: hvm
         root-device-type: ebs
-        name: amzn-ec2-macos-13.5.*-arm64
+        name: amzn-ec2-macos-13.6.*-arm64
       owners: ["887450438545"]  # Amazon
       most_recent: true
 
@@ -51,6 +51,8 @@ builders:
 
     ssh_username: ec2-user
     ssh_timeout: 15m
+
+    associate_public_ip_address: true
 
 provisioners:
   - type: ansible

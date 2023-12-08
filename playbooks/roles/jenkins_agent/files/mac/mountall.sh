@@ -30,28 +30,6 @@ for i in $(seq 1 10); do
                 diskutil mount nobrowse "${vol}" && mounted=1
                 mountpoint=$(diskutil info -plist "${vol}" | plutil -extract MountPoint raw -)
             fi
-
-            # In case there is an image inside the disk - let's attach it as well
-            # It's very useful for external disks, which is prohibited to use by regular users
-            if [ "x$type" = "xexternal" ]; then
-                # For external drives we utilize local ssh as a little trick to get access to disks from launchd
-                ssh_dir="/var/root/.ssh"
-                key="$ssh_dir/mountall.id_rsa"
-                ssh-keygen -b 4096 -t rsa -f "$key" -q -N ''
-                cp "$key.pub" "$ssh_dir/authorized_keys"
-                ssh -i "$key" -o StrictHostKeyChecking=no root@127.0.0.1 sh -c "
-                    if [ "x$mountpoint" != "x" -a -e "$mountpoint/ws_image"* ]; then
-                        echo "Attaching ws_image of volume $vol..."
-                        hdiutil attach "$mountpoint/ws_image"* -nobrowse
-                    fi
-                " && mounted=1
-                rm -f "$key" "$key.pub" "$ssh_dir/authorized_keys" "$ssh_dir/known_hosts"
-            else
-                if [ "x$mountpoint" != "x" -a -e "$mountpoint/ws_image"* ]; then
-                    echo "Attaching ws_image of volume $vol..."
-                    hdiutil attach "$mountpoint/ws_image"* -nobrowse && mounted=1
-                fi
-            fi
         done
     done
 
