@@ -156,3 +156,21 @@
   loop:
     - mountall
     - formatall
+
+# Hack to allow user apps to access external disks (only option AWS for disks)
+# Works for MacOS 13.6.1
+# In the future csreq (7th field NULL right now) could be required, but right now if it's not set -
+# the rule works without validation of the app. Decode: `echo "fade0c..." | xxd -r -p | csreq -r- -t`
+# and to get the csreq you will need to use codesign -v -dr - PATH 2>&1 | grep '^\(designated\|Identifier\)'
+- name: Allow jenkins user apps to access external drives
+  become: true
+  command:
+    argv:
+      - sqlite3
+      - /Users/jenkins/Library/Application Support/com.apple.TCC/TCC.db
+      # Table 'access' fields: service, client, client_type, auth_value, auth_reason, auth_version, csreq, policy_id,
+      # indirect_object_identifier_type, indirect_object_identifier, indirect_object_code_identity, flags, last_modified
+      - INSERT INTO access VALUES('kTCCServiceSystemPolicyRemovableVolumes','{{ item }}',1,2,4,1,NULL,NULL,0,'UNUSED',NULL,0,strftime('%s', 'now'));
+  loop:
+    - /bin/sh  # Need to allow agent init script to work
+    - /opt/srv/jre/bin/java  # Jenkins agent main executor (not affected by sh rule, yep)

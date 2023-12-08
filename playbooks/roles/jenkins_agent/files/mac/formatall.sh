@@ -25,23 +25,10 @@ for i in $(seq 1 10); do
         type=$(echo "$disk_type" | cut -d'-' -f 2)
 
         echo "Formatting & mounting disk '$disk'..."
-        # External disks mounts are prohibited by SIP to be used by a regular UI user - "operation not permitted"
-        # So using a workaround in creating dmg image and mounting it instead
-        if [ "x$type" = "xexternal" ]; then
-            # Using MBR here to not create EFI partition
-            diskutil eraseDisk HFS+ "disk_ws$counter" MBR "${disk}"
+        # Unfortunately the file image on top of external disk does not work correctly with lsregister
+        # (it still needs ext disk access), so complex logic was removed and replaced by user TCC.db mods
 
-            size=$(df -h "/Volumes/disk_ws$counter" | tail -1 | awk '{print $2}')
-            echo "Creating ws_image ($size) file on '$disk'..."
-            hdiutil create -o /Volumes/disk_ws$counter/ws_image -size "$size" -volname "ws$counter" -type SPARSEBUNDLE -fs HFS+ -attach
-        else
-            # Using MBR here to not create EFI partition
-            diskutil eraseDisk HFS+ "ws$counter" MBR "${disk}"
-
-            # We need to set owner to allow non-UI jenkins user to write to the disk
-            diskutil enableOwnership "/Volumes/ws$counter"
-            chown jenkins:jenkins "/Volumes/ws$counter"
-        fi
+        diskutil eraseDisk APFS "ws$counter" "${disk}"
 
         counter=$(($counter+1))
     done
