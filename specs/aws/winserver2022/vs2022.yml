@@ -59,6 +59,6 @@ provisioners:
       - --skip-tags
       - wipe_disk_zeroes
       - -e
-      - visualstudio_download_url={% print visualstudio_version_1705_win_download_url %}
+      - visualstudio_download_url={% print visualstudio_version_2022_download_url %}
       - -e
-      - visualstudio_download_sum={% print visualstudio_version_1705_win_download_sum %}
+      - visualstudio_download_sum={% print visualstudio_version_2022_download_sum %}

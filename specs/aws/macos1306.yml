@@ -52,8 +52,6 @@ builders:
     ssh_username: ec2-user
     ssh_timeout: 15m
 
-    associate_public_ip_address: true
-
 provisioners:
   - type: ansible
     command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
