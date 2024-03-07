@@ -12,7 +12,7 @@ variables:
 
 builders:
   - type: amazon-ebs
-    instance_type: t3.medium
+    instance_type: c6a.large
     ami_name: "aquarium/{{ user `image_name` }}-{{ isotime `060102.150405` }}"
     tags:
       Name: "aquarium/{{ user `image_name` }}"
