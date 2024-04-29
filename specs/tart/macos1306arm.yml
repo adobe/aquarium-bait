@@ -1,0 +1,93 @@
+---
+# WARNING: Uses pre-cached python so make sure it's available in playbook/files/mac
+min_packer_version: 1.8.7
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  bait_path: .
+  image_name: image
+  out_full_path: "{{ env `PWD` }}/out"
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+  ipsw_full_path: "{{ user `bait_path` }}/init/iso/UniversalMac_13.6_22G120_Restore.ipsw"
+
+builders:
+  - type: tart-cli
+    vm_name: "{{ user `image_name` }}"
+    from_ipsw: "{{ user `ipsw_full_path` }}"
+    cpu_count: 4
+    memory_gb: 8
+    disk_size_gb: 200
+    headless: true
+    run_extra_args:
+      - --net-host  # Using softnet host network in softnet to block global internet access
+    create_grace_time: 30s  # Workaround for Virtualization.Framework's installation process not completing in time
+    boot_wait: 30s  # Till the first screen
+    boot_command:
+      - <spacebar><wait5s>  # Intro with "hello, hola, bonjour, ..."
+
+      - <enter><wait10s>  # Selecting default "English" language and next
+      - United States<leftShiftOn><tab><leftShiftOff><spacebar><wait2s>  # Select country and next button
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2s>  # Select keyboard locale and next button
+
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2s>  # Skip accessibility
+      - <down><leftShiftOn><tab><leftShiftOff><spacebar><wait><enter><wait10s>  # Computer is not connected to internet and confirm
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait5s>  # Data privacy info and continue
+      - <tab><wait><tab><wait><tab><wait><spacebar><wait5s>  # Migration Assistant -> not now and continue
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait2s><tab><wait><spacebar><wait5s>  # Terms and Conditions --> Agree
+
+      - "{{ user `username` }}<tab>"  # Enter username
+      - <wait5s><tab><wait5s>  # Skip account name as the same as username
+      - "{{ user `password` }}<tab><wait5s>{{ user `password` }}<tab>"  # Set user password and verify
+      - <tab><tab><spacebar><wait20s>  # Click continue to create user account
+
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait5s><enter><wait5s>  # Skip enabling of location service and confirm in popup
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait5s>  # Use default time zone
+      - <tab><spacebar><leftShiftOn><wait1s><tab><leftShiftOff><spacebar><wait5s>  # Do not share analytics with Apple and continue
+      - <tab><spacebar><wait5s>  # Setup Screen Time later
+      - <tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar><wait5s>  # Disabling Siri and continue
+      - <leftShiftOn><tab><leftShiftOff><spacebar><wait1m>  # Leave default look and go to the desktop
+
+      # Enable remote access (SSH) with full disk access
+      - <leftAltOn><spacebar><leftAltOff><wait>system settings<enter><wait20s>  # Run system settings through spotlight
+      - <leftAltOn>f<leftAltOff>remote login<wait><enter><wait><down>  # Going into remote login popup
+      - <leftAltOn><f5><leftAltOff><wait15s><enter><wait10s>  # Enable VoiceOver
+      - <tab><spacebar><wait><enter><wait2s>  # Enable full disk access for remote users and press done
+      - <tab><tab><tab><tab><tab><tab><tab><wait><spacebar><wait5s>  # Go to remote login switch and toggle it
+      - <leftAltOn><f5><leftAltOff><wait2s>  # Disable VoiceOver
+      - <LeftAltOn>w<leftAltOff>  # Exit the system preferences
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 120s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+    http_directory: playbooks/files
+
+provisioners:
+  # MacOS >=12.3 get rid of python2 - so we need to install python3 to run ansible
+  - type: shell
+    inline:
+      - curl -o /tmp/python.pkg "$PACKER_HTTP_ADDR/mac/python-3.10.4-macos11.pkg"
+      - echo '{{ user `password` }}' | sudo -S installer -pkg /tmp/python.pkg -target /
+
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/base_image.yml"
+    user: "{{ user `username` }}"
+    # Use python3 installed before instead of the default not working one (/usr/bin/python3)
+    # due to not installed developer tools and absent of any built-in python.
+    # Using inventory here because extra_arguments are working for localhost (vncdo) too.
+    inventory_file_template: >
+      {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
+      ansible_python_interpreter=/usr/local/bin/python3
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+
+    # By default packer uses `/usr/bin/sftp-server -e` which not exist on macos,
+    # which causes issues while running on OpenSSH client >9
+    use_sftp: true
+    sftp_command: /usr/libexec/sftp-server -e

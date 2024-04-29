@@ -67,16 +67,18 @@ class VNCRecord:
                     return
 
                 # Check for password
-                #     vmware-vmx: view the screen of the VM, connect via VNC with the password "nTtBphgk" to
+                # * "vmware-vmx: view the screen of the VM, connect via VNC with the password "nTtBphgk" to"
+                # * "tart-cli: If you want to view the screen of the VM, connect via VNC with the password "best-repair-gain-digital" to"
                 if 'connect via VNC with the password "' in line:
                     self._password = line.rsplit(' ', 2)[-2].strip('"')
 
                 # Check for host and port
-                #     vmware-vmx: vnc://127.0.0.1:5983
-                elif 'vmware-vmx: vnc://' in line:
+                # * "vmware-vmx: vnc://127.0.0.1:5983"
+                # * "tart-cli: vnc://127.0.0.1:60618"
+                elif ': vnc://' in line:
                     self._host, self._port = line.rsplit('vnc://', 1)[-1].split(':')
 
-            # Looking for the "Waiting" patterns
+            # Looking for the machine to boot patterns
             was_started = False
             try:
                 for line in self.tail(f):
@@ -85,11 +87,12 @@ class VNCRecord:
 
                     self._current_log = line.strip()
 
-                    if 'vmware-vmx: Waiting' in line and ' for boot...' in line:
+                    if ('Connected to the VNC' in line or 'Typing the commands over VNC...' in line) or \
+                            ('vmware-vmx: Waiting' in line and ' for boot...' in line):
                         self.startRecording()
                         was_started = True
-                    elif 'vmware-vmx: Gracefully halting virtual machine...' in line or \
-                            'vmware-vmx: Stopping virtual machine' in line:
+                    elif ': Gracefully halting virtual machine...' in line or \
+                            ': Stopping virtual machine' in line or ': Gracefully shutting down the VM' in line:
                         break
 
                     if was_started and not self._is_recording:

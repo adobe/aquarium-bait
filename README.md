@@ -462,6 +462,64 @@ running the VM as nogui - and you always have a way to run the VMWare UI interfa
 $ vmrun start worker/worker.vmx nogui
 ```
 
+### Tart
+
+MacOS arm machines (M*) needs special care by utilizing Virtualization Framework, and that's what
+Tart is good with. It has relatively simple CLI interface and proper integration with packer, so
+looks like an obvious choice. Unfortunately there are still some complications like:
+* Network isolation requires root suid `softnet` binary on the host system
+* Snapshotting is mostly unsupported
+* Nested images are not an option
+
+#### Setup
+
+1. Download tart from https://github.com/cirruslabs/tart/releases, unpack and place tart.app in /Applications
+2. Modify PATH and add /Applications/tart.app/Contents/MacOS into it
+3. Download softnet to restrict access of guest VM to global internet: https://github.com/cirruslabs/softnet/releases
+4. Place softnet binary to /usr/bin/local or directly to /Applications/tart.app/Contents/MacOS
+5. Ensure executable of softnet binary, that it belongs to root:wheel and add SUID bit:
+   ```
+   $ sudo chown root:wheel $(which softnet)
+   $ sudo chmod +s $(which softnet)
+   ```
+6. Install packer tart plugin: `packer plugins install github.com/cirruslabs/tart`
+
+#### Using manually
+
+TODO: you don't have to use Tart to run the VM - just the Virtualization.Framework settings are
+stored differently from runner to runner, so it's relatively easy to convert them to the format
+you want and run on non-tart.
+
+##### 1. Download and unpack
+
+You need to download and unpack all the images in ~/.tart/vms directory - as the result you will
+see a number of directories which contains the layers from base OS to the target image.
+
+##### 2. Clone worker VM
+
+```
+$ tart clone "<name>" "worker"
+```
+
+##### 3. Change worker config file:
+
+* CPU. Tests showed that it's better to leave 2 vCPU for the host system.
+* RAM. Leave ~1/3 of the total RAM to the host system for VM disk caching.
+
+```
+$ tart set "worker" --cpu $(( $(sysctl -n hw.ncpu) - 2 )) --memory $(( $(sysctl -n hw.memsize) /1024 /1024 *2/3))
+```
+
+##### 4. Run the worker VM
+
+I always recommend to run the VM's headless and access them via CLI/SSH as much as possible. Only
+the exceptional reasons where no CLI/SSH can help it's allowed to use GUI to debug the VM. So we
+running the VM headless with enabled VNC - and you always have a way to connect to VNC for GUI.
+
+```
+$ tart run --no-graphics --vnc-experimental worker
+```
+
 ## Overlay repository
 
 For sure your organization don't want to share the specific overrides, specs, playbooks and roles.
