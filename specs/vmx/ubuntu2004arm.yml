@@ -75,6 +75,10 @@ provisioners:
       - -e
       - bait_proxy_url=http://{{ build `PackerHTTPIP` }}:{{ user `remote_proxy_port` }}
       - -e
+      - init_ubuntu_apt_url={% print init_ubuntu_arm_apt_url %}
+      - -e
+      - init_ubuntu_apt_sec_url={% print init_ubuntu_arm_apt_sec_url %}
+      - -e
       - vmtools_vm_type=vmware
 
     # scp causes issues while running on OpenSSH client >9
