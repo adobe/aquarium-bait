@@ -5,6 +5,7 @@ config.version = "8"
 extendedConfigFile = "ubuntu2204.vmxf"
 displayName = "ubuntu-2204-init"
 
+rtc.startInUTC = "TRUE"
 tools.syncTime = "TRUE"
 tools.remindInstall = "FALSE"
 tools.upgrade.policy = "manual"
