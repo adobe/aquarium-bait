@@ -1,0 +1,45 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  bait_path: .
+  image_name: image
+  parent_name: parent_image
+  parent_full_path: "{{ user `out_full_path` }}/parent_image-version"
+  out_full_path: "{{ env `PWD` }}/out"
+  remote_proxy_port: '1080'
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: vmware-vmx
+    vm_name: "{{ user `image_name` }}"
+    display_name: "{{ user `image_name` }}"
+    source_path: "{{ user `parent_full_path` }}/{{ user `parent_name` }}.vmx"
+    linked: true  # Use base image to simplify the data transfer
+    attach_snapshot: original
+    output_directory: "{{ user `out_full_path` }}/{{ user `image_name` }}"
+    headless: true
+    boot_wait: 1m
+    shutdown_command: "echo '{{ user `username` }}' | sudo -S shutdown -P now"
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 10s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/macsdklibs_image.yml"
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - bait_proxy_url=http://{{ build `PackerHTTPIP` }}:{{ user `remote_proxy_port` }}
+
+    # scp causes issues while running on OpenSSH client >9
+    use_sftp: true

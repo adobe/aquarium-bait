@@ -2,8 +2,8 @@
 config.version = "8"
 
 # Common
-extendedConfigFile = "ubuntu2204.vmxf"
-displayName = "ubuntu-2204-init"
+extendedConfigFile = "ubuntu2004arm.vmxf"
+displayName = "ubuntu-2004-init"
 
 rtc.startInUTC = "TRUE"
 tools.syncTime = "TRUE"
@@ -24,9 +24,9 @@ memsize = "8192"
 
 # System
 virtualHW.productCompatibility = "hosted"
-virtualHW.version = "19"
+virtualHW.version = "21"
 firmware = "efi"
-guestOS = "ubuntu-64"
+guestOS = "arm-ubuntu-64"
 smbios.reflectHost = "FALSE"
 smbios.restrictSerialCharset = "TRUE"
 board-id.reflectHost = "FALSE"
@@ -50,7 +50,7 @@ ehci:0.present = "FALSE"
 ethernet0.addressType = "generated"
 ethernet0.connectionType = "hostonly"
 ethernet0.present = "TRUE"
-ethernet0.virtualDev = "vmxnet3"
+ethernet0.virtualDev = "e1000e"
 
 pciBridge0.present = "TRUE"
 pciBridge4.present = "TRUE"
