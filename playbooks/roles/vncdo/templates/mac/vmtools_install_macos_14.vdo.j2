@@ -1,0 +1,73 @@
+# Script to install the mounted vmtools iso
+
+# Wait for window with iso opens, selecting the first "Install VMware Tools" item and open it
+pause 20 key tab key super-down pause 10
+
+# Enter voiceover (multiple times to make sure it will be enabled)
+key super-f5 pause 1 key super-f5 pause 1 key super-f5 pause 1 key super-f5 pause 10 key enter
+
+# On welcome screen switch to and press Continue button
+pause 15 key shift-tab key space
+
+# On destination select switch to and press Continue button
+pause 10 key shift-tab key space
+
+# On install location switch to and press Install button
+pause 10 key shift-tab key space
+
+# In password request window enter password and press Install Software button
+pause 10 type "{{ ansible_sudo_pass }}" pause 1 key enter
+
+# Wait for installation of first kext and skip entering the security preferences
+pause 30 key enter
+
+# Popup about the "Installer needs admin access" so allowing that
+pause 10 key ctrl-alt-down pause 1 key ctrl-alt-right pause 1 key space
+
+# Wait for installation of second kext and enter the security preferences
+pause 20 key space
+
+# Select Allow button for VMware inc vendor and click on it
+pause 10 key tab pause 1 key tab pause 1 key tab pause 1 key tab pause 1 key space
+
+# Enter password to unlock admin changes
+pause 5 type "{{ ansible_sudo_pass }}" pause 1 key enter
+
+# Disable voiceover
+pause 1 key super-f5
+
+# Wait for installation complete in background and close the settings window and switch back to installer
+pause 60 key super-w
+
+# Press exit button to  exit the failed install
+pause 5 key enter
+
+# Doing that again due to previous fail: Select the first "Install VMware Tools" item and open it
+pause 5 key super-down pause 5
+
+# Enter voiceover (multiple times to make sure it will be enabled)
+key super-f5 pause 1 key super-f5 pause 1 key super-f5 pause 1 key super-f5 pause 10 key enter
+
+# On welcome screen switch to and press Continue button
+pause 15 key shift-tab key space
+
+# On destination select switch to and press Continue button
+pause 3 key shift-tab key space
+
+# On install location switch to and press Install button
+pause 3 key shift-tab key space
+
+# Enter password to unlock admin changes
+pause 5 type "{{ ansible_sudo_pass }}" pause 1 key enter
+
+# Popup about the "Installer needs admin access" so allowing that
+pause 10 key ctrl-alt-down pause 1 key ctrl-alt-right pause 1 key space
+
+# Disable voiceover
+pause 30 key super-f5
+
+# Wait for installation of preboot and click on reboot button
+pause 5 key space
+
+# Wait for reboot
+pause 120

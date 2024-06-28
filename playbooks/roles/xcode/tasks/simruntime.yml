@@ -1,0 +1,24 @@
+---
+- name: Getting runtime version from the xcodebuild showsdks
+  when: simruntime_version is not defined or simruntime_version == ""
+  block:
+    - name: Get the default version
+      command: xcodebuild -showsdks -json
+      register: reg_xcodebuild_showsdks
+
+    - name: Set runtime version
+      set_fact:
+        # This expression looks for "Simulator - <simruntime_platform>" and it's item version to get the default version value
+        simruntime_version2: "{{ (reg_xcodebuild_showsdks.stdout | from_json | flatten | selectattr('displayName', 'regex', '^Simulator - '+simruntime_platform) | first).platformVersion | default('default simulator not found') }}"
+
+- name: Download simulator runtime to the environment
+  include_role:
+    name: download
+  vars:
+    platform: '{{ simruntime_platform }}'
+    version: '{{ simruntime_version2 | default(simruntime_version) }}'
+    download_url: '{{ xcode_simruntime_download_prefix }}/{{ xcode_simruntime_default_rel }}'
+
+- name: Install simulator runtime from the dmg
+  become: true
+  command: xcrun simctl runtime add '{{ download_path }}'
