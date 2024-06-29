@@ -76,6 +76,7 @@ by `./check_style.sh` script and it will execute a number of tools to validate t
   * [BigSur 11](https://itunes.apple.com/us/app/macos-big-sur/id1526878132)
   * [Monterey 12](https://itunes.apple.com/by/app/macos-monterey/id1576738294)
   * [Ventura 13](https://apps.apple.com/us/app/macos-ventura/id1638787999)
+  * [Sonoma 14](https://apps.apple.com/us/app/macos-sonoma/id6450717509)
 2. Create dmg:
    ```
    $ hdiutil create -o /tmp/macos-installer -size 8500m -volname macosx-installer -layout SPUD -fs HFS+J
@@ -107,8 +108,8 @@ by `./check_style.sh` script and it will execute a number of tools to validate t
 
 #### ISO images
 
-Packer will use iso images from `init/iso` directory. The iso should be named just like the packer
-yml file, but with the iso extension.
+Packer will use iso images from `init/iso` directory. The iso should be named just like it written
+in the spec yml file.
 
 * Build or Download `MacOS-Catalina-10.15.7-210125.190800.iso`
 * Place it as `init/iso/MacOS-Catalina-10.15.7.iso`
