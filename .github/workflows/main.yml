@@ -8,7 +8,7 @@ on:
 
 jobs:
   Check-Lin:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Show used docker version
         run: docker version
@@ -60,10 +60,10 @@ jobs:
           done
 
   Check-Mac-Desktop:
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
       - name: Setup Docker Desktop
-        uses: docker-practice/actions-setup-docker@ccc771627519a0dc44b99c63f3ccf5fab1b1b9b8  # Mar 14 2024
+        uses: better0fdead/actions-setup-docker@a6579726684664a50afca06b0b394c8990599b75  # Jun 20 2023, fixes the issue with not start in time
         timeout-minutes: 30
 
       - name: Show used docker version
@@ -109,7 +109,7 @@ jobs:
           done
 
   Check-Mac-Colima:
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
       - name: Setup Docker Colima
         run: |
