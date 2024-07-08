@@ -61,10 +61,10 @@ jobs:
           done
 
       - name: Upload output artifacts for investigation
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: output
+          name: out-${{ env.name }}
           path: out/*
 
   Check-Mac-Desktop:
@@ -118,10 +118,10 @@ jobs:
           done
 
       - name: Upload output artifacts for investigation
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: output
+          name: out-${{ env.name }}
           path: out/*
 
   Check-Mac-Colima:
@@ -176,8 +176,8 @@ jobs:
           done
 
       - name: Upload output artifacts for investigation
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: output
+          name: out-${{ env.name }}
           path: out/*

@@ -65,13 +65,27 @@ if [ $image_stage -gt 1 ]; then
     for parent_name in ${image_deps}; do
         parent_tar="${parent_name}/$(echo "${parent_name}" | rev | cut -d- -f2- | rev).tar"
         parent_layers_removed=''
-        for parent_layer in $(tar -tf "${parent_tar}" | grep '/$' | tr -d /); do
-            if [ -d "${IMAGE_NAME}_tmp/${parent_layer}" ]; then
-                echo "INFO:   removing parent layer ${parent_name}:${parent_layer}"
-                parent_layers_removed="${parent_layers_removed} ${parent_layer}"
-                rm -rf "${IMAGE_NAME}_tmp/${parent_layer}"
-            fi
-        done
+        # If the image is OCI - we need to use different way of processing
+        if tar -tf "${parent_tar}" oci-layout > /dev/null 2>&1; then
+            # Using OCI layout where the images are stored in blobs/sha256 dir
+            for parent_layer in $(tar -tf "${parent_tar}" | grep '^blobs/sha256/.'); do
+                if [ -f "${IMAGE_NAME}_tmp/${parent_layer}" ]; then
+                    parent_layer_sha256=$(basename "$parent_layer")
+                    echo "INFO:   removing OCI parent layer ${parent_name}:${parent_layer_sha256}"
+                    parent_layers_removed="${parent_layers_removed} ${parent_layer}"
+                    rm -f "${IMAGE_NAME}_tmp/${parent_layer}"
+                fi
+            done
+        else
+            # Using old method where the layers are folders in tar root
+            for parent_layer in $(tar -tf "${parent_tar}" | grep '/$' | tr -d /); do
+                if [ -d "${IMAGE_NAME}_tmp/${parent_layer}" ]; then
+                    echo "INFO:   removing parent layer ${parent_name}:${parent_layer}"
+                    parent_layers_removed="${parent_layers_removed} ${parent_layer}"
+                    rm -rf "${IMAGE_NAME}_tmp/${parent_layer}"
+                fi
+            done
+        fi
         if [ "x${parent_layers_removed}" = 'x' ]; then
             echo "ERROR:   none parent layers was found to remove for ${parent_name}"
             exit 1
