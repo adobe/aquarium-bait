@@ -57,7 +57,15 @@ jobs:
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
             echo "::endgroup::"
+            sleep 5
           done
+
+      - name: Upload output artifacts for investigation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: out/*
 
   Check-Mac-Desktop:
     runs-on: macos-12
@@ -106,7 +114,15 @@ jobs:
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
             echo "::endgroup::"
+            sleep 5
           done
+
+      - name: Upload output artifacts for investigation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: out/*
 
   Check-Mac-Colima:
     runs-on: macos-12
@@ -156,4 +172,12 @@ jobs:
             # Verify image packing
             ./pack_image.sh "out/docker/${image_name}"
             echo "::endgroup::"
+            sleep 5
           done
+
+      - name: Upload output artifacts for investigation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: out/*
