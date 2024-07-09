@@ -9,9 +9,9 @@
     - name: Set runtime version
       set_fact:
         # This expression looks for "Simulator - <simruntime_platform>" and it's item version to get the default version value
-        simruntime_version2: >
-          "{{ (reg_xcodebuild_showsdks.stdout | from_json | flatten | selectattr('displayName', 'regex', '^Simulator - '+simruntime_platform) | first).platformVersion
-          | default('default simulator not found') }}"
+        simruntime_version2: >-
+          {{ (reg_xcodebuild_showsdks.stdout | from_json | flatten | selectattr('displayName', 'regex', '^Simulator - '+simruntime_platform) | first).platformVersion
+          | default('default simulator not found') }}
 
 - name: Download simulator runtime to the environment
   include_role:
