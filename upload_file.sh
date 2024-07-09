@@ -16,6 +16,7 @@
 [ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH="$1"
 
 UPLOAD_URL="$2"
+FILE_PATH="$3"
 
 for f in "$@"; do
     [ -f "$f" ] || continue

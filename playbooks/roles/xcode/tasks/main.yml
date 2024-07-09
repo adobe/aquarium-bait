@@ -5,3 +5,11 @@
 # Xcode needs command line tools to accept license, otherwise will fail with no xcrun
 - name: Install xcode
   import_tasks: xcode.yml
+
+# Going through the simruntime installs list
+- name: Install simruntimes
+  with_items: "{{ xcode_simruntime_install }}"
+  include_tasks: simruntime.yml
+  vars:
+    simruntime_platform: '{{ item.platform }}'
+    simruntime_version: '{{ item.version|default("") }}'
