@@ -5,20 +5,30 @@
     '{{ download_result_var }}': '{% if inventory_hostname == "localhost" %}{{ playbook_dir }}/files/{{ download_mac_dir }}{% else %}{{ download_mac_tmp }}{% endif %}/{{ download_url | basename }}'
     download_local_path: '{{ playbook_dir }}/files/{{ download_mac_dir }}/{{ download_url | basename }}'
 
-- name: Create download directory
+- name: Create target download directory
   file:
     path: '{{ download_mac_tmp }}'
     state: directory
 
-- name: Download {{ download_url }} binary and verify checksum
+- name: Download file to local host
   when: not lookup('fileglob', download_local_path, errors='ignore')
-  delegate_to: localhost
-  get_url:
-    url: '{{ download_url }}'
-    headers: '{{ download_headers }}'
-    dest: '{{ download_local_path }}'
-    mode: '0440'
-    checksum: '{{ download_sum|default(omit) }}'
+  block:
+    # The local directory could be complicated so worth to make sure it exists
+    - name: Create local download directory
+      delegate_to: localhost
+      file:
+        path: '{{ download_local_path | dirname }}'
+        state: directory
+
+    - name: Download {{ download_url }} binary and verify checksum
+      when: not lookup('fileglob', download_local_path, errors='ignore')
+      delegate_to: localhost
+      get_url:
+        url: '{{ download_url }}'
+        headers: '{{ download_headers }}'
+        dest: '{{ download_local_path }}'
+        mode: '0440'
+        checksum: '{{ download_sum|default(omit) }}'
 
 # Copy operation is not really needed if we have the local connection and src path = dest path
 # Also it allows to save RAM on target system, big file copies for some reason are memory hungry
