@@ -60,6 +60,8 @@ provisioners:
       - --skip-tags
       - wipe_disk_zeroes
       - -e
+      - diskmount_disks_warmup=true
+      - -e
       - bait_proxy_url=http://127.0.0.1:{{ user `remote_proxy_port` }}
       - -e
       - jre_extract_path=/srv/jre
