@@ -25,7 +25,7 @@ for i in $(seq 1 10); do
         type=$(echo "$disk_type" | cut -d'-' -f 2)
 
         echo "Formatting & mounting disk '$disk'..."
-        # Unfortunately the file image on top of external disk does not work correctly with lsregister
+        # Unfortunately the file image on top of external disk does not work correctly with xcode lsregister
         # (it still needs ext disk access), so complex logic was removed and replaced by user TCC.db mods
 
         diskutil eraseDisk APFS "ws$counter" "${disk}"

@@ -1,0 +1,54 @@
+---
+- name: Require NSSM
+  import_role: nssm
+
+- name: Store disk formatall script
+  win_copy:
+    src: win/formatall.ps1
+    dest: C:\util\disk\formatall.ps1'
+
+- name: Create service to run formatall
+  win_nssm:
+    executable: C:\util\nssm\nssm.exe
+    name: formatall
+    working_directory: C:\
+    application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+    stdout_file: C:\tmp\formatall.log
+    stderr_file: C:\tmp\formatall.log
+    arguments:
+      - -ExecutionPolicy
+      - Bypass
+      - -NoProfile
+      - -f
+      - C:\util\disk\formatall.ps1
+
+- name: Do not restart formatall on exit
+  win_command: C:\util\nssm\nssm.exe set formatall AppExit Default Exit
+
+- when: diskmount_disks_warmup | bool
+  block:
+    - name: Require FIO
+      import_role: fio
+
+    - name: Store disk warmup script
+      win_copy:
+        src: win/warmup.ps1
+        dest: C:\util\disk\warmup.ps1'
+
+    - name: Create service to run warmup
+      win_nssm:
+        executable: C:\util\nssm\nssm.exe
+        name: warmup
+        working_directory: C:\
+        application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        stdout_file: C:\tmp\warmup.log
+        stderr_file: C:\tmp\warmup.log
+        arguments:
+          - -ExecutionPolicy
+          - Bypass
+          - -NoProfile
+          - -f
+          - C:\util\disk\warmup.ps1
+
+    - name: Do not restart warmup on exit
+      win_command: C:\util\nssm\nssm.exe set warmup AppExit Default Exit

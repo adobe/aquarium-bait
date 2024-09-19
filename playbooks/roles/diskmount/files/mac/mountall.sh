@@ -9,13 +9,13 @@ for i in $(seq 1 10); do
 
     echo "Located disks: $disks_type"
 
-    # Internal disks doesn't need much and available for regular user, but external ones needs additional attention
+    # Internal disks doesn't need much and available for regular user, but external ones needs special attention
     mounted=''
     for disk_type in $disks_type; do
         disk=$(echo "$disk_type" | cut -d'-' -f 1)
         type=$(echo "$disk_type" | cut -d'-' -f 2)
 
-        # Getting the amount of volumes inside the disk to process
+        # Getting the amount of volumes of disk to process
         vol_num=$(diskutil list -plist "$disk" | plutil -extract AllDisks raw -)
         if [ "x$vol_num" = "x" -a "$vol_num" -gt 0 ]; then continue; fi
 

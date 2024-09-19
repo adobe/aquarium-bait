@@ -1,0 +1,4 @@
+---
+# If attached disks needs read of used space for optimal performance
+# Particularly useful with AWS EBS snapshot volumes
+diskmount_disks_warmup: false

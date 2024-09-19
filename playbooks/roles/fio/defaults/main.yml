@@ -1,0 +1,12 @@
+---
+fio_win_download_url: https://artifact-storage/aquarium/files/win/fio-3.37-x64.msi
+fio_win_download_sum: sha256:1cdc6b16f330027aaffd2ff5a8abd97475e5a17809d15d05b884e20724103dfb
+
+# You can use brew bottle to get the binaries:
+# $ brew info --json fio
+# $ curl -so "token.json" "https://ghcr.io/token?service=ghcr.io&scope=repository:homebrew/core/fio:pull"
+# $ curl -Lo fio-3.37.x86_64_sonoma.bottle.tar.gz -H "Authorization: Bearer $token" -H 'Accept: application/vnd.oci.image.layer.v1.tar+gzip' 'https://ghcr.io/v2/homebrew/core/fio/blobs/sha256:18c52b3d11e199a2f960a0781007204b7d0d9de26f26f13670262c6e4a4db5b0'
+# $ curl -Lo fio-3.37.arm64_sonoma.bottle.tar.gz -H "Authorization: Bearer $token" -H 'Accept: application/vnd.oci.image.layer.v1.tar+gzip' 'https://ghcr.io/v2/homebrew/core/fio/blobs/sha256:4606a60336899fd6999316c0d7de2a23b87467f6d77b0eef9000260e899a31fc'
+fio_mac_download_url: https://artifact-storage/aquarium/files/mac/fio-3.37.x86_64_sonoma.bottle.tar.gz
+fio_mac_download_sum: sha256:18c52b3d11e199a2f960a0781007204b7d0d9de26f26f13670262c6e4a4db5b0
+fio_mac_tar_suffix: --strip-components=2 "fio/*/bin" "fio/*/share"

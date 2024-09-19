@@ -1,0 +1,70 @@
+---
+- name: Store disk scripts
+  become: true
+  copy:
+    src: lin/{{ item }}.sh
+    dest: /usr/local/bin/{{ item }}.sh
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - mountall
+    - formatall
+
+- name: Store service unit file for disk scripts autorun
+  become: true
+  template:
+    src: script.service.j2
+    dest: /etc/systemd/system/{{ item }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    script_name: "{{ item }}"
+    script_path: /usr/local/bin/{{ item }}.sh
+  loop:
+    - mountall
+    - formatall
+
+- name: Enable service to start the disk scripts on boot
+  become: true
+  service:
+    name: "{{ item }}"
+    enabled: true
+    state: stopped
+  loop:
+    - mountall
+    - formatall
+
+- when: diskmount_disks_warmup | bool
+  block:
+    - name: Require FIO
+      import_role: fio
+
+    - name: Store warmup script
+      become: true
+      copy:
+        src: lin/warmup.sh
+        dest: /usr/local/bin/warmup.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Store service unit file for warmup script autorun
+      become: true
+      template:
+        src: script.service.j2
+        dest: /etc/systemd/system/warmup.service
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        script_name: warmup
+        script_path: /usr/local/bin/warmup.sh
+
+    - name: Enable service to start the warmup script on boot
+      become: true
+      service:
+        name: warmup
+        enabled: true
+        state: stopped

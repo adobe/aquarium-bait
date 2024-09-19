@@ -1,0 +1,3 @@
+---
+nssm_win_download_url: https://artifact-storage/aquarium/files/win/nssm-2.24.zip
+nssm_win_download_sum: sha256:727d1e42275c605e0f04aba98095c38a8e1e46def453cdffce42869428aa6743

@@ -135,6 +135,8 @@
         - /bin/sh  # Need to allow agent init script to work
         - /opt/srv/jre/bin/java  # Jenkins agent main executor (not affected by sh rule, yep)
 
+# Launching as LaunchDaemon have some benefits, but in general will limit the ability of jenkins agent to utilize
+# sometimes necesary macos services like keystore, so choose wisely.
 - name: Store LaunchDaemon plist file for agent autorun during system startup
   when: not jenkins_agent_ui | bool
   tags: jenkins_agent_service_config
@@ -149,30 +151,3 @@
     java_home: "{{ jenkins_agent_java_home }}"
     config_url: "{{ jenkins_agent_config_url }}"
     script_path: "{{ jenkins_agent_path }}/jenkins_agent.sh"
-
-- name: Store disk scripts
-  become: true
-  copy:
-    src: mac/{{ item }}.sh
-    dest: "{{ jenkins_agent_path }}/{{ item }}.sh"
-    owner: root
-    group: wheel
-    mode: "0755"
-  loop:
-    - mountall
-    - formatall
-
-- name: Store service plist files for scripts autorun
-  become: true
-  template:
-    src: aquarium.ci.script.plist.j2
-    dest: /Library/LaunchDaemons/aquarium.ci.{{ item }}.plist
-    owner: root
-    group: wheel
-    mode: "0644"
-  vars:
-    script_name: "{{ item }}"
-    script_path: "{{ jenkins_agent_path }}/{{ item }}.sh"
-  loop:
-    - mountall
-    - formatall

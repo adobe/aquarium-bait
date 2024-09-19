@@ -1,0 +1,20 @@
+---
+- name: Download fio archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ fio_win_download_url }}'
+    download_sum: '{{ fio_win_download_sum }}'
+
+- name: Install fio to {{ fio_install_path }}
+  win_package:
+    state: present
+    arguments: /qn /norestart INSTALLDIR={{ fio_install_path }}
+    path: '{{ download_path }}'
+
+- name: Add fio bin dir to system PATH
+  win_path:
+    elements: '{{ fio_install_path }}'
+
+- name: Check fio binary was installed properly
+  win_command: '{{ fio_install_path }}\fio.exe --version'

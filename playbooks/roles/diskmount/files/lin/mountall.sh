@@ -17,14 +17,12 @@ for i in $(seq 1 20); do
         point="/mnt/$(basename "$label")"
         echo "Mounting: $label ($disk) to $point..."
         mkdir "$point"
+
         # Mount could fail if the disk is not healthy
-        if ! mount -o uid=jenkins,gid=jenkins "$label" "$point"; then
-            # Mount again if the fs doesn't support uid/gid options
-            mount "$label" "$point"
-            # Execute chown to change the owner/group of the volume or as
-            # the last resort change the mountpoint mod to "access to all"
-            chown jenkins:jenkins "$point" || chmod 0777 "$point"
-        fi
+        mount "$label" "$point"
+        # Change the mountpoint mod to "access for all"
+        chmod 0777 "$point"
+
         mount | grep "^$disk"
     done
 
