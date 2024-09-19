@@ -1,10 +1,4 @@
 ---
-- name: Validate required variables
-  when: item not in vars or vars[item] | length == 0
-  with_items: "{{ required_vars }}"
-  fail:
-    msg: Variable '{{ item }}' is not defined
-
 - name: Execute on Linux
   include_tasks: linux.yml
   when: ansible_system == 'Linux'
