@@ -125,11 +125,12 @@ jobs:
           path: out/*
 
   Check-Mac-Colima:
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - name: Setup Docker Colima
         run: |
           brew install docker
+          brew install colima
           colima start
 
       - name: Show used docker version
