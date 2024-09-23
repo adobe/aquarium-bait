@@ -12,4 +12,5 @@
   when: ansible_system == 'Win32NT'
 
 - name: Require automount
-  import_role: diskmount
+  import_role:
+    name: diskmount
