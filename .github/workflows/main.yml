@@ -68,7 +68,7 @@ jobs:
           path: out/*
 
   Check-Mac-Desktop:
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
       - name: Setup Docker Desktop
         uses: docker-practice/actions-setup-docker@ccc771627519a0dc44b99c63f3ccf5fab1b1b9b8  # Mar 14 2024, timeout increase + node20 migration
@@ -125,7 +125,7 @@ jobs:
           path: out/*
 
   Check-Mac-Colima:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - name: Setup Docker Colima
         run: |
