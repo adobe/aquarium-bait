@@ -3,7 +3,7 @@
   become: true
   copy:
     src: mac/{{ item }}.sh
-    dest: "{{ jenkins_agent_path }}/{{ item }}.sh"
+    dest: /usr/local/bin/{{ item }}.sh
     owner: root
     group: wheel
     mode: "0755"
@@ -21,7 +21,7 @@
     mode: "0644"
   vars:
     script_name: "{{ item }}"
-    script_path: "{{ jenkins_agent_path }}/{{ item }}.sh"
+    script_path: /usr/local/bin/{{ item }}.sh
   loop:
     - mountall
     - formatall
@@ -29,13 +29,14 @@
 - when: diskmount_disks_warmup | bool
   block:
     - name: Require FIO
-      import_role: fio
+      import_role:
+        name: fio
 
     - name: Store warmup script
       become: true
       copy:
         src: mac/warmup.sh
-        dest: "{{ jenkins_agent_path }}/warmup.sh"
+        dest: /usr/local/bin/warmup.sh
         owner: root
         group: wheel
         mode: "0755"
@@ -50,4 +51,4 @@
         mode: "0644"
       vars:
         script_name: warmup
-        script_path: "{{ jenkins_agent_path }}/warmup.sh"
+        script_path: /usr/local/bin/warmup.sh

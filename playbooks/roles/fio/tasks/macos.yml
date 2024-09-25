@@ -10,9 +10,9 @@
 - name: Unpack only bin & lib from archive to directory
   become: true
   command: >
-    tar -C /usr/local -xf "{{ download_path }}" {{ fio_mac_tar_suffix }}
+    tar -C "{{ fio_install_path }}" -xf "{{ download_path }}" {{ fio_mac_tar_suffix }}
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on macos by default
 
 - name: Verify fio binary was installed properly
-  command: fio --version  # noqa 303
+  command: /usr/local/bin/fio --version  # noqa 303

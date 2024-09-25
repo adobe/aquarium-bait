@@ -9,7 +9,7 @@
 - name: Install fio to {{ fio_install_path }}
   win_package:
     state: present
-    arguments: /qn /norestart INSTALLDIR={{ fio_install_path }}
+    arguments: /qn /norestart INSTALLDIR={{ fio_install_path | win_dirname }}
     path: '{{ download_path }}'
 
 - name: Add fio bin dir to system PATH

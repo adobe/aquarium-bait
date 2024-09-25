@@ -1,6 +1,8 @@
 #!/bin/sh
 # Mounts all the available volumes on external disks
 
+echo "Started mountall at $(date "+%y.%m.%d %H:%M:%S")"
+
 # It takes some time for VMX MacOS to fill the disks list, so repeating it
 # 55 sec to mount the external disks
 for i in $(seq 1 10); do
@@ -41,3 +43,5 @@ for i in $(seq 1 10); do
 
     sleep $i
 done
+
+echo "Ended mountall at $(date "+%y.%m.%d %H:%M:%S")"

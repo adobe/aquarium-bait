@@ -2,6 +2,8 @@
 # Mounts all the available volumes on external disks
 # It could take some time to fill the disks list, so repeating it
 
+echo "Started mountall at $(date "+%y.%m.%d %H:%M:%S")"
+
 # 210 sec to mount the external disks
 for i in $(seq 1 20); do
     labels=$(find /dev/disk/by-label -mindepth 1)
@@ -29,4 +31,4 @@ for i in $(seq 1 20); do
     sleep $i
 done
 
-exit 0
+echo "Ended mountall at $(date "+%y.%m.%d %H:%M:%S")"

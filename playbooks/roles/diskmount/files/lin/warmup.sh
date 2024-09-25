@@ -2,6 +2,8 @@
 # Warm up the mounted disks
 # It could take some time to fill the disks list, so repeating it
 
+echo "Started warmup at $(date "+%y.%m.%d %H:%M:%S")"
+
 # 210 sec to warmup the mounted disks
 for i in $(seq 1 20); do
     labels=$(find /dev/disk/by-label -mindepth 1)
@@ -28,4 +30,4 @@ for i in $(seq 1 20); do
     sleep $i
 done
 
-exit 0
+echo "Ended warmup at $(date "+%y.%m.%d %H:%M:%S")"

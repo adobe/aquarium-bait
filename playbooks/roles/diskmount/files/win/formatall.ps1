@@ -1,6 +1,8 @@
 #!powershell
 # Formats the raw disks and mounts them
 
+echo ('Started formatall at ' + (Get-Date -Format "yy.MM.dd HH:mm:ss"))
+
 $count = 0
 Get-Disk | Where partitionstyle -eq 'raw' | ForEach-Object {
     $name = "workspace"
@@ -20,3 +22,5 @@ Get-Disk | Where partitionstyle -eq 'raw' | ForEach-Object {
 
     $count++
 }
+
+echo ('Ended formatall at ' + (Get-Date -Format "yy.MM.dd HH:mm:ss"))

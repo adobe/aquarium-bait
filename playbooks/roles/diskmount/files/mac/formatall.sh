@@ -1,6 +1,8 @@
 #!/bin/sh
 # Detects the raw disks (without partitions), formats and mounts them
 
+echo "Started formatall at $(date "+%y.%m.%d %H:%M:%S")"
+
 # It takes some time for VMX MacOS to fill the disks list, so repeating it
 # 55 sec to process the physical disks
 for i in $(seq 1 10); do
@@ -41,3 +43,5 @@ for i in $(seq 1 10); do
 
     sleep $i
 done
+
+echo "Ended formatall at $(date "+%y.%m.%d %H:%M:%S")"

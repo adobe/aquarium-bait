@@ -1,6 +1,7 @@
 ---
 - name: Require NSSM
-  import_role: nssm
+  import_role:
+    name: nssm
 
 - name: Add jenkins group
   win_group:

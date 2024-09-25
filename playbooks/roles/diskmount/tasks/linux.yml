@@ -39,7 +39,8 @@
 - when: diskmount_disks_warmup | bool
   block:
     - name: Require FIO
-      import_role: fio
+      import_role:
+        name: fio
 
     - name: Store warmup script
       become: true

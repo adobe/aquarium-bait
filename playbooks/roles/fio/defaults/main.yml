@@ -12,3 +12,9 @@ fio_win_download_sum: sha256:1cdc6b16f330027aaffd2ff5a8abd97475e5a17809d15d05b88
 fio_mac_download_url: https://artifact-storage/aquarium/files/mac/fio-3.37.x86_64_sonoma.bottle.tar.gz
 fio_mac_download_sum: sha256:18c52b3d11e199a2f960a0781007204b7d0d9de26f26f13670262c6e4a4db5b0
 fio_mac_tar_suffix: --strip-components=2 "fio/*/bin" "fio/*/share"
+
+# Warning: target dir on windows will always be "fio" due to msi unpack restrictions
+fio_install_path_default: /usr/local
+fio_install_path_darwin: /usr/local
+fio_install_path_win32nt: C:\util\fio
+fio_install_path: "{{ lookup('vars', 'fio_install_path_'+ansible_system|lower, default=fio_install_path_default) }}"

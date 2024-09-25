@@ -1,11 +1,17 @@
 ---
 - name: Require NSSM
-  import_role: nssm
+  import_role:
+    name: nssm
+
+- name: Create disk scripts directory
+  win_file:
+    path: C:\util\disk
+    state: directory
 
 - name: Store disk formatall script
   win_copy:
     src: win/formatall.ps1
-    dest: C:\util\disk\formatall.ps1'
+    dest: C:\util\disk\formatall.ps1
 
 - name: Create service to run formatall
   win_nssm:
@@ -28,12 +34,13 @@
 - when: diskmount_disks_warmup | bool
   block:
     - name: Require FIO
-      import_role: fio
+      import_role:
+        name: fio
 
     - name: Store disk warmup script
       win_copy:
         src: win/warmup.ps1
-        dest: C:\util\disk\warmup.ps1'
+        dest: C:\util\disk\warmup.ps1
 
     - name: Create service to run warmup
       win_nssm:
