@@ -125,7 +125,7 @@ jobs:
           path: out/*
 
   Check-Mac-Colima:
-    runs-on: macos-13  # Can't update to 14 since GitHub mac HW doesn't support nested virtualization
+    runs-on: macos-12  # Can't update to 14 since GitHub mac HW doesn't support nested virtualization
     steps:
       - name: Setup Docker Colima
         run: |
