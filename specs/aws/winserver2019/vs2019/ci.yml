@@ -59,6 +59,8 @@ provisioners:
       - --skip-tags
       - wipe_disk_zeroes
       - -e
+      - diskmount_disks_warmup=true
+      - -e
       - jre_extract_path=C:\util\jre
       - -e
       - jenkins_agent_config_url=http://169.254.169.254/latest/user-data

@@ -15,7 +15,6 @@
 - name: Make sure unzip is installed to unpack archive
   import_role:
     name: unzip
-    allow_duplicates: false
 
 - name: Unzip Ninja
   become: true

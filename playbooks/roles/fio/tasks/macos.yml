@@ -1,0 +1,18 @@
+---
+- name: Download fio archive to the environment
+  include_role:
+    name: download
+  vars:
+    download_url: '{{ fio_mac_download_url }}'
+    download_sum: '{{ fio_mac_download_sum }}'
+
+# Uses BSD tar, GNU will require --wildcards in addition
+- name: Unpack only bin & lib from archive to directory
+  become: true
+  command: >
+    tar -C "{{ fio_install_path }}" -xf "{{ download_path }}" {{ fio_mac_tar_suffix }}
+  args:
+    warn: false  # Unarchive requires GNU tar that is not installed on macos by default
+
+- name: Verify fio binary was installed properly
+  command: /usr/local/bin/fio --version  # noqa 303

@@ -1,0 +1,14 @@
+---
+- name: Install fio tool
+  become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name:
+      - fio
+
+- name: Verify fio binary was installed properly
+  command: fio --version  # noqa 303

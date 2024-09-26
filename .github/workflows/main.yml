@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
 
@@ -71,7 +71,7 @@ jobs:
     runs-on: macos-12
     steps:
       - name: Setup Docker Desktop
-        uses: better0fdead/actions-setup-docker@a6579726684664a50afca06b0b394c8990599b75  # Jun 20 2023, fixes the issue with not start in time
+        uses: docker-practice/actions-setup-docker@ccc771627519a0dc44b99c63f3ccf5fab1b1b9b8  # Mar 14 2024, timeout increase + node20 migration
         timeout-minutes: 30
 
       - name: Show used docker version
@@ -79,7 +79,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
 
@@ -125,11 +125,12 @@ jobs:
           path: out/*
 
   Check-Mac-Colima:
-    runs-on: macos-12
+    runs-on: macos-12  # Can't update to 14 since GitHub mac HW doesn't support nested virtualization
     steps:
       - name: Setup Docker Colima
         run: |
           brew install docker
+          brew install colima
           colima start
 
       - name: Show used docker version
@@ -137,7 +138,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
 

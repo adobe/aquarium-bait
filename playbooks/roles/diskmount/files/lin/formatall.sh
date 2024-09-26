@@ -1,6 +1,8 @@
 #!/bin/sh
 # Detects the raw disks (not mounted and without partitions) and formats them
 
+echo "Started formatall at $(date "+%y.%m.%d %H:%M:%S")"
+
 # List disks without loop devices
 disks=$(lsblk --list --noheadings --nodeps --output PATH | sort | grep -v '^/dev/loop')
 
@@ -39,3 +41,5 @@ for disk in $to_format; do
 
     counter=$(($counter+1))
 done
+
+echo "Ended formatall at $(date "+%y.%m.%d %H:%M:%S")"

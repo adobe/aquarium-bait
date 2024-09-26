@@ -1,6 +1,8 @@
 #!/bin/sh
 # Detects the raw disks (without partitions), formats and mounts them
 
+echo "Started formatall at $(date "+%y.%m.%d %H:%M:%S")"
+
 # It takes some time for VMX MacOS to fill the disks list, so repeating it
 # 55 sec to process the physical disks
 for i in $(seq 1 10); do
@@ -25,7 +27,7 @@ for i in $(seq 1 10); do
         type=$(echo "$disk_type" | cut -d'-' -f 2)
 
         echo "Formatting & mounting disk '$disk'..."
-        # Unfortunately the file image on top of external disk does not work correctly with lsregister
+        # Unfortunately the file image on top of external disk does not work correctly with xcode lsregister
         # (it still needs ext disk access), so complex logic was removed and replaced by user TCC.db mods
 
         diskutil eraseDisk APFS "ws$counter" "${disk}"
@@ -41,3 +43,5 @@ for i in $(seq 1 10); do
 
     sleep $i
 done
+
+echo "Ended formatall at $(date "+%y.%m.%d %H:%M:%S")"

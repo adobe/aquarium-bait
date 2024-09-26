@@ -1,0 +1,54 @@
+---
+- name: Store disk scripts
+  become: true
+  copy:
+    src: mac/{{ item }}.sh
+    dest: /usr/local/bin/{{ item }}.sh
+    owner: root
+    group: wheel
+    mode: "0755"
+  loop:
+    - mountall
+    - formatall
+
+- name: Store service plist files for scripts autorun
+  become: true
+  template:
+    src: script.plist.j2
+    dest: /Library/LaunchDaemons/aquarium.{{ item }}.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  vars:
+    script_name: "{{ item }}"
+    script_path: /usr/local/bin/{{ item }}.sh
+  loop:
+    - mountall
+    - formatall
+
+- when: diskmount_disks_warmup | bool
+  block:
+    - name: Require FIO
+      import_role:
+        name: fio
+
+    - name: Store warmup script
+      become: true
+      copy:
+        src: mac/warmup.sh
+        dest: /usr/local/bin/warmup.sh
+        owner: root
+        group: wheel
+        mode: "0755"
+
+    - name: Store service plist files for warmup script autorun
+      become: true
+      template:
+        src: script.plist.j2
+        dest: /Library/LaunchDaemons/aquarium.warmup.plist
+        owner: root
+        group: wheel
+        mode: "0644"
+      vars:
+        script_name: warmup
+        script_path: /usr/local/bin/warmup.sh

@@ -1,6 +1,8 @@
 #!/bin/sh
 # Mounts all the available volumes on external disks
 
+echo "Started mountall at $(date "+%y.%m.%d %H:%M:%S")"
+
 # It takes some time for VMX MacOS to fill the disks list, so repeating it
 # 55 sec to mount the external disks
 for i in $(seq 1 10); do
@@ -9,13 +11,13 @@ for i in $(seq 1 10); do
 
     echo "Located disks: $disks_type"
 
-    # Internal disks doesn't need much and available for regular user, but external ones needs additional attention
+    # Internal disks doesn't need much and available for regular user, but external ones needs special attention
     mounted=''
     for disk_type in $disks_type; do
         disk=$(echo "$disk_type" | cut -d'-' -f 1)
         type=$(echo "$disk_type" | cut -d'-' -f 2)
 
-        # Getting the amount of volumes inside the disk to process
+        # Getting the amount of volumes of disk to process
         vol_num=$(diskutil list -plist "$disk" | plutil -extract AllDisks raw -)
         if [ "x$vol_num" = "x" -a "$vol_num" -gt 0 ]; then continue; fi
 
@@ -41,3 +43,5 @@ for i in $(seq 1 10); do
 
     sleep $i
 done
+
+echo "Ended mountall at $(date "+%y.%m.%d %H:%M:%S")"

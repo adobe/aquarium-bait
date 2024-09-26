@@ -1,6 +1,7 @@
 ---
-- name: Install NSSM
-  import_tasks: windows_nssm.yml
+- name: Require NSSM
+  import_role:
+    name: nssm
 
 - name: Add jenkins group
   win_group:
@@ -39,29 +40,6 @@
 - name: Create user profile dirs
   win_user_profile:
     username: jenkins
-
-- name: Store disk formatall script
-  win_copy:
-    src: win/formatall.ps1
-    dest: '{{ jenkins_agent_path }}\formatall.ps1'
-
-- name: Create service to run formatall
-  win_nssm:
-    executable: C:\util\nssm\nssm.exe
-    name: formatall
-    working_directory: C:\
-    application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-    stdout_file: C:\tmp\formatall.log
-    stderr_file: C:\tmp\formatall.log
-    arguments:
-      - -ExecutionPolicy
-      - Bypass
-      - -NoProfile
-      - -f
-      - '{{ jenkins_agent_path }}\formatall.ps1'
-
-- name: Do not restart formatall on exit
-  win_command: C:\util\nssm\nssm.exe set formatall AppExit Default Exit
 
 - name: Store jenkins agent executable scripts
   win_copy:
