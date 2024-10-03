@@ -11,15 +11,23 @@
 
 # Upload all the following files to the specific URL
 # Usage:
-#   ./upload_file.sh <login:token> <UPLOAD_URL> [path/to/file] [...]
+#   ./upload_file.sh [login:token] <UPLOAD_URL> [path/to/file] [...]
 
-[ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH="$1"
+if [ -z "$ARTIFACT_STORAGE_AUTH" ]; then
+    ARTIFACT_STORAGE_AUTH="$1"
+    shift
+fi
 
-UPLOAD_URL="$2"
+UPLOAD_URL="$1"
+shift
 
 for f in "$@"; do
-    [ -f "$f" ] || continue
+    if [ ! -f "$f" ]; then
+        echo "WARNING: Skipping $f - does not exist"
+        continue
+    fi
     name=$(basename "$f")
+
     echo "INFO: Processing $f"
 
     echo "INFO:  calcuating checksum ..."
@@ -36,7 +44,7 @@ for f in "$@"; do
     echo
     echo "INFO:  - name: \"$name\""
     echo "INFO:    url: \"$url\""
-    echo "INFO:    checksum: \"sha256:$checksum\""
+    echo "INFO:    sum: \"sha256:$checksum\""
     echo
 done
 

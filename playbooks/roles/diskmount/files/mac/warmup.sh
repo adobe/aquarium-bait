@@ -57,4 +57,7 @@ done
 # Cleanup root ssh keys when was used
 [ "x$root_keys_used" = "x" ] || rm -rf /var/root/.ssh
 
+# Waiting for the running background jobs before wrapping up
+wait $(jobs -p)
+
 echo "Ended warmup at $(date "+%y.%m.%d %H:%M:%S")"

@@ -13,12 +13,17 @@
 # Usage:
 #   ./upload_image.sh [login:token] <out/type/image.tar.xz> [...]
 
-[ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH=$1
+if [ -z "$ARTIFACT_STORAGE_AUTH" ]; then
+    ARTIFACT_STORAGE_AUTH="$1"
+    shift
+fi
 [ "$ARTIFACT_STORAGE_URL" ] || ARTIFACT_STORAGE_URL=https://artifact-storage/aquarium/image
 
 for path in "$@"; do
-    # Skipping non-file target
-    [ -f "${path}" ] || continue
+    if [ ! -f "$f" ]; then
+        echo "WARNING: Skipping $f - does not exist"
+        continue
+    fi
 
     name=$(basename "$path" | rev | cut -d- -f2- | rev)
     type=$(basename "$(dirname "$path")")
@@ -45,7 +50,7 @@ for path in "$@"; do
     echo
     echo "INFO:  - name: \"$name\""
     echo "INFO:    url: \"$url\""
-    echo "INFO:    checksum: \"sha256:$checksum\""
+    echo "INFO:    sum: \"sha256:$checksum\""
     echo
 done
 
