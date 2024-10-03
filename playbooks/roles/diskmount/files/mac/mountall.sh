@@ -1,5 +1,5 @@
 #!/bin/sh
-# Mounts all the available volumes on external disks
+# Mounts all the available volumes on internal & external disks
 
 echo "Started mountall at $(date "+%y.%m.%d %H:%M:%S")"
 

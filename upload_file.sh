@@ -16,7 +16,6 @@
 [ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH="$1"
 
 UPLOAD_URL="$2"
-FILE_PATH="$3"
 
 for f in "$@"; do
     [ -f "$f" ] || continue
@@ -26,11 +25,11 @@ for f in "$@"; do
     echo "INFO:  calcuating checksum ..."
     # MacOS doesn't have sha256sum command
     if ! command -v sha256sum > /dev/null; then alias sha256sum="shasum -a 256 -b"; fi
-    checksum=$(sha256sum "$FILE_PATH" | cut -d' ' -f1)
+    checksum=$(sha256sum "$f" | cut -d' ' -f1)
 
     url="$UPLOAD_URL/$name"
     echo "INFO:  uploading to $url ..."
-    curl --progress-bar -u "$ARTIFACT_STORAGE_AUTH" -X PUT -H "X-Checksum-Sha256: $checksum" -T "$FILE_PATH" "$url" | tee /dev/null
+    curl --progress-bar -u "$ARTIFACT_STORAGE_AUTH" -X PUT -H "X-Checksum-Sha256: $checksum" -T "$f" "$url" | tee /dev/null
 
     echo
     echo "INFO:  upload complete:"

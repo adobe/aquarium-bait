@@ -27,6 +27,9 @@ for i in $(seq 1 20); do
         mountpoint=$(diskutil info -plist "$disk" | plutil -extract MountPoint raw -)
         echo "Warmup: $mountpoint ($disk, ${usage}MB used)..."
 
+        # SSH prefix is used in case the disk is external and there is no easy way to access it
+        ssh_prefix=''
+
         # External devices needs special attention
         ext_device=$(diskutil info -plist "$disk" | plutil -extract RemovableMediaOrExternalDevice raw -)
         if [ "x$ext_device" = 'xtrue' ]; then
@@ -39,12 +42,10 @@ for i in $(seq 1 20); do
             root_keys_used=true
             ssh-keygen -N '' -f "/var/root/.ssh/warmup_$uuid"
             cat "/var/root/.ssh/warmup_$uuid.pub" >> /var/root/.ssh/authorized_keys
-            ssh -i "/var/root/.ssh/warmup_$uuid" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@localhost \
-                /usr/local/bin/fio --filename "$disk" --rw read --bs 1M --iodepth 32 --size "${usage}M" --ioengine posixaio --name "warmup_$uuid" --output "/var/log/warmup_$uuid.log" &
-        else
-            # Otherwise just executing the fio app - internal disks will work just fine
-            /usr/local/bin/fio --filename "$disk" --rw read --bs 1M --iodepth 32 --size "${usage}M" --ioengine posixaio --name "warmup_$uuid" &
+            ssh_prefix="ssh -i "/var/root/.ssh/warmup_$uuid" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@localhost"
         fi
+
+        $ssh_prefix /usr/local/bin/fio --filename "$disk" --rw read --bs 1Mi --iodepth 32 --size "${usage}Mi" --ioengine posixaio --name "warmup_$uuid" --output "/var/log/warmup_$uuid.log" &
 
         # Save the volume is warmed up
         date > "/tmp/warmup_$uuid.txt"

@@ -20,8 +20,8 @@ for i in $(seq 1 20); do
         # Minimum disk warmup usage is 32MB
         [ "$usage" -gt 32 ] || continue
 
-        echo "Warmup: $label ($disk, ${usage}MB used)..."
-        fio --filename "$disk" --rw read --bs 1M --iodepth 32 --size "${usage}M" --ioengine libaio --direct 1 --name warmup_$uuid &
+        echo "Warmup: $label $uuid ($disk, ${usage}MiB used)..."
+        fio --filename "$disk" --rw read --bs 1Mi --iodepth 32 --size "${usage}Mi" --ioengine libaio --direct 1 --name warmup_$uuid --output "/var/log/warmup_$uuid.log" &
 
         # Save the volume is warmed up
         date > "/tmp/warmup_$uuid.txt"
@@ -29,5 +29,8 @@ for i in $(seq 1 20); do
 
     sleep $i
 done
+
+# Waiting for the running background jobs before wrapping up
+wait $(jobs -p)
 
 echo "Ended warmup at $(date "+%y.%m.%d %H:%M:%S")"
