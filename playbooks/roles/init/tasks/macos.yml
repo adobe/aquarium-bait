@@ -9,8 +9,9 @@
   include_tasks: macos_systemsetup.yml
   vars:
     key: "{{ item }}"
-    value: Never
+    value: 0
   with_items:
+    - sleep
     - computersleep
     - displaysleep
     - harddisksleep
@@ -56,6 +57,14 @@
     host: currentHost
     domain: com.apple.screensaver
     key: idleTime
+    type: int
+    value: 0
+
+- name: Disable screensaver on login window
+  become: true
+  osx_defaults:
+    domain: com.apple.screensaver
+    key: loginWindowIdleTime
     type: int
     value: 0
 
