@@ -13,13 +13,16 @@
 # Usage:
 #   ./upload_image.sh [login:token] <iso/cd_dvd.iso> [artifact_path]
 
-[ "$ARTIFACT_STORAGE_AUTH" ] || ARTIFACT_STORAGE_AUTH="$1"
+if [ -z "$ARTIFACT_STORAGE_AUTH" ]; then
+    ARTIFACT_STORAGE_AUTH="$1"
+    shift
+fi
 [ "$ARTIFACT_STORAGE_URL" ] || ARTIFACT_STORAGE_URL=https://artifact-storage/aquarium/installer
 
-FILE_PATH="$2"
+FILE_PATH="$1"
 name=$(basename "$FILE_PATH" | rev | cut -d- -f2- | rev)
 
-[ "$ARTIFACT_PATH" ] || ARTIFACT_PATH="$3"
+[ "$ARTIFACT_PATH" ] || ARTIFACT_PATH="$2"
 [ "$ARTIFACT_PATH" ] || ARTIFACT_PATH="$name/$(basename "$FILE_PATH")"
 
 # Skipping non-file target
@@ -48,7 +51,7 @@ echo "INFO:  upload complete:"
 echo
 echo "INFO:  - name: \"$name\""
 echo "INFO:    url: \"$url\""
-echo "INFO:    checksum: \"sha256:$checksum\""
+echo "INFO:    sum: \"sha256:$checksum\""
 echo
 
 echo "INFO: Upload operation done"

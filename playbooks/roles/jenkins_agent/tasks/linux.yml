@@ -8,9 +8,11 @@
 - name: Add user jenkins with group jenkins
   become: true
   user:
+    uid: 5001
     name: jenkins
     group: jenkins
-    uid: 5001
+    groups:
+      - systemd-journal  # Allow to read journals to collect system info
     comment: Jenkins
 
 - name: Install tools required by jenkins_agent.sh script

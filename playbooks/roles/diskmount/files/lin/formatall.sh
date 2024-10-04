@@ -3,6 +3,10 @@
 
 echo "Started formatall at $(date "+%y.%m.%d %H:%M:%S")"
 
+# Check the ws labels to start counter properly, otherwise we will see conflicts
+ws_labels_num=$(find /dev/disk/by-label -mindepth 1 -name 'ws*' | wc -l)
+[ "$ws_labels_num" -eq 0 ] || counter=$ws_labels_num
+
 # List disks without loop devices
 disks=$(lsblk --list --noheadings --nodeps --output PATH | sort | grep -v '^/dev/loop')
 
