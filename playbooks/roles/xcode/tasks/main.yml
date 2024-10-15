@@ -13,3 +13,4 @@
   vars:
     simruntime_platform: '{{ item.platform }}'
     simruntime_version: '{{ item.version|default("") }}'
+    simruntime_check: '{{ item.check|default([]) }}'
