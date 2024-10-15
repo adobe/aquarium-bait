@@ -10,8 +10,8 @@
       set_fact:
         # This expression looks for "Simulator - <simruntime_platform>" and it's item version to get the default version value
         simruntime_version2: >-
-          {{ (reg_xcodebuild_showsdks.stdout | from_json | flatten | selectattr('displayName', 'regex', '^Simulator - '+simruntime_platform) | first).platformVersion
-          | default('default simulator not found') }}
+          {{ (reg_xcodebuild_showsdks.stdout | from_json | flatten | selectattr('displayName', 'regex', '^Simulator - '+(simruntime_platform|regex_escape))
+          | first).platformVersion | default('default simulator not found') }}
 
 - name: Download simulator runtime to the environment
   include_role:
@@ -24,3 +24,31 @@
 - name: Install simulator runtime from the dmg
   become: true
   command: xcrun simctl runtime add '{{ download_path }}'
+
+# This check is also a part of init process - if we will not call it, mac will wait for ~3 min and
+# return just the host as available runtime, which will be incorrect by all means.
+- name: Getting list of the available simruntimes
+  command: xcrun xcdevice list
+  register: reg_xcrun_devlist
+
+- name: Validating simulator runtime is installed
+  when: simruntime_check|default([])|length > 0
+  block:
+    - name: Finding check simruntimes version
+      with_indexed_items: '{{ simruntime_check }}'
+      # noqa var-naming
+      set_fact:
+        # This expression will try to find the simruntime version by the provided item to check
+        "{{ 'simruntime_check_version_'+(item.0|string) }}": >-
+          {{ ((reg_xcrun_devlist.stdout | from_json | flatten | selectattr('modelName', 'regex', '^'+(item.1 | regex_escape))
+          | first).operatingSystemVersion | default('')).split() | first | default('') }}
+
+    - name: Listing all the versions
+      set_fact:
+        simruntime_check_versions: >-
+          {% for key in vars %}{% if key.startswith('simruntime_check_version_') %}{{ vars[key] }} {% endif %}{% endfor %}
+
+    - name: Fail if no simruntime checks was found in the list
+      when: simruntime_check_versions != ( ((simruntime_version2 | default(simruntime_version)) + " ") * simruntime_check|length )
+      fail:
+        msg: Incorrect versions for checked simruntime {{ simruntime_check_versions }} != {{ ( ((simruntime_version2 | default(simruntime_version)) + " ") * (simruntime_check|length) ) }}

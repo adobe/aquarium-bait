@@ -11,7 +11,10 @@ xcode_cmd_download_sum: '{{ xcode_version_122_cmd_mac_download_sum }}'
 # List of the simulator runtimes (platform/version) need to be installed, usually: iOS, watchOS, tvOS, visionOS
 xcode_simruntime_install: []
 #   - platform: iOS  # To install default version from the `xcodebuild -showsdks`
+#     check:
+#       - iPad Air   # Make sure this specific simruntime is installed
 #   - platform: iOS
-#     version: 10.2
+#     version: 10.2  # Specify version of the OS to install
+#     # Will skip validation the specific simruntimes
 xcode_simruntime_download_prefix: https://artifact-storage/aquarium/files/mac/rosetta
 xcode_simruntime_default_rel: '{{ platform|default("") }}_{{ version|default("") }}_Simulator_Runtime.dmg'

@@ -11,8 +11,6 @@
     uid: 5001
     name: jenkins
     group: jenkins
-    groups:
-      - systemd-journal  # Allow to read journals to collect system info
     comment: Jenkins
 
 - name: Install tools required by jenkins_agent.sh script
@@ -44,6 +42,13 @@
 
 - when: ansible_service_mgr == 'systemd'
   block:
+    - name: Add user jenkins to systemd-journal group
+      become: true
+      user:
+        name: jenkins
+        groups:
+          - systemd-journal  # Allow to read journals to collect system info
+
     - name: Add jenkins-agent systemd service
       become: true
       template:
