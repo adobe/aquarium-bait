@@ -9,8 +9,10 @@
 # Going through the simruntime installs list
 - name: Install simruntimes
   with_items: "{{ xcode_simruntime_install }}"
+  loop_control:
+    loop_var: ext_item
   include_tasks: simruntime.yml
   vars:
-    simruntime_platform: '{{ item.platform }}'
-    simruntime_version: '{{ item.version|default("") }}'
-    simruntime_check: '{{ item.check|default([]) }}'
+    simruntime_platform: '{{ ext_item.platform }}'
+    simruntime_version: '{{ ext_item.version|default("") }}'
+    simruntime_check: '{{ ext_item.check|default([]) }}'
