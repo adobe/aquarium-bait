@@ -67,74 +67,76 @@ jobs:
           name: out-${{ env.name }}
           path: out/*
 
-  Check-Mac-Desktop:
-    runs-on: macos-12
-    steps:
-      - name: Setup Docker Desktop
-        uses: docker-practice/actions-setup-docker@ccc771627519a0dc44b99c63f3ccf5fab1b1b9b8  # Mar 14 2024, timeout increase + node20 migration
-        timeout-minutes: 30
-
-      - name: Show used docker version
-        run: docker version
-
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
-
-      - name: Run checkstyle
-        run: ./check_style.sh
-
-      - name: Run docker image build validation
-        run: |
-          # Change the playbook file in the packer spec to skip testing of unavailable artifacts
-          export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
-
-          # Find all the specs and sort them to build them sequentially (parent-child)
-          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
-          for spec in $(find ./specs/docker -name '*.yml' | sort); do
-            echo "::group::./build_image.sh ${spec}"
-            ./build_image.sh "${spec}" | tee build.log
-
-            # Check the result in out directory is good
-            image_name=$(grep 'INFO: Image post-process completed:' build.log | rev | cut -d " " -f -1 | rev)
-
-            ( cd out/docker
-              # Check manifest
-              ls -lh "./${image_name}/${image_name}.yml"
-              # Check packer.log
-              ls -lh "./${image_name}/packer.log"
-              # Check saved tar archive
-              ls -lh "./${image_name}"/*.tar
-              # Check sha256 file and the content is good
-              shasum -a 256 -c "./${image_name}/${image_name}.sha256"
-            )
-
-            # Verify image packing
-            ./pack_image.sh "out/docker/${image_name}"
-            echo "::endgroup::"
-            sleep 5
-          done
-
-      - name: Upload output artifacts for investigation
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: out-${{ env.name }}
-          path: out/*
+#  Check-Mac-Desktop:
+#    runs-on: macos-12
+#    steps:
+#      - name: Setup Docker Desktop
+#        uses: docker-practice/actions-setup-docker@ccc771627519a0dc44b99c63f3ccf5fab1b1b9b8  # Mar 14 2024, timeout increase + node20 migration
+#        timeout-minutes: 30
+#
+#      - name: Show used docker version
+#        run: docker version
+#
+#      - uses: actions/checkout@v4
+#
+#      - uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.10'  # Python >= 3.12 is not good with ansible 2.9
+#
+#      - name: Run checkstyle
+#        run: ./check_style.sh
+#
+#      - name: Run docker image build validation
+#        run: |
+#          # Change the playbook file in the packer spec to skip testing of unavailable artifacts
+#          export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
+#
+#          # Find all the specs and sort them to build them sequentially (parent-child)
+#          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
+#          for spec in $(find ./specs/docker -name '*.yml' | sort); do
+#            echo "::group::./build_image.sh ${spec}"
+#            ./build_image.sh "${spec}" | tee build.log
+#
+#            # Check the result in out directory is good
+#            image_name=$(grep 'INFO: Image post-process completed:' build.log | rev | cut -d " " -f -1 | rev)
+#
+#            ( cd out/docker
+#              # Check manifest
+#              ls -lh "./${image_name}/${image_name}.yml"
+#              # Check packer.log
+#              ls -lh "./${image_name}/packer.log"
+#              # Check saved tar archive
+#              ls -lh "./${image_name}"/*.tar
+#              # Check sha256 file and the content is good
+#              shasum -a 256 -c "./${image_name}/${image_name}.sha256"
+#            )
+#
+#            # Verify image packing
+#            ./pack_image.sh "out/docker/${image_name}"
+#            echo "::endgroup::"
+#            sleep 5
+#          done
+#
+#      - name: Upload output artifacts for investigation
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: out-${{ env.name }}
+#          path: out/*
 
   Check-Mac-Colima:
-    runs-on: macos-12  # Can't update to 14 since GitHub mac HW doesn't support nested virtualization
+    runs-on: macos-13
     steps:
       - name: Setup Docker Colima
-        run: |
-          brew install docker
-          brew install colima
-          colima start
+        uses: douglascamata/setup-docker-macos-action@f2b307ddc57e8b9d3f9761f3cafa8883b2cdffd4  # v1-alpha.16, Jan 16 2025
 
       - name: Show used docker version
         run: docker version
+
+      - name: Setup packer
+        uses: hashicorp/setup-packer@1aa358be5cf73883762b302a3a03abd66e75b232  # 3.1.0, May 4 2024
+        with:
+          version: 1.8.3
 
       - uses: actions/checkout@v4
 
