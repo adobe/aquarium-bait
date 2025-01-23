@@ -30,6 +30,9 @@
 - name: Getting list of the available simruntimes
   command: xcrun xcdevice list
   register: reg_xcrun_devlist
+  until: reg_xcrun_devlist.stdout.find("},") != -1  # The list tries to find a secondary item in the list
+  retries: 10
+  delay: 10
 
 - name: Validating simulator runtime is installed
   when: simruntime_check|default([])|length > 0
