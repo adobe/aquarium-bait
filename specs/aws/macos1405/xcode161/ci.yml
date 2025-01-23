@@ -1,0 +1,78 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # Variables are set by the build_image.sh script based on the spec path
+  bait_path: .
+  image_name: image
+  parent_name: parent_image
+
+  aws_region: us-west-2
+  aws_account_id: "{{ env `AWS_ACCOUNT_ID` }}"
+  aws_key_id: "{{ env `AWS_KEY_ID` }}"
+  aws_secret_key: "{{ env `AWS_SECRET_KEY` }}"
+
+builders:
+  - type: amazon-ebs
+    instance_type: mac2.metal
+    ami_name: "aquarium/{{ user `image_name` }}-{{ isotime `060102.150405` }}"
+    tags:
+      Name: "aquarium/{{ user `image_name` }}"
+
+    region: "{{ user `aws_region` }}"
+    access_key: "{{ user `aws_key_id` }}"
+    secret_key: "{{ user `aws_secret_key` }}"
+
+    # https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LaunchInstances:
+    # For AWS it seems unreasonable to bind to specific version of the OS AMI (often removed)
+    source_ami_filter:
+      most_recent: true
+      owners: ["{{ user `aws_account_id` }}"]  # Required by packer for security reasons
+      filters:
+        tag:Name: "aquarium/{{ user `parent_name` }}"
+
+    # Disk
+    launch_block_device_mappings:
+      - device_name: /dev/sda1
+        volume_size: 200
+        volume_type: gp3
+        delete_on_termination: true
+
+    # Network
+    subnet_filter:
+      most_free: true
+      filters:
+        tag:Class: image-build
+
+    security_group_filter:
+      filters:
+        tag:Class: image-build-ssh
+
+    tenancy: host
+
+    ssh_username: ec2-user
+    ssh_timeout: 15m
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
+    user: ec2-user
+    use_proxy: false
+    # Making sure python is available for ansible even if xcode is not installed
+    inventory_file_template: >
+      {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
+      ansible_python_interpreter=/usr/local/bin/python3
+    extra_arguments:
+      - --skip-tags
+      - wipe_disk_zeroes
+      - -e
+      - diskmount_disks_warmup=true
+      - -e
+      - jre_extract_path=/opt/srv/jre
+      - -e
+      - jenkins_agent_config_url=http://169.254.169.254/latest/user-data
+      # Using arm package for jre
+      - -e
+      - jre_mac_download_url={% print jre_mac_arm_download_url %}
+      - -e
+      - jre_mac_download_sum={% print jre_mac_arm_download_sum %}
