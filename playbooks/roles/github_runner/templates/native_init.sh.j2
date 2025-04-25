@@ -1,0 +1,6 @@
+#!/bin/sh -e
+# Script runs GitHub runner in native environment
+
+export CONFIG_URL="{{ config_url }}"
+
+"${ENV_PATH}{{ script_dir }}/github_runner.sh"

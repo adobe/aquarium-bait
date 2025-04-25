@@ -1,0 +1,193 @@
+---
+- name: Add agent group
+  become: true
+  group:
+    name: agent
+    gid: 5001
+
+- name: Add user agent with group agent
+  become: true
+  user:
+    name: agent
+    group: agent
+    groups:
+      - _developer  # Developer group needed to use DevToolsSecurity mode
+    uid: 5001
+    comment: GitHub Runner
+
+- name: Enabling the DevToolsSecurity mode in order to allow debugging of the running processes
+  become: true
+  command: DevToolsSecurity -enable
+
+- name: Create extract directory
+  become: true
+  file:
+    path: "{{ github_runner_path }}"
+    state: directory
+
+- name: Store GitHub runner executable scripts
+  become: true
+  copy:
+    src: mac/github_runner.sh
+    dest: "{{ github_runner_path }}/github_runner.sh"
+    owner: root
+    group: wheel
+    mode: "0755"
+
+- name: Preload runner to the image
+  when: github_runner_preload | bool
+  block:
+    - name: Download GitHub Runner archive to the environment
+      include_role:
+        name: download
+      vars:
+        download_url: '{{ github_runner_preload_download_url | default(github_runner_preload_mac_download_url) }}'
+        download_sum: '{{ github_runner_preload_download_sum | default(github_runner_preload_mac_download_sum) }}'
+
+    - name: Create extract directory
+      become: true
+      file:
+        path: /Users/agent/github_runner
+        state: directory
+
+    # Uses BSD tar
+    - name: Unpack full archive to directory
+      become: true
+      command: >
+        tar -C /Users/agent/github_runner -xf "{{ download_path }}"
+      args:
+        warn: false  # Unarchive requires GNU tar that is not installed on macos by default
+
+    - name: Set the right owner for the directory
+      become: true
+      file:
+        path: /Users/agent/github_runner
+        state: directory
+        owner: agent
+        recurse: true
+
+    - name: Check Runner.Listener binary was unpacked properly
+      stat:
+        path: '/Users/agent/github_runner/bin/Runner.Listener{{ ".exe" if native_platform is defined and native_platform == "win" }}'
+      register: reg_github_runner_bin_file
+      failed_when: not reg_github_runner_bin_file.stat.exists
+
+- when: github_runner_ui | bool
+  tags: github_runner_service_config
+  block:
+    - name: Making agent user to autologin
+      become: true
+      command: defaults write /Library/Preferences/com.apple.loginwindow.plist autoLoginUser agent
+
+    - name: Put kcpassword generator script to the system
+      become: true
+      copy:
+        src: mac/autologin_kcpassword.sh
+        dest: /tmp/autologin_kcpassword.sh
+        owner: root
+        group: wheel
+        mode: "0750"
+
+    - name: Generate random agent user password to use in service
+      set_fact:
+        agent_user_pwd: "{{ lookup('password', '/dev/null length=32') }}"
+
+    # The password is needed for autologin, so generating and set it
+    - name: Create kcpassword file for autologin
+      become: true
+      command: /tmp/autologin_kcpassword.sh
+      args:
+        stdin: "{{ agent_user_pwd }}"
+
+    - name: Put the same password for agent user
+      become: true
+      user:
+        name: agent
+        password: "{{ agent_user_pwd }}"
+
+    # If user was just created - during the first run macos asks him about the stuff like data
+    # pivacy, siri etc. If we will just reboot - the next boot will simple skip the questions.
+    # https://derflounder.wordpress.com/2018/04/04/suppressing-the-data-privacy-pop-up-window-on-macos-high-sierra/
+    - name: Reboot the system in order to trigger the first user run
+      become: true
+      command: shutdown -r +1  # Reboot halts packer for some reason, so using this dirty hack
+
+    # VM will reboot and restore ssh connection
+    - name: Wait for ssh connection
+      wait_for_connection:
+        delay: 200
+
+    - name: Wait for agent user to fill its home directory
+      wait_for:
+        path: /Users/agent/Desktop
+
+    - name: Wait for sudo to be available
+      command: sudo --stdin echo ok
+      args:
+        stdin: '{{ ansible_sudo_pass | default("") }}'
+      retries: 20  # sudo could take a while to complete this become
+      delay: 10
+      register: reg_result
+      until: reg_result.rc == 0
+
+    - name: Create agent user LaunchAgents directory
+      become: true
+      file:
+        path: /Users/agent/Library/LaunchAgents
+        state: directory
+
+    - name: Store LaunchAgent plist file for agent autorun during user login
+      become: true
+      template:
+        src: aquarium.gh.agent.plist.j2
+        dest: /Users/agent/Library/LaunchAgents/aquarium.gh.agent.plist
+        owner: root
+        group: wheel
+        mode: "0644"
+      vars:
+        config_url: "{{ github_runner_config_url }}"
+        script_path: "{{ github_runner_path }}/github_runner.sh"
+
+    - name: Disable agent user screensaver
+      become: true
+      command: sudo -u agent defaults -currentHost write com.apple.screensaver idleTime 0
+
+    - name: Disable agent user save windows on logout and restore on login
+      become: true
+      command: sudo -u agent defaults -currentHost write com.apple.loginwindow TALLogoutSavesState 0
+
+    # Hack to allow user apps to access external disks (only AWS option for mounted disks)
+    # Works for MacOS 13.6.1, 14.5
+    # In the future csreq (7th field NULL right now) could be required, but right now if it's not set -
+    # the rule works without validation of the app. Decode: `echo "fade0c..." | xxd -r -p | csreq -r- -t`
+    # and to get the csreq you will need to use codesign -v -dr - PATH 2>&1 | grep '^\(designated\|Identifier\)'
+    - name: Allow agent user apps to access external drives
+      become: true
+      command:
+        argv:
+          - sqlite3
+          - /Users/agent/Library/Application Support/com.apple.TCC/TCC.db
+          # Insert in the fields that matters - for the rest we're using defaults
+          - >
+            INSERT INTO access
+            (service, client, client_type, auth_value, auth_reason, auth_version, indirect_object_identifier_type, flags)
+            VALUES ('kTCCServiceSystemPolicyRemovableVolumes', '{{ item }}', 1, 2, 4, 1, 0, 0);
+      loop:
+        - /bin/sh  # Need to allow agent init script to work
+        - /Users/agent/github_runner/bin/Runner.Listener  # GitHub runner main executable (not affected by sh rule, yep)
+
+# Launching as LaunchDaemon have some benefits, but in general will limit the ability of GitHub runner to utilize
+# sometimes necesary macos services like keystore, so choose wisely.
+- name: Store LaunchDaemon plist file for agent autorun during system startup
+  when: not github_runner_ui | bool
+  tags: github_runner_service_config
+  become: true
+  template:
+    src: aquarium.gh.agent.plist.j2
+    dest: /Library/LaunchDaemons/aquarium.gh.agent.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  vars:
+    config_url: "{{ github_runner_config_url }}"
+    script_path: "{{ github_runner_path }}/github_runner.sh"

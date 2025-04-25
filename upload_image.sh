@@ -20,7 +20,7 @@ fi
 [ "$ARTIFACT_STORAGE_URL" ] || ARTIFACT_STORAGE_URL=https://artifact-storage/aquarium/image
 
 for path in "$@"; do
-    if [ ! -f "$f" ]; then
+    if [ ! -f "$path" ]; then
         echo "WARNING: Skipping $f - does not exist"
         continue
     fi

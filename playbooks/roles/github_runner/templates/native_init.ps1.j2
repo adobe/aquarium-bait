@@ -1,0 +1,6 @@
+#!powershell
+# Script runs GitHub runner in native environment
+
+$env:CONFIG_URL="{{ config_url }}"
+
+& "${env:ENV_PATH}{{ script_dir | replace('/', '\\') }}\github_runner.ps1"

@@ -1,0 +1,108 @@
+---
+- name: Add agent group
+  become: true
+  group:
+    name: agent
+    gid: 5001
+
+- name: Add user agent with group agent
+  become: true
+  user:
+    uid: 5001
+    name: agent
+    group: agent
+    comment: GitHub Runner
+
+- name: Install tools required by github_runner.sh script
+  become: true
+  environment:
+    # Redirecting APT requests through proxy
+    http_proxy: "{{ bait_proxy_url | default(omit) }}"
+    https_proxy: "{{ bait_proxy_url | default(omit) }}"
+  apt:
+    update_cache: true
+    name:
+      - icu-devtools  # To install libicu on any ubuntu version, because it requires version in name
+      - iproute2
+      - curl
+
+- name: Create extract directory
+  become: true
+  file:
+    path: "{{ github_runner_path }}"
+    state: directory
+
+- name: Store GitHub runner executable scripts
+  become: true
+  copy:
+    src: lin/github_runner.sh
+    dest: "{{ github_runner_path }}/github_runner.sh"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Preload runner to the image
+  when: github_runner_preload | bool
+  block:
+    - name: Download GitHub Runner archive to the environment
+      include_role:
+        name: download
+      vars:
+        download_url: '{{ github_runner_preload_download_url | default(github_runner_preload_lin_download_url) }}'
+        download_sum: '{{ github_runner_preload_download_sum | default(github_runner_preload_lin_download_sum) }}'
+
+    - name: Create extract directory
+      become: true
+      file:
+        path: /home/agent/github_runner
+        state: directory
+
+    # Uses GNU tar
+    - name: Unpack full archive to directory
+      become: true
+      command: >
+        tar -C /home/agent/github_runner -xf "{{ download_path }}"
+      args:
+        warn: false  # Easier to use tar command instead of Unarchive one
+
+    - name: Set the right owner for the directory
+      become: true
+      file:
+        path: /home/agent/github_runner
+        state: directory
+        owner: agent
+        recurse: true
+
+    - name: Check Runner.Listener binary was unpacked properly
+      stat:
+        path: '/home/agent/github_runner/bin/Runner.Listener{{ ".exe" if native_platform is defined and native_platform == "win" }}'
+      register: reg_github_runner_bin_file
+      failed_when: not reg_github_runner_bin_file.stat.exists
+
+- when: ansible_service_mgr == 'systemd'
+  block:
+    - name: Add user agent to systemd-journal group
+      become: true
+      user:
+        name: agent
+        groups:
+          - systemd-journal  # Allow to read journals to collect system info
+
+    - name: Add aquarium-gh-agent systemd service
+      become: true
+      template:
+        src: aquarium-gh-agent.service.j2
+        dest: /etc/systemd/system/aquarium-gh-agent.service
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        config_url: "{{ github_runner_config_url }}"
+        script_path: "{{ github_runner_path }}/github_runner.sh"
+
+    - name: Enable service to start the GitHub runner on boot
+      become: true
+      service:
+        name: aquarium-gh-agent
+        enabled: true
+        state: stopped

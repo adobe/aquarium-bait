@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>aquarium.gh.agent</string>
+
+    <key>UserName</key>
+    <string>agent</string>
+    <key>GroupName</key>
+    <string>agent</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>CONFIG_URL</key>
+      <string>{{ config_url }}</string>
+    </dict>
+
+    <key>Program</key>
+    <string>{{ script_path }}</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/agent</string>
+
+    <key>SessionCreate</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/agent/agent.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/agent/agent.log</string>
+</dict>
+</plist>

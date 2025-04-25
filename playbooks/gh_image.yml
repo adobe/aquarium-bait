@@ -1,0 +1,11 @@
+---
+- name: GitHub Runner image provision
+  hosts: all
+  roles:
+    - role: init_ci
+
+    - role: github_runner
+
+    - role: git
+
+    - role: cleanup

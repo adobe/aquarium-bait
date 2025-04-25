@@ -1,0 +1,16 @@
+[Unit]
+Description=GitHub Agent worker
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/home/agent
+Restart=always
+RestartSec=10
+Environment="CONFIG_URL={{ config_url }}"
+ExecStart={{ script_path }}
+
+[Install]
+WantedBy=multi-user.target
