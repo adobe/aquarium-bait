@@ -1,0 +1,27 @@
+---
+# This task just places the agent script to required directory
+
+- name: Create extract directory
+  file:
+    path: "{{ github_runner_path }}"
+    state: directory
+
+- name: Store GitHub runner executable scripts
+  copy:
+    src: "{{ native_platform }}/github_runner.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    dest: "{{ github_runner_path }}/github_runner.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    mode: "0755"
+
+- name: Create native init dirs
+  include_role:
+    name: native_init
+    tasks_from: dirs
+
+- name: Store GitHub runner native init script
+  template:
+    src: native_init.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}.j2
+    dest: "{{ native_init_path }}/init.d/github_runner.{% if native_platform == 'win' %}ps1{% else %}sh{% endif %}"
+    mode: "0755"
+  vars:
+    config_url: "{{ github_runner_config_url }}"
+    script_dir: "{{ github_runner_path | replace(native_init_path, '', 1) }}"

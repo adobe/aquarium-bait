@@ -1,0 +1,53 @@
+---
+min_packer_version: 1.7.9
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  image_name: image
+  parent_name: parent_image
+  parent_version: parent_version
+  out_full_path: "{{ env `PWD` }}/out"
+  remote_proxy_port: '1080'
+
+builders:
+  - type: docker
+    image: "aquarium/{{ user `parent_name` }}:{{ user `parent_version` }}"
+    pull: false
+    commit: true
+    run_command:
+      - -dit
+      - -u=0  # Using root user
+      - --net=container:bait_proxy  # Host only access
+      - --entrypoint=/bin/sh
+      - --
+      - "{{.Image}}"
+    changes:
+      # Locale is important during compilation
+      - ENV LANG en_US.UTF-8
+      - ENV LC_ALL en_US.UTF-8
+      - ENV LANGUAGE en_US:en
+      # GitHub runner variables
+      - USER agent
+      - WORKDIR /home/agent
+      - ENTRYPOINT /srv/github_runner/github_runner.sh
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/gh_image.yml"
+    extra_arguments:
+      - --skip-tags
+      - wipe_disk_zeroes
+      - -e
+      - ansible_become=false  # We already root here
+      - -e
+      - bait_proxy_url=http://host.docker.internal:{{ user `remote_proxy_port` }}
+      - -e
+      - github_runner_config_url=https://host.docker.internal:8001/meta/v1/data/?format=env
+
+    # SCP is not working on OpenSSH client >9
+    use_sftp: true
+
+post-processors:
+  - type: docker-tag
+    repository: "aquarium/{{ user `image_name` }}"
+    tags: original
