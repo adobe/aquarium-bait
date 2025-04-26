@@ -50,18 +50,22 @@
         group: wheel
         mode: "0750"
 
+    - name: Generate random agent user password to use in service
+      set_fact:
+        jenkins_user_pwd: "{{ lookup('password', '/dev/null length=32') }}"
+
     # The password is needed for autologin, so generating and set it
     - name: Create kcpassword file for autologin
       become: true
       command: /tmp/autologin_kcpassword.sh
       args:
-        stdin: jenkins  # Jenkins password is "jenkins"
+        stdin: "{{ jenkins_user_pwd }}"
 
     - name: Put the same password for jenkins user
       become: true
       user:
         name: jenkins
-        password: jenkins
+        password: "{{ jenkins_user_pwd }}"
 
     # If user was just created - during the first run macos asks him about the stuff like data
     # pivacy, siri etc. If we will just reboot - the next boot will simple skip the questions.

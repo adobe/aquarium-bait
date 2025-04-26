@@ -62,4 +62,4 @@ provisioners:
       - -e
       - bait_proxy_url=http://127.0.0.1:{{ user `remote_proxy_port` }}
       - -e
-      - github_actions_config_url=http://169.254.169.254/latest/user-data
+      - github_runner_config_url=http://169.254.169.254/latest/user-data
