@@ -16,9 +16,23 @@
     src: '{{ download_path }}'
     dest: C:\tmp\vs
 
-- name: Detect the visual studio install certificates
+- name: Lookup the layout subdirectory
   win_find:
     paths: C:\tmp\vs
+    file_type: directory
+  register: reg_vs_layout_dir
+  failed_when: reg_vs_layout_dir.matched != 1  # Layout dir have to be the only one
+
+- name: Switch EdgeUpdate/InstallDefault to 1 - checked by installer
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate
+    name: InstallDefault
+    data: 1
+    type: dword
+
+- name: Detect the visual studio install certificates
+  win_find:
+    paths: '{{ (reg_vs_layout_dir.files | first).path }}\certificates'
     patterns: '*.cer'
     recurse: true
   register: reg_vs_install_certs
@@ -33,35 +47,32 @@
     path: "{{ item.path }}"
   with_items: '{{ reg_vs_install_certs.files }}'
 
-- name: Locate the visual studio installer
-  win_find:
-    paths: C:\tmp\vs
-    patterns: vs_setup.exe
-    recurse: true
-  register: reg_vs_installer_path
-  failed_when: reg_vs_installer_path.matched != 1
+# Will execute copy to the Response.json in case override file with pattern "vs*.json" is here
+- block:
+    - name: Locate the visual studio installer Response answers
+      win_find:
+        paths: C:\tmp\vs
+        patterns: vs*.json
+      register: reg_vs_installer_answers
 
-- name: Locate the visual studio installer Response answers
-  win_find:
-    paths: C:\tmp\vs
-    patterns: vs*.json
-  register: reg_vs_installer_answers
-  failed_when: reg_vs_installer_answers.matched != 1
-
-- name: Copy the response answers to installer directory
-  win_copy:
-    src: '{{ (reg_vs_installer_answers.files | first).path }}'
-    dest: '{{ (reg_vs_installer_path.files | first).path | win_dirname }}\Response.json'
-    remote_src: true
+    - name: Copy the response answers override to the installer directory
+      when: reg_vs_installer_answers.matched == 1
+      win_copy:
+        src: '{{ (reg_vs_installer_answers.files | first).path }}'
+        dest: '{{ (reg_vs_layout_dir.files | first).path }}\Response.json'
+        remote_src: true
 
 # In case it fails - you can check the log file:
 # C:\Users\packer\AppData\Local\Temp\dd_installer_<datetime>.log
+# Will cause 3010 (reboot needed) so skipping it
 - name: Install VisualStudio
   win_command: >
-    {{ (reg_vs_installer_path.files | first).path }}
-    --in "{{ (reg_vs_installer_path.files | first).path | win_dirname }}\Response.json"
+    {{ (reg_vs_layout_dir.files | first).path }}\vs_setup.exe
+    --in "{{ (reg_vs_layout_dir.files | first).path }}\Response.json"
     {% if visualstudio_install_path %}--installPath "{{ visualstudio_install_path }}"{% endif %}
     --noRestart --noWeb --force --quiet --wait
+  register: reg_vs_install_result
+  failed_when: reg_vs_install_result.rc not in [0, 3010]  # Describes reboot is needed
 
 # Locate devenv.exe path in registry to find the path to IDE directory
 - name: Locate VS path using registry
@@ -86,6 +97,13 @@
     - VC\Auxiliary\Build\vcvars64.bat
   register: reg_stat_file
   failed_when: not reg_stat_file.stat.exists
+
+- name: Return EdgeUpdate/InstallDefault back to 0 (OSOT default)
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate
+    name: InstallDefault
+    data: 0
+    type: dword
 
 - name: Set system env variable of VS location
   win_environment:
