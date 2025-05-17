@@ -9,7 +9,7 @@ variables:
   username: packer
   password: packer
 
-  iso_full_path: "{{ user `bait_path` }}/init/iso/Windows-Server-2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.iso"
+  iso_full_path: "{{ user `bait_path` }}/init/iso/en-us_windows_server_2022_updated_april_2025_x64_dvd_3f755ec1.iso"
   init_vmx_full_path: "{{ user `bait_path` }}/init/vmx/{{ user `image_name` }}/{{ user `image_name` }}.vmx"
 
 builders:
@@ -25,8 +25,9 @@ builders:
       - <spacebar><wait30s>  # Pressing anykey to boot from installer and wait for the welcome screen
 
       - <tab><tab><tab><spacebar><wait5s>  # Using default english localization and press next
-      - <spacebar><wait30s>  # Press "Install now" button
-      - <down><tab><spacebar><wait5s>  # Selecting "Windows Server 2022 Standard (Desktop Experience)"
+      - <spacebar><wait20s>  # Press "Install now" button
+      - <leftAltOn>i<leftAltOff><wait20s>  # Press Alt+I to tell the system we have no key yet
+      - <down><tab><spacebar><wait10s>  # Selecting "Windows Server 2022 Standard (Desktop Experience)"
       - <spacebar><tab><spacebar><wait5s>  # Accept the license terms and continue
       - <tab><spacebar><wait5s>  # Select "Windows only" custom install
       - <leftShiftOn><tab><tab><leftShiftOff><spacebar>  # Use disk layout by default 100% and press continue
