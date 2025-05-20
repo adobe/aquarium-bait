@@ -155,18 +155,20 @@ if( "${JENKINS_AGENT_WORKSPACE}" ) {
     }
 }
 
-# Wait for jenkins response
+# Download the agent jar
 While( $true ) {
-    $code = try { (Invoke-WebRequest "${JENKINS_URL}").StatusCode } catch { $_.Exception.Response.StatusCode.Value__ }
-    if( $code -eq 200 -or $code -eq 403 ) {
-        break
-    }
+    try {
+        Invoke-WebRequest "${JENKINS_URL}/jnlpJars/agent.jar" -OutFile agent.jar
+        if (Test-Path agent.jar) {
+            $fileSize = (Get-Item agent.jar).Length
+            if ($fileSize -gt 0) {
+                break
+            }
+        }
+    } catch {  }
     echo "Wait for '${JENKINS_URL}' jenkins response..."
     sleep 5
 }
-
-# Download the agent jar and connect to jenkins
-Invoke-WebRequest "${JENKINS_URL}/jnlpJars/agent.jar" -OutFile agent.jar
 
 # Run the agent once - we don't need it to restart due to dynamic nature of the agent
 echo "Running the Jenkins agent '${JENKINS_AGENT_NAME}'..."

@@ -110,14 +110,11 @@ until cd "${ws_path}"; do
     sleep 5
 done
 
-# Wait for jenkins response
-until curl -s -o /dev/null -w '%{http_code}' ${curl_insecure} "${JENKINS_URL}" | grep -s '403\|200' > /dev/null; do
+# Download the agent jar
+until [ "x$(curl -sSLo agent.jar -w '%{http_code}' ${curl_insecure} "${JENKINS_URL}/jnlpJars/agent.jar")" = 'x200' ]; do
     echo "Wait for '${JENKINS_URL}' jenkins response..."
     sleep 5
 done
-
-# Download the agent jar and connect to jenkins
-curl -sSLo agent.jar ${curl_insecure} "${JENKINS_URL}/jnlpJars/agent.jar"
 
 # Run the agent once - we don't need it to restart due to dynamic nature of the agent
 echo "Running the Jenkins agent '${JENKINS_AGENT_NAME}'..."

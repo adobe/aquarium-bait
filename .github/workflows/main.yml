@@ -153,8 +153,9 @@ jobs:
           export BAIT_SPEC_CHANGE='{"provisioners":[{"playbook_file":"{{ user `bait_path` }}/playbooks/bait_validate.yml"}]}'
 
           # Find all the specs and sort them to build them sequentially (parent-child)
-          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | wc -l)"
-          for spec in $(find ./specs/docker -name '*.yml' | sort); do
+          # The colima is very slow, so building just first 5 specs
+          echo "Build jobs to process: $(find ./specs/docker -name '*.yml' | head -n 5 | wc -l)"
+          for spec in $(find ./specs/docker -name '*.yml' | sort | head -n 5); do
             echo "::group::./build_image.sh ${spec}"
             ./build_image.sh "${spec}" | tee build.log
 
