@@ -46,13 +46,13 @@
           - name: xcpretty-json-formatter  # Is used by psm-validate-ios-release-device stage
             version: 0.1.1
             checksum: sha256:7494823ed0129bbc31257188b06337b207f31dfccc632c7e3302acd4b7248ea5
-    - role: jdk
+    - role: java
     - role: groovy
     - role: ccache
     - role: vault
 
     # From CI to simplify the image build process
-    - role: jre
+    - role: java
     - role: jenkins_agent
 
   post_tasks:

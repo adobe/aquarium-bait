@@ -45,7 +45,7 @@ provisioners:
       - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - jre_extract_path=/opt/srv/jre
+      - java_extract_path=/opt/srv/jre
 
     # By default packer uses `/usr/bin/sftp-server -e` which not exist on macos,
     # which causes issues while running on OpenSSH client >9

@@ -46,7 +46,7 @@ provisioners:
       - -e
       - ansible_sudo_pass={{ user `password` }}
       - -e
-      - jre_extract_path=/opt/srv/jre
+      - java_extract_path=/opt/srv/jre
       - -e
       - jenkins_agent_ui=true  # In case your tests needs UI to work properly
 

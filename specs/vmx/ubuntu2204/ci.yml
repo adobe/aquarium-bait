@@ -41,7 +41,7 @@ provisioners:
       - -e
       - bait_proxy_url=http://{{ build `PackerHTTPIP` }}:{{ user `remote_proxy_port` }}
       - -e
-      - jre_extract_path=/srv/jre
+      - java_extract_path=/srv/jre
 
     # scp causes issues while running on OpenSSH client >9
     use_sftp: true

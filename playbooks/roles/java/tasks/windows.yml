@@ -3,23 +3,23 @@
   include_role:
     name: download
   vars:
-    download_url: '{{ jre_win_download_url }}'
-    download_sum: '{{ jre_win_download_sum }}'
+    download_url: '{{ java_win_download_url }}'
+    download_sum: '{{ java_win_download_sum }}'
 
 - name: Create JRE unpack directory
   win_file:
-    path: "{{ jre_extract_path }}"
+    path: "{{ java_extract_path }}"
     state: directory
 
 # Uses BSD tar, GNU will require --wildcards in addition
 - name: Unpack only bin & lib from archive to directory
   win_shell: >
-    tar -C "{{ jre_extract_path }}" -xf "{{ download_path }}" {{ jre_tar_suffix | default(jre_win_tar_suffix) }}
+    tar -C "{{ java_extract_path }}" -xf "{{ download_path }}" {{ java_tar_suffix | default(java_win_tar_suffix) }}
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on windows by default
 
 - name: Check java binary was unpacked properly
   win_stat:
-    path: '{{ jre_extract_path }}\bin\java.exe'
+    path: '{{ java_extract_path }}\bin\java.exe'
   register: reg_jre_bin_file
   failed_when: not reg_jre_bin_file.stat.exists

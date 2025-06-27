@@ -141,7 +141,7 @@ packer_params="$packer_params -var out_full_path=${image_outdir}"
 packer_params="$packer_params -var remote_proxy_port=${remote_proxy_port}"
 if [ $stage -gt 1 ]; then
     parent_name=$(echo "${yml_bait}" | cut -d. -f1 | cut -d/ -f3- | rev | cut -d/ -f2- | rev | tr / -)
-    if [ $image_type != "aws" ]; then
+    if [ $image_type != "aws" ] && [ $image_type != "aquarium" ]; then
         # Filter the dirs in addition with grep due to the childrens could be found too
         parent_image=$(find "${image_outdir}" -type d -name "${parent_name}-*" | grep -E "${parent_name}-[^-]*$" || printf '')
         parent_version=$(basename "${parent_image}" | rev | cut -d- -f1 | rev)

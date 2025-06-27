@@ -68,11 +68,11 @@ provisioners:
       - -e
       - diskmount_disks_warmup=true
       - -e
-      - jre_extract_path=/opt/srv/jre
+      - java_extract_path=/opt/srv/jre
       - -e
       - jenkins_agent_config_url=http://169.254.169.254/latest/user-data
       # Using arm package for jre
       - -e
-      - jre_mac_download_url={% print jre_mac_arm_download_url %}
+      - java_mac_download_url={% print jre_mac_arm_download_url %}
       - -e
-      - jre_mac_download_sum={% print jre_mac_arm_download_sum %}
+      - java_mac_download_sum={% print jre_mac_arm_download_sum %}
