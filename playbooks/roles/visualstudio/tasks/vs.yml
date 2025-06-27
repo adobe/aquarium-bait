@@ -74,11 +74,11 @@
   register: reg_vs_install_result
   failed_when: reg_vs_install_result.rc not in [0, 3010]  # Describes reboot is needed
 
-# Locate devenv.exe path in registry to find the path to IDE directory
-- name: Locate VS path using registry
+# Locate devenv.exe path to find the path to IDE directory
+- name: Locate VS path using vswhere
   win_shell: >
-    (Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\devenv.exe'
-    -Name '(default)').Trim('"') | Split-Path | Split-Path | Split-Path
+    (& 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+    /property productPath) | Split-Path | Split-Path | Split-Path
   register: reg_vs_path
 
 - name: Put the vs path to visualstudio_install_path variable
