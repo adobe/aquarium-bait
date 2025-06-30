@@ -1,0 +1,63 @@
+---
+# WARNING: Uses pre-cached python so make sure it's available in playbook/files/mac
+min_packer_version: 1.8.7
+variables:
+  # All the variables are set by the build_image.sh script based on the path
+  bait_path: .
+  image_name: image
+  parent_name: parent_image
+  parent_version: parent_version
+  out_full_path: "{{ env `PWD` }}/out"
+  aquarium_bait_proxy_port: null  # Local proxy port to bypass VPN routing
+  username: packer
+  password: packer
+
+builders:
+  - type: tart-cli
+    vm_name: "{{ user `image_name` }}"
+    vm_base_name: "{{ user `parent_name` }}-{{ user `parent_version` }}"
+    cpu_count: 4
+    memory_gb: 8
+    disk_size_gb: 200
+    headless: true
+    run_extra_args:
+      - --net-host  # Using softnet host network in softnet to block global internet access
+    create_grace_time: 30s  # Workaround for Virtualization.Framework's installation process not completing in time
+    boot_wait: 30s  # Till the first screen
+
+    ssh_username: "{{ user `username` }}"
+    ssh_password: "{{ user `password` }}"
+    ssh_proxy_host: 127.0.0.1  # Local proxy in order to bypass VPN routing
+    ssh_proxy_port: "{{ user `aquarium_bait_proxy_port` }}"
+    ssh_timeout: 120s
+    ssh_read_write_timeout: 10s
+    ssh_wait_timeout: 2m
+
+provisioners:
+  - type: ansible
+    command: "{{ user `bait_path` }}/scripts/run_ansible.sh"
+    playbook_file: "{{ user `bait_path` }}/playbooks/ci_image.yml"
+    user: "{{ user `username` }}"
+    # Use python3 installed before instead of the default not working one (/usr/bin/python3)
+    # due to not installed developer tools and absent of any built-in python.
+    # Using inventory here because extra_arguments are working for localhost (vncdo) too.
+    inventory_file_template: >
+      {{ .HostAlias }} ansible_host={{ .Host }} ansible_user={{ .User }} ansible_port={{ .Port }}
+      ansible_python_interpreter=/usr/local/bin/python3
+    extra_arguments:
+      - -e
+      - ansible_sudo_pass={{ user `password` }}
+      - -e
+      - jre_extract_path=/opt/srv/jre
+      - -e
+      - jenkins_agent_ui=true
+      # Using arm package for jre
+      - -e
+      - jre_mac_download_url={% print jre_mac_arm_download_url %}
+      - -e
+      - jre_mac_download_sum={% print jre_mac_arm_download_sum %}
+
+    # By default packer uses `/usr/bin/sftp-server -e` which not exist on macos,
+    # which causes issues while running on OpenSSH client >9
+    use_sftp: true
+    sftp_command: /usr/libexec/sftp-server -e
