@@ -19,6 +19,13 @@ IMAGE_NAME=$(basename "${IMAGE_FULL_PATH}")
 
 root_dir="$PWD"
 
+if [ "x$(uname)" = "xDarwin" ]; then
+    # MacOS puts quarantine attribute on files after native unpacking, so removing it after the fact
+    echo 'INFO: Applying special quarantine fix for macos builder host'
+    chmod -R u+rw "${IMAGE_FULL_PATH}"
+    xattr -dr com.apple.quarantine "${IMAGE_FULL_PATH}"
+fi
+
 echo 'INFO: Pack the prepared environment as tar archive'
 cd "${IMAGE_FULL_PATH}"
 tar -cf "${IMAGE_FULL_PATH}.tar" *
