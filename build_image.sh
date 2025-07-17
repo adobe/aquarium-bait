@@ -33,6 +33,8 @@ export PACKER_ROOT="${script_dir}"
 # Increase the max attempts to 1h30m for AWS wait of AMI. Could take a while (up to 1h) for big
 # images and raise "Error waiting for AMI: Failed with ResourceNotReady error" on image completion
 export AWS_MAX_ATTEMPTS=360
+# Switching Tart softnet into host-only mode to isolate VM's
+export SOFTNET_NET_TYPE=host
 
 yml="$1"
 # We need to get the path starts with `specs/` to process it properly
@@ -57,12 +59,21 @@ mkdir -p "${image_outdir}"
 image=$(echo "${yml_bait}" | cut -d. -f1 | cut -d/ -f3- | tr / -)
 echo "INFO: Building image for ${image_type} '${image}' ${BAIT_SESSION}..."
 
-if [ "$image_type" = 'vmx' ]; then
+if [ "$image_type" = 'vmx' -o "$image_type" = 'tart' ]; then
     # Make sure no VM is running currently to provide the clean environment for the build
-    if which vmrun > /dev/null 2>&1; then
-        if [ "x$(vmrun list | head -1 | rev | cut -d" " -f 1)" != "x0" ]; then
-            echo "ERROR: Found running VMware VM's, please shutdown them before running the build:\n$(vmrun list)"
-            exit 1
+    if [ "$image_type" = 'vmx' ]; then
+        if which vmrun > /dev/null 2>&1; then
+            if [ "x$(vmrun list | head -1 | rev | cut -d" " -f 1)" != "x0" ]; then
+                echo "ERROR: Found running VMware VM's, please shutdown them before running the build:\n$(vmrun list)"
+                exit 1
+            fi
+        fi
+    else
+        if which tart > /dev/null 2>&1; then
+            if [ "x$(tart list | grep running | wc -l | tr -d ' ')" != "x0" ]; then
+                echo "ERROR: Found running Tart VM's, please shutdown them before running the build:\n$(tart list)"
+                exit 1
+            fi
         fi
     fi
 
@@ -189,7 +200,7 @@ clean_bg
 echo "INFO:  generating packer json for '${yml}'..."
 cat "${yml}" | "${script_dir}/scripts/run_yaml2json.sh" "$BAIT_SPEC_APPLY" "$BAIT_SPEC_CHANGE" "$BAIT_SPEC_DELETE" > "${yml}.json"
 
-if [ "$image_type" = 'vmx' ]; then
+if [ "$image_type" = 'vmx' -o "$image_type" = 'tart' ]; then
     # Cleaning the non-tracked files from the init directory
     git -C "${root_dir}" clean -fX init/vmx/ || true
 

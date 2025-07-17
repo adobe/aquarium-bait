@@ -5,6 +5,8 @@ jre_lin_tar_suffix: --strip-components=1
 
 jre_mac_download_url: https://artifact-storage/aquarium/files/mac/zulu8.58.0.14-sa-jre8.0.312-macosx_x64.tar.gz
 jre_mac_download_sum: sha256:cb945aa49ea1747eea217fd1c9bf26040790ffecc64a8070e7c408cd15161dbb
+jre_mac_arm_download_url: https://artifact-storage/aquarium/files/mac/zulu11.52.14-sa-jre11.0.13-macosx_aarch64.tar.gz
+jre_mac_arm_download_sum: sha256:cb68c6bb0a98fb9d9dccab70895ec6e35351ab00bda4d71dc2fbd3f5325adaba
 jre_mac_tar_suffix: --strip-components=4
 
 jre_win_download_url: https://artifact-storage/aquarium/files/win/zulu8.58.0.14-sa-jre8.0.312-win_x64.tar.gz
