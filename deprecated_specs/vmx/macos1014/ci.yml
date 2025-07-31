@@ -56,4 +56,4 @@ provisioners:
       - -e
       - vmtools_vm_type=vmware
       - -e
-      - jre_extract_path=/opt/srv/jre8
+      - java_extract_path=/opt/srv/jre8

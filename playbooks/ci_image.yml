@@ -4,7 +4,7 @@
   roles:
     - role: init_ci
 
-    - role: jre
+    - role: java
 
     - role: jenkins_agent
 

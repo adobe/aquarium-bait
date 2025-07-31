@@ -64,6 +64,6 @@ provisioners:
       - -e
       - bait_proxy_url=http://127.0.0.1:{{ user `remote_proxy_port` }}
       - -e
-      - jre_extract_path=/srv/jre
+      - java_extract_path=/srv/jre
       - -e
       - jenkins_agent_config_url=http://169.254.169.254/latest/user-data

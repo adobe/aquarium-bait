@@ -1,27 +1,27 @@
 ---
-- name: Download JRE archive to the environment
+- name: Download Java archive to the environment
   include_role:
     name: download
   vars:
-    download_url: '{{ jre_download_url | default(jre_mac_download_url) }}'
-    download_sum: '{{ jre_download_sum | default(jre_mac_download_sum) }}'
+    download_url: '{{ java_download_url | default(java_mac_download_url) }}'
+    download_sum: '{{ java_download_sum | default(java_mac_download_sum) }}'
 
 - name: Create extract directory
   become: true
   file:
-    path: "{{ jre_extract_path }}"
+    path: "{{ java_extract_path }}"
     state: directory
 
 # Uses BSD tar, GNU will require --wildcards in addition
 - name: Unpack only bin & lib from archive to directory
   become: true
   command: >
-    tar -C "{{ jre_extract_path }}" -xf "{{ download_path }}" {{ jre_tar_suffix | default(jre_mac_tar_suffix) }}
+    tar -C "{{ java_extract_path }}" -xf "{{ download_path }}" {{ java_tar_suffix | default(java_mac_tar_suffix) }}
   args:
     warn: false  # Unarchive requires GNU tar that is not installed on macos by default
 
 - name: Check java binary was unpacked properly
   stat:
-    path: '{{ jre_extract_path }}/bin/java{{ ".exe" if native_platform is defined and native_platform == "win" }}'
+    path: '{{ java_extract_path }}/bin/java{{ ".exe" if native_platform is defined and native_platform == "win" }}'
   register: reg_jre_bin_file
   failed_when: not reg_jre_bin_file.stat.exists

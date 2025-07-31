@@ -48,9 +48,9 @@ for path in "$@"; do
     echo
     echo "INFO:  upload complete:"
     echo
-    echo "INFO:  - name: $name"
-    echo "INFO:    url: $url"
-    echo "INFO:    sum: sha256:$checksum"
+    echo "INFO:  - name: \"$name\""
+    echo "INFO:    url: \"$url\""
+    echo "INFO:    sum: \"sha256:$checksum\""
     echo
 done
 

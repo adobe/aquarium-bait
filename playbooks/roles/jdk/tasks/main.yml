@@ -1,4 +1,0 @@
----
-- name: Execute on MacOS
-  when: ansible_system == 'Darwin'
-  import_tasks: macos.yml

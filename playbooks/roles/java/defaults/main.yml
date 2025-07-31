@@ -1,0 +1,15 @@
+---
+java_lin_download_url: https://artifact-storage/aquarium/files/mac/zulu8.58.0.14-sa-jre8.0.312-linux_x64.tar.gz
+java_lin_download_sum: sha256:0c740b1d0c5ad4596581095473a806ba90125927d34305fcdfe6fd195909022d
+java_lin_tar_suffix: --strip-components=1
+
+java_mac_download_url: https://artifact-storage/aquarium/files/mac/zulu8.58.0.14-sa-jre8.0.312-macosx_x64.tar.gz
+java_mac_download_sum: sha256:cb945aa49ea1747eea217fd1c9bf26040790ffecc64a8070e7c408cd15161dbb
+java_mac_tar_suffix: --strip-components=4
+
+java_win_download_url: https://artifact-storage/aquarium/files/win/zulu8.58.0.14-sa-jre8.0.312-win_x64.tar.gz
+java_win_download_sum: sha256:119429e02cc345f18f755fe242b82f3b1d1122adf0ca4b23975efacd8108357a
+java_win_tar_suffix: --strip-components=1
+
+required_vars:
+  - java_extract_path  # Path to the extract directory

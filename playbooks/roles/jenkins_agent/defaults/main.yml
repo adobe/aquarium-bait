@@ -1,5 +1,5 @@
 ---
-jenkins_agent_java_home: "{{ jre_extract_path }}"
+jenkins_agent_java_home: "{{ java_extract_path }}"
 
 jenkins_agent_nssm_win_download_url: https://artifact-storage/aquarium/files/win/nssm-2.24.zip
 jenkins_agent_nssm_win_download_sum: sha256:727d1e42275c605e0f04aba98095c38a8e1e46def453cdffce42869428aa6743
