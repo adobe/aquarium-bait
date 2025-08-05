@@ -41,9 +41,9 @@ provisioners:
       - -e
       - bait_proxy_url=http://{{ build `PackerHTTPIP` }}:{{ user `remote_proxy_port` }}
       - -e
-      - java_lin_download_url={% print jre_lin_arm_download_url %}
+      - java_lin_download_url={% print java_lin_arm_download_url %}
       - -e
-      - java_lin_download_sum={% print jre_lin_arm_download_sum %}
+      - java_lin_download_sum={% print java_lin_arm_download_sum %}
       - -e
       - java_extract_path=/srv/jre
 

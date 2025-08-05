@@ -73,6 +73,6 @@ provisioners:
       - jenkins_agent_config_url=http://169.254.169.254/latest/user-data
       # Using arm package for jre
       - -e
-      - java_mac_download_url={% print jre_mac_arm_download_url %}
+      - java_mac_download_url={% print java_mac_arm_download_url %}
       - -e
-      - java_mac_download_sum={% print jre_mac_arm_download_sum %}
+      - java_mac_download_sum={% print java_mac_arm_download_sum %}
