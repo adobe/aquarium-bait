@@ -87,8 +87,7 @@ if [ $image_stage -gt 1 ]; then
             done
         fi
         if [ "x${parent_layers_removed}" = 'x' ]; then
-            echo "ERROR:   none parent layers was found to remove for ${parent_name}"
-            exit 1
+            echo "INFO:   none parent layers was found to remove for ${parent_name}"
         fi
     done
     echo 'INFO:   pack the image back to tar archive'
