@@ -24,6 +24,8 @@
 # will not be able to access the mounted workspace disk.
 [ "$CONFIG_FILE" ] || CONFIG_FILE=/Volumes/ws/config/jenkins_agent.env
 
+. /etc/profile
+
 getConfigUrls() {
     # Prepare a list of the gateway endpoints to locate Fish API host
 
