@@ -137,7 +137,7 @@
             VALUES ('kTCCServiceSystemPolicyRemovableVolumes', '{{ item }}', 1, 2, 4, 1, 0, 0);
       loop:
         - /bin/sh  # Need to allow agent init script to work
-        - /opt/srv/jre/bin/java  # Jenkins agent main executor (not affected by sh rule, yep)
+        - '{{ jenkins_agent_java_home }}/bin/java'  # Jenkins agent main executor (not affected by sh rule, yep)
 
 # Launching as LaunchDaemon have some benefits, but in general will limit the ability of jenkins agent to utilize
 # sometimes necesary macos services like keystore, so choose wisely.
