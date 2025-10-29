@@ -173,14 +173,22 @@
     - set_fact:
         incorrect_file_sum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
-    - name: Download the reference README.md file to the environment
-      include_role:
-        name: download
-      vars:
-        download_url: http://not-existing-server/reference/README.md
-        download_sum: '{{ incorrect_file_sum }}'
-      register: reg_incorrect_file
-      failed_when: reg_incorrect_file.status|bool
+    - name: Catching the expected error within include_role
+      block:
+        - name: Download the reference README.md file with incorrect checksum to the environment
+          include_role:
+            name: download
+          vars:
+            download_url: http://not-existing-server/reference/README.md
+            download_sum: '{{ incorrect_file_sum }}'
+
+        - name: If the execution get here - the test is failed
+          fail:
+            msg: 'Test failed: incorrect checksum passed without causing an error in download role'
+      rescue:
+        - name: Test succeded
+          debug:
+            msg: The download role catched the checksum error correctly
 
 
   roles:
