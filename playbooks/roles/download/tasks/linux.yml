@@ -42,7 +42,7 @@
 # - during making of playbooks it's easy to forgot to update checksum of the file
 # - the copy process potentially could transfer files wrong
 - name: Make sure the copied file {{ vars[download_result_var] }} checksum is ok
-  when: download_sum|default(false)|bool
+  when: download_sum|default('')|length > 0
   register: reg_remote_file
   stat:
     path: '{{ vars[download_result_var] }}'

@@ -167,9 +167,25 @@
           register: reg_reference_file
           failed_when: reg_reference_file.stat.checksum != (reference_file_sum.split(":") | last)
 
+    ##
+    # Test 5: Ensure download will fail if checksum is incorrect
+    ##
+    - set_fact:
+        incorrect_file_sum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+    - name: Download the reference README.md file to the environment
+      include_role:
+        name: download
+      vars:
+        download_url: http://not-existing-server/reference/README.md
+        download_sum: '{{ incorrect_file_sum }}'
+      register: reg_incorrect_file
+      failed_when: reg_incorrect_file.status|bool
+
+
   roles:
     ##
-    # Test 5: Verify cleanup is working properly
+    # Test 6: Verify cleanup is working properly
     ##
     - role: cleanup
 
