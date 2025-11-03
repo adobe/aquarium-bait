@@ -178,7 +178,7 @@
         name: download
       vars:
         download_url: http://not-existing-server/reference/README.md
-        download_sum: not_existing_variable | default(omit)
+        download_sum: '{{ not_existing_variable | default(omit) }}'
         download_lin_dir: test/subdir2
         download_mac_dir: test/subdir2
         download_win_dir: test/subdir2
