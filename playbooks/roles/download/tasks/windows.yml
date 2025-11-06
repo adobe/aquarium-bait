@@ -41,7 +41,7 @@
 # - during making of playbooks it's easy to forgot to update checksum of the file
 # - the copy process potentially could transfer files wrong
 - name: Make sure the copied file {{ vars[download_result_var] }} checksum is ok
-  when: (download_sum|default('')|length > 0) and (download_sum is not sameas omit)
+  when: (download_sum|default('')|length > 0) and (download_sum != omit)
   register: reg_remote_file
   win_stat:
     path: '{{ vars[download_result_var] }}'
